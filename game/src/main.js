@@ -482,6 +482,7 @@ function step() {
 // twice; the screen's own settings (camera size, Gentle Mode, upgrades) stay as they are now.
 // Never writes or reads a save slot.
 function rewind() {
+  input.cancelEnter(); // [issue #27] a ↓ pressed before the rewind never becomes Enter after it
   const cam = game.camera, keep = { zoom: cam.zoom, hFrac: cam.hFrac, touchBias: cam.touchBias, avoid: cam.avoid }, gentle = game.gentle;
   const r = rewinder.rewind(game);
   if (r) {

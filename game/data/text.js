@@ -2,8 +2,9 @@
 // Tone: gentle, funny, never cruel. Nobody gets eaten. Geckos are polite about wanting to.
 //
 // Conventions (read by src/lines.js `line('geckos.duchess.pre')` and src/dialog.js):
-// - {jump} {use} {chirp} {kick} {listen} {up} {down} {left} {right} {swapPrev} {swapNext} {map}
-//   {enter} (go in / use: ↓ on every scheme) {cloak} (hold: Shift, stick up) [issue #27]
+// - {jump} {use} {chirp} {kick} {listen} {down} {left} {right} {swapPrev} {swapNext} {map}
+//   {enter} (go in / use: ↓ on every scheme) {cloak} (hold: Shift, stick up) [issue #27: never {up}, which
+//   jumps on the keyboard]
 //   {pause} render as key caps / pad glyphs (never write a bare key letter).
 // - *word* is a dialog BEAT (italic, a short pause; for Lashes the portrait licks its eye on
 //   *slurp*). Never use asterisks for emphasis: use CAPITALS.
