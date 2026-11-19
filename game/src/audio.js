@@ -29,16 +29,24 @@ import * as Chirps from './chirps.js';
 import { beaconSpec, measure, FLOOR_DB, info as zoneInfo, listenGainDb } from './beacon.js';
 
 const MUSIC_DIR = 'assets/audio/music/', SFX_DIR = 'assets/audio/sfx/';
-export const SFX_NAMES = ['bat-squeaks', 'beetle-plod', 'bigtok-bellow', 'bonk', 'crinkle', 'crumb', 'dialog-blip', 'dragon-hiss', 'dryer-hum', 'floss-swing', 'furnace', 'gecko-chomp', 'gecko-growl', 'gecko-snore', 'glide-whoosh', 'glow-flash', 'ground-pound', 'hinge-creak', 'hop', 'hurt', 'item-get', 'kick', 'land', 'menu-back', 'menu-move', 'menu-select', 'pillow-bonk', 'raft-splash', 'rain-roof', 'rubber-band-twang', 'save-crack', 'seed-heart', 'splat', 'squeak-toy', 'swap-puff', 'swift-chitter', 'unlock', 'vacuum', 'wall-cling', 'wall-jump'];
+export const SFX_NAMES = ['bat-squeaks', 'beetle-plod', 'bigtok-bellow', 'bonk', 'crinkle', 'crumb', 'dialog-blip', 'dragon-hiss', 'dryer-hum', 'floss-swing', 'furnace', 'gecko-chomp', 'gecko-growl', 'gecko-skitter', 'gecko-snore', 'glide-whoosh', 'glow-flash', 'ground-pound', 'gulp', 'hinge-creak', 'hop', 'hurt', 'item-get', 'kick', 'land', 'menu-back', 'menu-move', 'menu-select', 'pillow-bonk', 'pounce-land', 'raft-splash', 'rain-roof', 'relief-sting', 'rubber-band-twang', 'save-crack', 'seed-heart', 'splat', 'squeak-toy', 'swap-puff', 'swift-chitter', 'unlock', 'vacuum', 'wall-cling', 'wall-jump'];
 // [issue 14] Effects only some zones use (src/zone-sfx.js asks for them; beetle-plod is unused). Every
-// other effect is in sfxFirst(), loaded right after the title music.
-export const ZONED_SFX = ['bat-squeaks', 'beetle-plod', 'bigtok-bellow', 'dragon-hiss', 'dryer-hum', 'furnace', 'gecko-chomp', 'gecko-growl', 'gecko-snore', 'rain-roof', 'squeak-toy', 'swift-chitter', 'vacuum'];
+// other effect is in sfxFirst(), loaded right after the title music. [issue 25] The opening chase's
+// gecko-skitter, pounce-land, gulp and relief-sting load with the tank (src/zone-sfx.js).
+export const ZONED_SFX = ['bat-squeaks', 'beetle-plod', 'bigtok-bellow', 'dragon-hiss', 'dryer-hum', 'furnace', 'gecko-chomp', 'gecko-growl', 'gecko-skitter', 'gecko-snore', 'gulp', 'pounce-land', 'rain-roof', 'relief-sting', 'squeak-toy', 'swift-chitter', 'vacuum'];
 export const sfxFirst = () => SFX_NAMES.filter((n) => !ZONED_SFX.includes(n));
 // Loop gains from design/ASSETS.md (the files are quiet on purpose).
-const LOOP_DB = { vacuum: 12, 'dryer-hum': 25, 'rain-roof': 18, furnace: 16 };
+// [issue 25] gecko-skitter (Duchess's feet, -32.5 LUFS as made): +12 puts it with the others (~-20.5).
+const LOOP_DB = { vacuum: 12, 'dryer-hum': 25, 'rain-roof': 18, furnace: 16, 'gecko-skitter': 12 };
 const AMBIENCE_LEVEL = 0.35;
 // Per-sound trim (dB) on top of the automatic loudness levelling done at decode.
-const TRIM_DB = { hop: -5, land: -6, 'wall-cling': -6, 'wall-jump': -4, kick: -2, 'menu-move': -9, 'menu-back': -7, 'menu-select': -5, 'dialog-blip': -10, crumb: -4, 'item-get': 0, crinkle: -8, 'swap-puff': -4, 'glide-whoosh': -5, 'floss-swing': -4, 'raft-splash': -4, 'save-crack': -2, 'glow-flash': -3, 'ground-pound': -1, 'gecko-snore': -6 };
+const TRIM_DB = { hop: -5, land: -6, 'wall-cling': -6, 'wall-jump': -4, kick: -2, 'menu-move': -9, 'menu-back': -7, 'menu-select': -5, 'dialog-blip': -10, crumb: -4, 'item-get': 0, crinkle: -8, 'swap-puff': -4, 'glide-whoosh': -5, 'floss-swing': -4, 'raft-splash': -4, 'save-crack': -2, 'glow-flash': -3, 'ground-pound': -1, 'gecko-snore': -6,
+  // [issue 25] the skitter is a loop (no levelling): played with play() it gets its LOOP_DB here; the
+  // relief sting is music, so it sits under the effects (levelled -12.2 -> -16 LUFS)
+  'gecko-skitter': 12, 'relief-sting': -4 };
+// [issue 25] Per-track music gain (dB). The tracks were levelled to about -15..-22 LUFS (boss -19.8,
+// title -17.2); the chase cue came in at -16, so -2 puts it with the boss music.
+const MUSIC_DB = { chase: -2 };
 const JITTER = { hop: 0.07, land: 0.07, 'wall-jump': 0.05, kick: 0.04, crumb: 0.05, 'wall-cling': 0.05 };
 const POOL = 4;               // max simultaneous copies of one sound
 const LOOKAHEAD = 6;          // frames (100 ms at 60 Hz)
@@ -326,7 +334,7 @@ async function startTrack(name, instant = false) {
     mus.fading.push(old); old.src.onended = () => { mus.fading = mus.fading.filter((f) => f !== old); };
   }
   const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
-  const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + fade);
+  const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(db(MUSIC_DB[name] || 0), t + fade);
   src.connect(g); g.connect(N.cut); src.start(t);
   mus.cur = { name, src, g, t0: t, dur: buf.duration };
   st.carrierBeat = -1;

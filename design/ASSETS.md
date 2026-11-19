@@ -14,7 +14,9 @@ Looked up 2026-11-15 at developers.openai.com/api/docs/pricing.
 
 ## Budget
 
-$20 in all, of which up to $5 goes on mockups for the shared design. Running total: **$27.36** ($3.93 mockups + $10.89 audio + $2.10 scenes + $1.87 objects + $2.00 geckos + $0.30 fixes + $2.25 crickets B + $3.97 crickets A) (mockups only; the mockup allowance was raised to $10 in request 2)
+- **Mockups** (the shared design): $3.93 of a $10 allowance (raised from $5 in request 2).
+- **Build assets** (request 9, $50 budget) and later issues: everything below.
+- **Running total: $30.83** = $3.93 mockups + $10.89 audio + $2.10 scenes + $1.87 objects + $2.00 geckos + $0.30 orchestrator fixes + $2.25 crickets B + $3.97 crickets A + $0.05 final-review fixes + $1.37 issue #6 + $2.10 issues #25/#26. (The old line said $27.36 for the first eight items; they add up to $27.31.)
 
 | ID | File | Tool | Prompt (short) | Tries | Est. cost |
 |---|---|---|---|---|---|
@@ -105,3 +107,26 @@ $20 in all, of which up to $5 goes on mockups for the shared design. Running tot
 | open-4 edit | game/assets/story/open-4.webp | nanogen 2.1 2K edit of the old panel, with open-3 and store-cup as refs | only the falling cup: the white store cup with its lid popping off (2 takes; kept the one that keeps the cup's spot and size) | 2 | about $0.16 |
 
 Issue #6 total: about $1.37 ($0.45 candidates + $0.76 final + $0.16 panel 4).
+
+### Issues #25/#26, Duchess's animation and the opening chase's sound: about $2.10
+
+Images ($1.23): anim8gen packages `.anim8gen/runs/duchess-{run,pounce,wake,tongue}/` (candidates.jsonl has every prompt and its usage), imagegen2 gpt-image-2.6-flare medium 1536×1024, native alpha, `--no-history`; the reference is her tailless body (`duchess-notail-clean.png`: `duchess-notail-canvas.png` with the hidden tail's colour cleared), plus the previous accepted frame. Each image is about $0.047 with one reference and $0.060 with two (1132 output tokens, about 1600 image input tokens per reference).
+
+| ID | File | Tool | Prompt (short) | Tries | Est. cost |
+|---|---|---|---|---|---|
+| duchess run | art/sprites/geckos/duchess/anim/run/00-05.png | anim8gen / imagegen2, as above | a low belly-to-sand scramble, near legs reaching and pushing in turn, tailless, facing left, no prey, mouth closed | 8 (frame 5 twice: lost her teeth, then her eye came out too big) | $0.46 |
+| duchess pounce | anim/pounce/00-03.png | the same | crouch, launch (stretched), airborne (jaws opening), land (belly down, jaws shut) | 6 (launch and airborne again: the hips came out thin, so the code tail looked too fat) | $0.35 |
+| duchess wake | anim/wake/00-01.png | the same | head jerks up, then eye wide | 2 | $0.11 |
+| duchess tongue | anim/tongue/00-02.png | the same | tongue flick, lip-lick, settle | 6 (all three again, asked to keep her idle stance) | $0.32 |
+
+Audio ($0.87): audiogen, creator plan (no credit line). Loudness measured in Chromium (decodeAudioData, BS.1770 integrated LUFS) since there's no ffmpeg here, so levels are set in code (audio.js) rather than in the files:
+
+| ID | File | Tool | Prompt (short) | Tries | Est. cost | LUFS / peak (file) |
+|---|---|---|---|---|---|---|
+| chase cue | game/assets/audio/music/chase.mp3 | audiogen music 30 s, instrumental | 132 BPM, D major, pizzicato strings, low clarinet stabs, soft timpani, no intro | 1 | $0.15 | -16.0 / -1.2 dBFS; MUSIC_DB -2 dB (the tracks run -15 to -22, boss -19.8, title -17.2) |
+| gecko-skitter | sfx/gecko-skitter.mp3 | audiogen sfx 2 s `--loop` | a lizard running on sand, continuous patter | 2 (take 1 was 3 sparse bursts) | $0.24 | -32.5 / -15.0; LOOP_DB +12 (like the other loops) |
+| pounce-land | sfx/pounce-land.mp3 | audiogen sfx 0.7 s | soft heavy belly thump into sand, grainy hiss | 1 | $0.12 | -28.0 / -7.8; levelled +9.7 at decode |
+| gulp | sfx/gulp.mp3 | audiogen sfx 1 s, then whole MP3 frames trimmed (no re-encode) | a wet but clean cartoon gulp, then a contented "mm" | 2 (take 1 was 0.3 s of sound with 0.3 s silence each side) | $0.24 | -13.8 / -1.4; 0.78 s |
+| relief-sting | sfx/relief-sting.mp3 | audiogen sfx 3 s | harp and music box resolving on D major | 1 | $0.12 | -18.6 / -2.9; levelled +6.4, trim -4 |
+
+gecko-snore (re-checked, unchanged): -19.0 LUFS, peak -5.3 dBFS, 1.9 s. It is one snore decaying smoothly from -16 to -46 dBFS (50 ms RMS), with no steady hiss floor under it, so the +24 dB boost didn't leave audible noise; in game it is levelled +6.7 and trimmed -6.
