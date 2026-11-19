@@ -21,7 +21,9 @@ be seen at 100 % (tools: before/after contact sheets, issue #14), for ~1/8 of th
 Downscaling (art/max-size.json): a picture stored far larger than the game ever draws it is shrunk to keep
 2x its largest drawn size (hi-DPI headroom), measured at 1920x1080. Only pictures the game always
 draws at an explicit size (props, items, enemies, NPCs, the Carrier, UI) may be shrunk: crickets
-and geckos are drawn in their own pixels (anchors.json, meta.json), so they keep their size.
+and geckos are drawn in their own pixels (anchors.json, meta.json), so they keep their size. A
+gecko's animation frames (anim/<anim>/NN, issue #26) are the exception: meta.json gives each its
+drawn size, so they're stored at about 2x the largest size the game draws them (~800 px wide).
 
 Not built (SKIP): sources the game never draws (terrain swatches feed tools/make-textures.py, the
 app icon's source, unused ink blots).

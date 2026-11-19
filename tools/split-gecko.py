@@ -8,6 +8,11 @@ Usage:
   python3 tools/split-gecko.py --frame <name> <strike|sleep> <generated.png>
                                                     trim a strike/sleep edit past the tail cut, align it to the body,
                                                     save <frame>.png and record its offset in meta.json
+  python3 tools/split-gecko.py --frame <name> <anim>/<n> <generated.png>
+                                                    an animation frame (issue #26: Duchess's run/pounce/wake/tongue,
+                                                    tailless, facing like the art): scaled by the eye, its tail cut put
+                                                    on the idle pivot's x, its lowest point on the idle's floor; saved
+                                                    as anim/<anim>/NN.png, recorded in meta.json "anims"
 
 All coordinates in meta.json are pixels of idle.png (body.png has the same canvas).
 The pictures are the PNG sources in art/sprites/geckos/<name>/ (run tools/build-art.py afterwards);
@@ -21,6 +26,9 @@ meta.json is written to game/assets/sprites/geckos/<name>/.
   legs      [{name, file, box:[x0,y0,x1,y1], pivot:[x,y]}]: near front and back lower legs, swung in code
   eye       [x, y]: centre of the near eye (glint)
   frames    {"strike": {"file", "at":[x,y]}, "sleep": {...}}: top-left of that image in idle coords
+  anims     {"run": [{"file", "at":[x,y], "size":[w,h], "pivot":[x,y], "scale"}, ...], ...}: whole-body frames
+            without the tail, drawn at "size" (idle px; the WebP may be stored smaller, art/max-size.json),
+            the code tail attached at each frame's own pivot
 """
 import json, os, sys
 from PIL import Image, ImageChops, ImageDraw, ImageStat
@@ -90,7 +98,10 @@ def split(name):
     meta = {'frame': c['frame'], 'size': [W, H], 'overlap': OV}
     old = os.path.join(METAS, name, 'meta.json')
     if os.path.exists(old):
-        meta['frames'] = json.load(open(old)).get('frames', {})
+        prev = json.load(open(old))
+        meta['frames'] = prev.get('frames', {})
+        if 'anims' in prev:
+            meta['anims'] = prev['anims']
 
     # tail: polygon, plus an overlap band reaching back into the body (kept in the body too)
     tmask = poly_mask(idle.size, c['tail'])
@@ -150,8 +161,103 @@ def _nearest_run(flags, target):
     return min(runs, key=lambda r: abs((r[0] + r[1]) / 2 - target)) if runs else None
 
 
+def _eye_scale(name, im, q=2, R=64):
+    """(scale frame px -> idle px, eye centre in frame px) from the idle's eye as a template
+    (normalised cross-correlation over the head: the left 45 %, top 75 % of a wide picture)."""
+    import numpy as np
+    ex, ey = CFG[name]['eye']
+    def gray(p):
+        bg = Image.new('RGBA', p.size, (128, 128, 128, 255)); bg.alpha_composite(p.convert('RGBA'))
+        return np.asarray(bg.convert('L'), dtype=np.float32)
+    idle = Image.open(os.path.join(GECKOS, name, 'idle.png')).convert('RGBA')
+    tpl = gray(idle.crop((ex - R, ey - R, ex + R, ey + R)).resize((2 * R // q, 2 * R // q), Image.BILINEAR))
+    t = tpl - tpl.mean(); tn = float(np.sqrt((t * t).sum())); th, tw = t.shape
+    bb = im.getchannel('A').getbbox()
+    head = im.crop((bb[0], bb[1], bb[0] + int((bb[2] - bb[0]) * 0.45), bb[1] + int((bb[3] - bb[1]) * 0.75)))
+    best = None
+    for k in range(25):
+        s = 0.55 + 0.02 * k
+        g = gray(head.resize((max(1, round(head.width * s / q)), max(1, round(head.height * s / q))), Image.BILINEAR))
+        H, W = g.shape
+        if H <= th or W <= tw:
+            continue
+        fh, fw = H + th, W + tw
+        num = np.fft.irfft2(np.fft.rfft2(g, (fh, fw)) * np.conj(np.fft.rfft2(t, (fh, fw))), (fh, fw))[:H - th + 1, :W - tw + 1]
+        c1 = np.pad(g, ((1, 0), (1, 0))).cumsum(0).cumsum(1); c2 = np.pad(g * g, ((1, 0), (1, 0))).cumsum(0).cumsum(1)
+        win = lambda c: c[th:, tw:] - c[:-th, tw:] - c[th:, :-tw] + c[:-th, :-tw]
+        s1, s2 = win(c1), win(c2)
+        var = np.maximum(s2 - s1 * s1 / (th * tw), 0.25 * tn * tn)  # flat (transparent) windows can't score
+        sc = num / (np.sqrt(var) * tn)
+        y, x = np.unravel_index(np.argmax(sc), sc.shape)
+        if best is None or sc[y, x] > best[0]:
+            best = (float(sc[y, x]), s, (bb[0] + (x * q + R) / s, bb[1] + (y * q + R) / s))
+    return best
+
+
+def _cut_x(im):
+    """x of a tailless wide frame's tail cut: the rightmost column (right half) whose longest opaque run
+    is at least 55 % of the thickest there (the hips; a hind foot reaching past them is thinner)."""
+    a = im.getchannel('A').point(lambda v: 255 if v > 128 else 0)
+    x0, y0, x1, y1 = a.getbbox()
+    px = a.load()
+    def run(x):
+        best = cur = 0
+        for y in range(y0, y1):
+            cur = cur + 1 if px[x, y] else 0
+            best = max(best, cur)
+        return best
+    xs = range((x0 + x1) // 2, x1)
+    runs = {x: run(x) for x in xs}
+    thr = 0.55 * max(runs.values())
+    return max(x for x in xs if runs[x] >= thr)
+
+
+def anim_frame(name, fname, src):
+    """Register an animation frame (wide geckos): scale by the eye, cut on the idle pivot's x, feet on the floor."""
+    c = CFG[name]
+    assert c['frame'] == 'wide', 'animation frames are for side-view geckos'
+    anim, n = fname.split('/'); n = int(n)
+    d = os.path.join(GECKOS, name)
+    meta = json.load(open(os.path.join(METAS, name, 'meta.json')))
+    off = json.load(open(os.path.join(EDITS, f'{name}-notail-canvas.json')))['offset']
+    W, H = meta['size']
+    px, py = meta['pivot']
+    notail = Image.open(os.path.join(EDITS, f'{name}-notail-canvas.png')).getchannel('A')
+    floor = notail.crop((off[0], off[1], off[0] + W, off[1] + H)).getbbox()[3]  # idle coords
+    im = Image.open(src).convert('RGBA')
+    ncc, sc, eye = _eye_scale(name, im)
+    cx = _cut_x(im)
+    gb = im.getchannel('A').getbbox()
+    piece = im.crop(gb)
+    piece = piece.resize((max(1, round(piece.width * sc)), max(1, round(piece.height * sc))), Image.LANCZOS)
+    at = [round(px - (cx - gb[0]) * sc), floor - piece.height]
+    eye_at = [round(at[0] + (eye[0] - gb[0]) * sc), round(at[1] + (eye[1] - gb[1]) * sc)]
+    # erase anything past the cut inside the tail's band (a stub); feet below the band stay
+    tb = meta['tailBox']
+    clear = (max(0, px + meta['overlap'] - at[0]), 0, piece.width, max(0, min(piece.height, tb[3] + 8 - at[1])))
+    if clear[2] > clear[0] and clear[3] > clear[1]:
+        piece.paste((0, 0, 0, 0), clear)
+    nb = piece.getchannel('A').getbbox()
+    piece = piece.crop(nb)
+    at = [at[0] + nb[0], at[1] + nb[1]]
+    os.makedirs(os.path.join(d, 'anim', anim), exist_ok=True)
+    piece.save(os.path.join(d, 'anim', anim, f'{n:02d}.png'))
+    pa = piece.getchannel('A')
+    x = min(piece.width - 1, max(0, px - at[0] - 6))
+    r = _nearest_run([pa.getpixel((x, y)) > 128 for y in range(piece.height)], py - at[1])
+    fp = [px, at[1] + (r[0] + r[1]) // 2] if r else [px, py]
+    lst = meta.setdefault('anims', {}).setdefault(anim, [])
+    while len(lst) <= n:
+        lst.append(None)
+    lst[n] = {'file': f'anim/{anim}/{n:02d}.webp', 'at': at, 'size': list(piece.size), 'pivot': fp, 'scale': round(sc, 3), 'eye': eye_at}
+    json.dump(meta, open(os.path.join(METAS, name, 'meta.json'), 'w'), indent=1)
+    print(name, fname, 'eye match %.2f scale %.2f at' % (ncc, sc), at, 'size', piece.size, 'pivot', fp, 'eye', eye_at)
+
+
 def frame(name, fname, src):
     """Trim a strike/sleep edit past the tail cut and align it to the idle body."""
+    if '/' in fname:
+        return anim_frame(name, fname, src)
     c = CFG[name]
     d = os.path.join(GECKOS, name)
     meta = json.load(open(os.path.join(METAS, name, 'meta.json')))
@@ -247,7 +353,7 @@ def frame(name, fname, src):
         y = min(piece.height - 1, max(0, py - at[1] - 6))
         run = _nearest_run([pa.getpixel((x, y)) > 128 for x in range(piece.width)], px - at[0])
         fp = [at[0] + (run[0] + run[1]) // 2, py] if run else [px, py]
-    meta.setdefault('frames', {})[fname] = {'file': f'{fname}.png', 'at': at, 'pivot': fp, 'scale': round(sc, 3)}
+    meta.setdefault('frames', {})[fname] = {'file': f'{fname}.webp', 'at': at, 'pivot': fp, 'scale': round(sc, 3)}
     json.dump(meta, open(os.path.join(METAS, name, 'meta.json'), 'w'), indent=1)
     print(name, fname, 'at', at, 'size', piece.size)
 

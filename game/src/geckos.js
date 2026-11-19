@@ -3,6 +3,9 @@
 //   import * as Geckos from './geckos.js';
 //   const rig = Geckos.create('duchess');         // loads sprites/geckos/duchess/{meta.json, body, tail, legs, frames}
 //   rig.setPose('walk'); rig.walkSpeed = 1.5;      // 'idle' | 'walk' | 'strike' | 'sleep' | any extra frame ('glide', 'lick')
+//   rig.play('run');  rig.play('wake', 0)          // [issue 26] a frame animation (meta.anims): plays at ANIMS' rate from
+//                                                   // t seconds (0 restarts; omitted carries on); rig.animDone once a one-shot ends
+//   rig.hold('pounce', 0)                           // show one frame of it and stay there (the pounce's crouch/launch/air/land)
 //   rig.wiggle(60);                                 // tail-tip tell for 60 frames (+ "!" splat, + Geckos.onTell / rig.onTell hook)
 //   rig.draw(ctx, x, y, scale, facing);             // see "Anchor" below; facing -1 = left (as painted), +1 = right
 //   rig.box(x, y, scale, facing)  -> {x, y, w, h}   the body's on-screen box (no tail), for hitboxes
@@ -19,6 +22,10 @@
 // the eye gets a code-drawn glint. Strike/sleep frames are placed at meta.frames[f].at with the
 // tail attached at their own pivot (sleep curls it). Extra frames (Kite's glide, Lashes' lick)
 // are whole pictures (with their tail) drawn bottom-centred on the idle canvas.
+// [issue 26] Frame animations (meta.anims, from split-gecko.py --frame <name> <anim>/<n>): whole-body
+// pictures without the tail, each drawn at its `at` and `size` (idle px; the WebP may be stored
+// smaller) with the code tail attached at its own `pivot`, so the tell's wiggle stays code-drawn.
+// While a frame plays the code legs, walk bob and leg swing are off (the picture has its legs).
 import * as S from './sprites.js';
 import { blob, tellMarks } from './fx.js'; // [polish-V] tellMarks: a rig drew its own "!" (fx skips the event's splat)
 
@@ -48,14 +55,21 @@ const base = (n) => `sprites/geckos/${n}`;
 // [art] every picture a rig can draw: body, tail, legs, strike/sleep frames and the extra poses
 // (Kite's glide, Lashes' lick): each .webp in its folder but idle.webp and portrait.webp (dialog
 // portraits, never drawn by the rig). From the asset list, so it doesn't wait on meta.json.
+// [issue 26] plus the frame animations in anim/<anim>/NN.webp.
 const filesMemo = new Map();
 export function files(name) {
   if (!filesMemo.has(name)) {
     const dir = base(name) + '/';
-    filesMemo.set(name, S.list(dir).filter((f) => f.endsWith('.webp') && !f.includes('/', dir.length) && !/\/(idle|portrait)\.webp$/.test(f)));
+    filesMemo.set(name, S.list(dir).filter((f) => f.endsWith('.webp') && !/\/(idle|portrait)\.webp$/.test(f) &&
+      (!f.includes('/', dir.length) || /^anim\/[a-z-]+\/\d+\.webp$/.test(f.slice(dir.length)))));
   }
   return filesMemo.get(name);
 }
+// [issue 26] frame animations: frames per second and whether it loops (a one-shot holds its last
+// frame). The pounce is posed by state (rig.hold), so its rate only matters if it's played.
+export const ANIMS = { run: { fps: 12, loop: true }, pounce: { fps: 8, loop: false }, wake: { fps: 6, loop: false }, tongue: { fps: 7, loop: false } };
+// the animations a gecko has: { run: [frame, ...], ... } from its meta.json (null until it loads)
+export function anims(name) { const m = S.getJSON(`${base(name)}/meta.json`); return m ? (m.anims || {}) : null; }
 // start loading a gecko's art (call on entering the lair room or earlier); held with the zone
 export function preload(name) { S.getJSON(`${base(name)}/meta.json`); S.preload(files(name)); S.zoneHold(base(name) + '/'); }
 export function ready(name) { return !!S.getJSON(`${base(name)}/meta.json`) && S.ready(files(name)); }
@@ -81,7 +95,31 @@ export class GeckoRig {
     preload(name);
   }
   get meta() { return S.getJSON(`${this.dir}/meta.json`); }
-  setPose(p) { if (p !== this.pose) { this.pose = p; this.poseT = 0; } return this; }
+  setPose(p) { if (p !== this.pose) { this.pose = p; this.poseT = 0; this.held = null; } return this; }
+  // [issue 26] play a frame animation from t seconds (omit t to carry on if it's already playing)
+  play(anim, t) {
+    if (anim !== this.pose || this.held != null) { this.pose = anim; this.poseT = 0; this.held = null; }
+    if (t != null) this.poseT = t;
+    return this;
+  }
+  // [issue 26] show frame i of an animation and stay on it
+  hold(anim, i) { if (anim !== this.pose) { this.pose = anim; this.poseT = 0; } this.held = i; return this; }
+  // [issue 26] the frame animation frame being shown ({file, at, size, pivot, eye}), or null
+  animFrame() {
+    const list = this.meta?.anims?.[this.pose];
+    if (!list || !list.length) return null;
+    const a = ANIMS[this.pose] || { fps: 8, loop: false };
+    let i = this.held != null ? this.held : Math.floor((this.poseT || 0) * a.fps * (this.pose === 'run' ? this.walkSpeed || 1 : 1));
+    if (this.held == null && a.loop) i %= list.length;
+    i = Math.max(0, Math.min(list.length - 1, i));
+    return list[i];
+  }
+  // [issue 26] a one-shot animation has reached its last frame
+  get animDone() {
+    const list = this.meta?.anims?.[this.pose], a = ANIMS[this.pose];
+    if (!list || !a || a.loop || this.held != null) return false;
+    return (this.poseT || 0) * a.fps >= list.length;
+  }
   wiggle(frames = 60) {
     this.wiggleT = frames; this.wiggleDur = frames;
     if (this.onTell) this.onTell(this);
@@ -90,7 +128,7 @@ export class GeckoRig {
   }
   tick(dt = 1 / 60) {
     this.t += dt; this.poseT = (this.poseT || 0) + dt;
-    if (this.pose === 'walk') this.phase += dt * this.walkSpeed * TAU;
+    if (this.pose === 'walk' || this.pose === 'run') this.phase += dt * this.walkSpeed * TAU; // run: the tail's sway
     else this.phase *= 0.85; // legs settle
     if (this.wiggleT > 0) this.wiggleT--;
   }
@@ -123,8 +161,9 @@ export class GeckoRig {
     const m = this.meta; if (!m) return { x, y };
     const xf = this._xf(x, y, scale, facing);
     const bb = S.bbox(`${this.dir}/body.webp`) || { x: 0, y: 0, w: m.size[0], h: m.size[1] };
-    if (name === 'eye') return xf(m.eye[0], m.eye[1]);
-    if (name === 'pivot') return xf(m.pivot[0], m.pivot[1]);
+    const af = this.animFrame(); // [issue 26] a playing frame's own eye and tail root
+    if (name === 'eye') return af?.eye ? xf(af.eye[0], af.eye[1]) : xf(m.eye[0], m.eye[1]);
+    if (name === 'pivot') return af ? xf(af.pivot[0], af.pivot[1]) : xf(m.pivot[0], m.pivot[1]);
     if (name === 'nose') return m.frame === 'tall' ? xf(m.eye[0], bb.y) : xf(bb.x, m.eye[1] + 0.12 * bb.h);
     if (name === 'tail') { const tb = m.tailBox; return m.frame === 'tall' ? xf(m.pivot[0], tb[3]) : xf(tb[2], m.pivot[1]); }
     return xf(m.pivot[0], m.pivot[1]);
@@ -139,19 +178,31 @@ export class GeckoRig {
     const [ax, ay] = this.anchor();
     const flip = facing === this.artFacing() ? 1 : -1;
     const tn = this.tune, pose = this.pose, wide = m.frame === 'wide';
+    const af = this.animFrame(), afImg = af ? S.get(`${this.dir}/${af.file}`) : null; // [issue 26]
     c.save();
     c.globalAlpha *= this.alpha;
     c.translate(x, y);
     c.scale(scale * flip, scale);
     // breathing (about the floor for wide, about the body centre for tall)
-    const br = this.breathe && pose !== 'strike' ? Math.sin(this.t * TAU / (pose === 'sleep' ? 4.2 : 3.0)) * tn.breath * (pose === 'sleep' ? 1.6 : 1) : 0;
+    const br = this.breathe && pose !== 'strike' && pose !== 'run' && pose !== 'pounce' ? Math.sin(this.t * TAU / (pose === 'sleep' ? 4.2 : 3.0)) * tn.breath * (pose === 'sleep' ? 1.6 : 1) : 0;
     c.scale(1 - br * 0.3, 1 + br);
     // walk bob
-    const bob = pose === 'walk' ? -Math.abs(Math.sin(this.phase)) * 6 : 0;
+    const bob = pose === 'walk' && !af ? -Math.abs(Math.sin(this.phase)) * 6 : 0;
     c.translate(-ax, -ay + bob);
 
-    const extra = !['idle', 'walk', 'strike', 'sleep'].includes(pose) ? S.get(`${this.dir}/${pose}.webp`) : null;
-    if (extra) {
+    const extra = !af && !['idle', 'walk', 'strike', 'sleep'].includes(pose) ? S.get(`${this.dir}/${pose}.webp`) : null;
+    if (af) {
+      // [issue 26] a frame animation: the code tail at this frame's pivot, then the picture over its seam.
+      // Until the frame's picture loads, the plain body stands in (tail at the idle pivot).
+      if (this.showTail !== false) this._tail(c, m, tail, afImg ? af.pivot : m.pivot, pose);
+      if (afImg) {
+        c.drawImage(afImg, af.at[0], af.at[1], af.size[0], af.size[1]);
+        if (this.glint && af.eye) this._glint(c, { eye: af.eye });
+      } else {
+        c.drawImage(body, 0, 0);
+        this._legs(c, m);
+      }
+    } else if (extra) {
       c.drawImage(extra, m.size[0] / 2 - extra.width / 2, m.size[1] - extra.height);
     } else {
       const fr = (pose === 'strike' || pose === 'sleep') && m.frames?.[pose] ? m.frames[pose] : null;
@@ -172,8 +223,9 @@ export class GeckoRig {
       const k = 1 - this.wiggleT / this.wiggleDur;
       const pop = Math.min(1, k * 6), s = (opts.touch ? 1.5 : 1) / scale * pop;
       // [polish-V] above the head only (never over the eye): clear of the body's top by the splat's size
-      const bbT = (S.bbox(`${this.dir}/body.webp`) || { y: 0 }).y;
-      const hx = m.eye[0], hy = Math.min(m.eye[1] - 80 / scale, bbT - 46 * (opts.touch ? 1.5 : 1) / scale);
+      const bbT = Math.min((S.bbox(`${this.dir}/body.webp`) || { y: 0 }).y, af && afImg ? af.at[1] : Infinity);
+      const ey = af?.eye && afImg ? af.eye : m.eye; // [issue 26] over a frame's own head
+      const hx = ey[0], hy = Math.min(ey[1] - 80 / scale, bbT - 46 * (opts.touch ? 1.5 : 1) / scale);
       tellMarks.at = performance.now();
       c.save(); c.translate(hx, hy); c.scale(s * flip, s);
       c.fillStyle = 'rgba(42,32,26,0.92)'; blob(c, 0, 0, 22, 1.7); c.fill();
@@ -202,7 +254,7 @@ export class GeckoRig {
     const tn = this.tune, t = this.t;
     let a;
     if (pose === 'sleep') a = -tn.curl * Math.pow(u, 1.5) + Math.sin(t * 0.8) * 0.03 * u;
-    else if (pose === 'walk') a = tn.walkAmp * Math.sin(this.phase - u * 3.5) * u;
+    else if (pose === 'walk' || pose === 'run') a = tn.walkAmp * Math.sin(this.phase - u * 3.5) * u;
     else if (pose === 'strike') a = -0.18 * u + 0.08 * Math.sin(t * 9 - u * 4) * u;
     else a = tn.amp * Math.sin(t * 1.3 - u * 2.4) * u + 0.03 * Math.sin(t * 0.5) * u;
     if (this.wiggleT > 0) {

@@ -60,4 +60,5 @@
  "sprites/enemies/stinkbug/*.png":168,
  "sprites/enemies/wasp/*.png":168,
  "sprites/enemies/weevil/*.png":160,
- "sprites/enemies/wolfspider/*.png":208}
+ "sprites/enemies/wolfspider/*.png":208,
+ "sprites/geckos/duchess/anim/*/*.png":800}

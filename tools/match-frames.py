@@ -18,13 +18,16 @@ What is matched (reference -> frames), paths under art/:
   crickets  sprites/crickets/<id>/base.png  -> anim/*/NN.png and poses/*.png
   npcs      sprites/npcs/<id>.png           -> <id>-talk.png (the talk flap alternates the two ~7.5/s)
   enemies   sprites/enemies/<id>/0.png      -> 1.png (0 and 1 are the walk loop)
+  geckos    sprites/geckos/<id>/body.png    -> anim/*/NN.png (issue #26, Duchess's run/pounce/wake/tongue: whole
+                                               bodies without the tail, so the tailless body is the reference; it
+                                               is cut from idle.png, so they match her idle too)
 The robot vacuum's frame 1 lights its ring up blue: that glow is the art, but the body round it
 came out ~14 levels lighter than frame 0's, so it flickered too. For it (GLOW) only the body is
 matched and measured: pixels whose blue is clearly above their red (the ring and its halo), and
 the white-hot core they enclose, are left out of the statistics and left as drawn, with a soft
 edge between (glow_weight()). --check measures the vacuum the same way (body only).
 Not matched: an enemy's 2.png (flipped / stunned: a different view, belly up, drawn once, not
-looped), gecko rigs (body/tail/legs are pieces of one picture; strike/sleep are one-off poses),
+looped), the gecko rigs' pieces (body/tail/legs are pieces of one picture; strike/sleep are one-off poses),
 portraits.
 
 Method: per-channel histogram matching on opaque pixels (alpha >= 250). For each of R, G, B the
@@ -248,6 +251,12 @@ def groups(only):
             continue
         if os.path.exists(d + '1.png'):
             out.append((f'enemy {eid}', d + '0.png', {'walk': [d + '1.png']}, eid in GLOW))
+    for d in sorted(glob.glob(os.path.join(SPR, 'geckos/*/'))):
+        gid = os.path.basename(d.rstrip('/'))
+        if (only and gid not in only) or not glob.glob(d + 'anim/*/*.png'):
+            continue
+        sets = {os.path.basename(a): sorted(glob.glob(os.path.join(a, '*.png'))) for a in sorted(glob.glob(d + 'anim/*'))}
+        out.append((f'gecko {gid}', d + 'body.png', sets, False))
     return out
 
 

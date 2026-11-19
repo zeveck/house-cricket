@@ -4883,6 +4883,186 @@
 127
 ]
 },
+"sprites/geckos/duchess/anim/pounce/00.webp": {
+"src": "60241084481f1aa414ee9e910362e344b8e05cf7",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+311
+]
+},
+"sprites/geckos/duchess/anim/pounce/01.webp": {
+"src": "1eeb7605b5bfb183e92b1d8604d360166cb098e1",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+312
+]
+},
+"sprites/geckos/duchess/anim/pounce/02.webp": {
+"src": "7fc394be60dfda5cdb448c4985a1c5150b29c5f5",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+338
+]
+},
+"sprites/geckos/duchess/anim/pounce/03.webp": {
+"src": "854687e7e03a95d14108f31613f655e7971acd73",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+248
+]
+},
+"sprites/geckos/duchess/anim/run/00.webp": {
+"src": "890eb1415e4a496700295034cd877fca765ad04c",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+283
+]
+},
+"sprites/geckos/duchess/anim/run/01.webp": {
+"src": "42c77db55a9ca6bee88d26b672ca96804f661aea",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+269
+]
+},
+"sprites/geckos/duchess/anim/run/02.webp": {
+"src": "d2986b88321fdcc77b816ecc64b91fd97838e77f",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+370
+]
+},
+"sprites/geckos/duchess/anim/run/03.webp": {
+"src": "34ac79345c498d851b11c0790c3bc25a9c2a8750",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+275
+]
+},
+"sprites/geckos/duchess/anim/run/04.webp": {
+"src": "a88fe5a4654d33eb7cab66b60f54c2de2c6f459a",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+319
+]
+},
+"sprites/geckos/duchess/anim/run/05.webp": {
+"src": "701f73e991beafa2fb1c66dbf0a56e0e547fd1ea",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+387
+]
+},
+"sprites/geckos/duchess/anim/tongue/00.webp": {
+"src": "b8456384620445ac31db782a7e4c19f625a65e33",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+408
+]
+},
+"sprites/geckos/duchess/anim/tongue/01.webp": {
+"src": "b1f40d069d0dd83edc607755636fee147d3e03b7",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+402
+]
+},
+"sprites/geckos/duchess/anim/tongue/02.webp": {
+"src": "5c1b91fa7ebe9fa637ceb0fb9b429c778e446eff",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+411
+]
+},
+"sprites/geckos/duchess/anim/wake/00.webp": {
+"src": "d897817d5a2a3e2681f63d3d9931452ed6254981",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+589
+]
+},
+"sprites/geckos/duchess/anim/wake/01.webp": {
+"src": "bc5e42c540922deb159d2da026b88fee03d2588a",
+"set": {
+"q": 90,
+"m": 6,
+"max": 800
+},
+"size": [
+800,
+529
+]
+},
 "sprites/geckos/duchess/body.webp": {
 "src": "01ef7ecf9ead58274f342e96ee3c7c21bbf870f2",
 "set": {
