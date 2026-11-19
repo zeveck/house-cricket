@@ -32,7 +32,7 @@ measures the built WebP frames.
 A manifest (art/build.json) records each built picture's source hash and settings, so a rebuild
 only touches what changed and --check can tell what's stale without re-encoding.
 """
-import fnmatch, hashlib, json, os, sys
+import fnmatch, hashlib, json, os, re, sys
 from multiprocessing import Pool
 from PIL import Image
 
@@ -148,6 +148,16 @@ def main():
         else:
             del man[k]
     if check:
+        # [issue #24] the JSON beside the pictures (gecko meta.json) names its frames by file: when the
+        # sprites moved to WebP these still said .png, so no gecko's sleep, strike or legs ever drew
+        for dirpath, _, files in os.walk(OUT):
+            for f in files:
+                if not f.endswith('.json'):
+                    continue
+                jp = os.path.join(dirpath, f)
+                for name in re.findall(r'"file"\s*:\s*"([^"]+)"', open(jp).read()):
+                    if not os.path.exists(os.path.join(dirpath, name)):
+                        problems.append(f'missing: {os.path.relpath(jp, ROOT)} names {name}, which isn\'t there')
         for p in problems:
             print(p)
         print(f'{len(problems)} problem(s)' if problems else f'all {len(srcs)} pictures built and up to date')

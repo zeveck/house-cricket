@@ -7,7 +7,7 @@
  "overlap": 12,
  "frames": {
   "strike": {
-   "file": "strike.png",
+   "file": "strike.webp",
    "at": [
     -76,
     164
@@ -19,7 +19,7 @@
    "scale": 0.78
   },
   "sleep": {
-   "file": "sleep.png",
+   "file": "sleep.webp",
    "at": [
     6,
     386
@@ -45,7 +45,7 @@
  "legs": [
   {
    "name": "front",
-   "file": "legs-front.png",
+   "file": "legs-front.webp",
    "box": [
     300,
     358,
@@ -59,7 +59,7 @@
   },
   {
    "name": "back",
-   "file": "legs-back.png",
+   "file": "legs-back.webp",
    "box": [
     830,
     333,
