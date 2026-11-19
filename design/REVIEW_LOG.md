@@ -156,3 +156,25 @@ Player and Builder reviewed (art is drawn in code, so no art director).
 | Long tips on phones; the old width rules; held frames | should-fix (both) | Fixed: a wider card, 2 lines max with a build check, one card rule, hidden during transitions |
 | Prompts taking over abruptly | nice | Fixed: a 300 ms fade, counted as read |
 | Notes beside other floor props; test hooks | nice | Fixed: a sideways step; a sign check, a `__game.tips()` hook and sample screenshots in the build |
+
+## Change: issues #24-#27, the opening chase, Duchess's animation, Up to jump (one round, 2026-11-19)
+
+Player, Builder, and Art and sound director reviewed.
+
+| Finding | Severity | Outcome |
+|---|---|---|
+| Every gecko's sleep/strike art stopped drawing after the WebP switch (meta.json named .png) | must-fix (Builder, Art) | Fixed on main at once (e3952b4), with a build check; split-gecko.py to write .webp in the build |
+| She wakes off screen ~30 tiles behind: the chase is invisible or unfair | must-fix (Player, Builder) | Fixed: her rock mid-room (~22-27), wake at ~38, catch-up speed, a chase camera framing both, an edge glint |
+| Pounce aim and dodge undefined | must-fix (Player) | Fixed: a fixed rhythm (stop, crouch, tell, shadow, leap); pounce 1 a near miss; later pounces lead a flat-out runner, so hop on the tell or the berm; a reacting Pip is never caught (tested) |
+| Diving into the log at a sprint had a 0.25 s window | must-fix (Player) | Fixed: a wide catch zone here, a buffered ↓, held ↓ counts, only Jump comes out |
+| ↑ still does talk, lair doors, switches, thermostats, the Carrier, the lid, look-up; the input layer can't merge "jump" and "enter" | must-fix (Player, Builder) | Fixed: an Enter action on ↓ on every scheme; ↑/W a second Jump key on the keyboard (climbs on a line); look-up on touch and pad only; the lid: jump into the gap |
+| Cloak on hold ↓ freezes Pip and steals Hump's leap | must-fix (Builder), should-fix (Player) | Fixed: hold Shift on the keyboard, stick/D-pad up elsewhere |
+| Whole-picture frames lose the tail tell; facing; registration | must-fix (Art), should-fix (Builder) | Fixed: frames without the tail (code tail at per-frame pivots), facing left like the art, registered to idle.webp, a crouch pose held for the tell |
+| Retry flow unspecified; story cards skip on held Jump | should-fix (Builder, Player) | Fixed: in the sim (a gulp mode, then a room retry), a canvas or text card that can't be skipped by holding, a checkpoint before the wake, Gentle Mode offered after three catches |
+| The gulp's tone | should-fix (Art) | Fixed: never shown: jaws close, a sand puff, black, sound; back on her asleep with a lip-lick |
+| Readability and scare | should-fix (Art) | Fixed: a landing shadow, a darkening wash and vignette, an eye glint, a looming silhouette, a 6 px shake, a hit-stop at the log |
+| Chase music can't play (the room's music wins) | should-fix (Builder) | Fixed: the boss overrides the room's music; the cue warm-loads |
+| Audio list | should-fix (Art) | Fixed: five new audiogen clips, the rest reused |
+| Trim the animation list; asset weight | should-fix (Art, Builder) | Fixed: run 6, pounce 4, wake 2, tongue 3 (~15 frames), ~800 px wide, preloaded ahead |
+| Recordings press ArrowUp for hide/doors/saves; pad/touch replays; G0 | should-fix (Builder) | Taken into the build: re-author every affected solution and the full run (new G0); Enter on ↓ everywhere keeps replay translation 1:1; a key-level test |
+| Stirs before the wake; leaving the log early; small ↓ notes | should-fix / nice (Player) | Fixed: stirs; a roar and a full tell before any pounce; ↓+Jump always drops through |
