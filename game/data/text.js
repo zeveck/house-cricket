@@ -32,10 +32,12 @@ export const TEXT = {
       duchessWakes: ['Mm? Is it Saturday already?', '...Oh, hello, dinner.'],
       kick: '{kick} kicks. Loose pebbles make good steps.',
       squeeze: 'Jump into the gap with {jump} to squeeze through (or press {enter} under it).', // [issue #27]
-      // [issue 7] the hunt in the sand room (src/bosses/tank.js Sand): no damage, hide in the log to lose her
-      hideLog: 'Hide in the log!',            // the sign the script puts up (after her first lunge, or near the log)
+      // [issue 7] [issue 25] the escape in the sand room (src/bosses/tank.js Sand): hide in the log to lose her
+      hideLog: 'Hide in the log!',            // the note the script puts up as she wakes
+      eaten: 'Duchess got her dinner. Hop when her tail wiggles, then hide in the log →', // [issue 25] the card after a catch (not Gentle Mode)
+      gentleOffer: 'Duchess is quick! Try Gentle Mode? (Slower tells, and she only shoos you.)', // [issue 25] after three catches
       exitShut: "She'd follow you out! Lose her first: hide in the log.",
-      caughtFirst: 'Too close! Move when the tail wiggles.', // the first catch
+      caughtFirst: 'Too close! Hop when the tail wiggles.', // Gentle Mode's catch (a roar and a skitter)
       caughtWalk: "Hey! She's not a pillow.",  // walking into her snout
       caughtLog: 'Run to the log! →',          // from the second catch (the log's outline pulses)
       caughtLogBack: '← Run back to the log!', // ... when the skitter lands him past the log

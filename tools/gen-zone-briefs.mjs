@@ -30,13 +30,13 @@ const FLOW = {
     flow: [
       'Three story panels (open-1..3.webp, captions in TEXT.opening.panels), then control starts in the cup.',
       'tank-cup: dodge the tongs 3 times, then a held jump onto the rim (beats 1-2).',
-      'tank-sand: Duchess hunts (beat 3, issue #7): the tell is taught by real, dodgeable lunges; hide in the log until she sniffs, shrugs and turns away, then the exit opens.',
+      'tank-sand: the escape (beat 3, issues #24, #25): Duchess sleeps on her rock mid-room and wakes at tile 38 (or a head bump, or a chirp within 6 tiles); she chases and pounces (the tell: hop as she leaps); hide in the log: she sniffs, sleeps where she is, the exit opens.',
       'tank-decor: climb; kick the pebble off a ledge to make a step (beat 4).',
       'tank-lid: squeeze through the lid gap; the cup tips (beats 5-6) -> panel open-4 -> bed-carrier, first Chirp prompt (Stripe answers), Pip\'s vow (TEXT.opening.pipVow).',
     ],
     notes: [
       'These rooms sit off the house map at y 18-20 and are never revisited (the map hides zone z00).',
-      'No damage anywhere in the tank: only Duchess\'s snout catches, with a roar and a skitter (player.shove: no hurt, no daze); falls just reset to the last ground.',
+      'No damage anywhere in the tank: her snout at a pounce\'s landing eats Pip (a gulp, a card, g.retryRoom() from tile 33; never die() or health); Gentle Mode: a roar and a skitter (player.shove); falls just reset to the last ground.',
       'tank-sand\'s exit and her nap on coming back read the room flag duchess-asleep (g.rs(\'tank-sand\').taken), never her mode. Headless checks: tools/tank-test.mjs.',
       'Recorded solution: design/solutions/zone-00-path.json (tools/solutions/zones-a.mjs, the zone-00 block); the full run replays it (tools/solutions/full-run.mjs, G0).',
       'Music: title (slowed, per the design). Palette and paintings: bg/z00-tank.',

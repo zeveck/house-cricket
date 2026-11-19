@@ -1,11 +1,12 @@
 // [builder A] The tank escape (zone 0): the scripted set pieces of the opening's six beats, as
-// boss-registry scripts (one per room; they never hurt: "No damage anywhere in the tank").
+// boss-registry scripts (one per room; they never hurt: no damage anywhere in the tank, and the
+// opening chase's "eaten" is a quick room retry, never die()).
 //   { type: 'boss', boss: 'tank', beat: 'cup' | 'sand' | 'decor' | 'lid', x, y }
 //   cup   (beats 1-2) the tongs dip three times (left, right, middle): dodge them; a catch just
 //         lifts Pip and plops him back in the middle. Then hold Jump to leap out over the rim.
-//   sand  (beat 3)    Duchess hunts (issue #7): she wakes, stalks and lunges after the tail tell
-//         (taught here); only her snout catches, with a roar and a skitter (no damage). Hide in the
-//         log until she sniffs, shrugs and turns away: then the way on opens. No-fail.
+//   sand  (beat 3)    the escape (issues #24, #25): she sleeps on her rock, wakes as Pip passes, chases
+//         and pounces (the tail tell, taught here); her snout at a landing eats him (a gulp, a card and
+//         a quick retry; Gentle Mode: #7's roar and skitter). Hide in the log: she sniffs and sleeps.
 //   decor (beat 4)    a loose pebble on a ledge: kick it off and it lands as a step.
 //   lid   (beats 5-6) jump up into the lid gap (or ↓ under it, issue #27) to squeeze through; Pip's leap off the rim tips the
 //         feeder cup off the tank; then story 'tankEscaped' (panel 4, the Bedroom).
@@ -13,7 +14,7 @@
 // [issue 11] Each beat's state is an object whose methods (update, draw, finish) live on a shared
 // prototype and read it through `this`, never a closure: a rewind (src/rewind.js) copies the state and
 // the copy runs. Room constants come from the entity (s.e); the game is s.g.
-import { TILE, DT, FPS } from '../../data/movement.js';
+import { TILE, DT, FPS, RUN_SPEED } from '../../data/movement.js';
 import { TEXT } from '../../data/text.js';
 import * as S from '../sprites.js';
 import { K } from '../physics.js';
@@ -110,240 +111,444 @@ const Cup = {
   },
 };
 
-// ---------------------------------------------------------------- beat 3: Duchess hunts (issue #7)
-// A no-fail hunt that teaches the tail tell and hiding (design: Screens, Opening, beat 3). No damage:
-// only her snout catches, and a catch is a roar and a skitter (player.shove), never hurt() or daze().
-//   asleep -> eye (she wakes as Pip passes the first ripple) -> stalk -> tell -> lunge -> shake -> stalk ...
-//   Pip hidden in the log while she's awake: seek (straight to the log) -> [logTell -> logLunge, if she
-//   hasn't lunged yet] -> sniff -> shrug (the exit opens) -> home -> nap. Seen at the log (Jump out, or a
-//   Chirp from inside): recoil, then she hunts on.
-// The exit (and a quiet nap on coming back) read the room's flag SLEPT, never the mode.
+// ---------------------------------------------------------------- beat 3: the escape (issues #24, #25, #26)
+// The opening scare (design: Screens, Opening, beat 3 "The escape"). Duchess sleeps curled on her rock in
+// the middle of the room (tiles 22-27: the sleep art, breathing, Zs; a tail twitch and an eye flicker as
+// Pip creeps past). She wakes when he passes tile 38, bumps her head, or chirps within 6 tiles of it; the
+// room darkens and the chase cue plays (musicNow, audio.js trackFor). She scrambles after him and pounces:
+// stop, crouch (the tail tell), the landing shadow, a big leap, a shaking landing. Pounce 1 always lands
+// just behind him; later ones lead him. Her snout at a landing eats him (not in Gentle Mode, where it is
+// #7's roar and skitter): a sand puff, black, the gulp, her asleep, a card, then g.retryRoom() from the
+// checkpoint with nothing lost. Hiding in the log is the escape: jaws on bark, a sniff, she curls up and
+// sleeps where she is, the light and music settle, the way on opens (the room's flag SLEPT).
+//   asleep -> wake -> run -> crouch (the tell) -> spring (the shadow) -> air -> land -> run ...
+//   Pip in the log: [toLog] -> snap (jaws on bark) -> sniff -> curl (SLEPT) -> nap
+//   out of the log early (or a chirp in it): roar -> crouch (a full tell) ...;  a catch: gulp -> retry
+// Every bit of state is a plain field of this object (src/rewind.js copies it); no randomness. The rig
+// is render-only: the sim names the pose or frame (pose / anim, animAt, held) and draw() shows it.
 const SLEPT = 'duchess-asleep';               // g.rs(room).taken: she has lost him (survives rewind)
 const LEN = 400, NOSE = LEN * 0.31;            // her drawn length; centre to nose tip (px)
+const PIP_RUN = RUN_SPEED[3] * T;              // Pip's run speed (px/s)
 const SAND = constant({
-  plod: 80, scurry: 300,                       // stalk speeds, px/s (scurry: he's far ahead, or she's going to the log)
-  lunge: 11 * T, near: 3.2 * T, reach: 5 * T,  // lunge px/s; she stops this far (nose to Pip) and tells inside reach
-  shake: 90, recoil: 90, sniff: 120, cool: 100, // frames: shake it off, seen at the log, the sniff, the roar's cooldown
-  minX: 8 * T, wake: 19 * T, edge: 1.5 * T,    // she never stalks left of this; Pip past this wakes her; the skitter's left limit
+  wake: 38 * T, chirp: 6 * T,                  // Pip past this wakes her; so does a chirp this close to her head
+  run: 1.25, catchUp: 2.2, far: 10 * T,        // her scramble (x Pip's speed); faster when more than `far` behind
+  first: 10 * T, later: 5 * T,                 // her nose to Pip: pounce 1 starts inside this, later pounces inside this
+  spring: 8, air: 36, land: 18, recover: 24,   // frames: the launch (the shadow is down), the flight, the landing, before the next pounce
+  catchF: 1,                                   // the landing's frames that can catch (her jaws closing on him)
+  leapMin: 0.5 * T, leapMax: 18 * T, arc: 2.4 * T, // the leap's length limits and its arc's height
+  nearMiss: 1.6 * T,                           // pounce 1 lands this far behind where he'll be
+  shorten: 0.5 * T, shortenMax: 1.5 * T,       // from the 3rd catch on, each pounce lands this much shorter per catch past 2
+  wakeF: 33, darkIn: 24, lightOut: 90,         // frames: the wake; the wash darkening (0.4 s); the light coming back (1.5 s)
+  minX: 4.5 * T, maxX: 59.5 * T,               // her middle stays in here: she never leaves the room
+  zone: 1.5 * T, downBuf: 12,                  // the log's wide hiding zone (each side); a ↓ press remembered 0.2 s
+  snap: 24, sniff: 110, roar: 30, shake: 60,   // frames: jaws on bark, the sniff, the roar, a Gentle Mode catch's shake-off
+  hitStop: 4,                                  // the hit-stop when her jaws hit the bark (~60 ms)
+  edge: 1.5 * T,                               // a Gentle Mode skitter's left limit
+  gulp: { puff: 14, black: 30, fade: 20, card: 90, skip: 30 }, // frames: the puff, black (~0.5 s), the fade back, the card (<= 1.5 s, skippable after 0.5 s)
+  head: [71, 131, 52],                         // asleep: her head from the middle (px, near and far) and its height
 });
+const HUNT = new Set(['wake', 'run', 'crouch', 'spring', 'air', 'land', 'toLog', 'snap', 'sniff', 'roar', 'shake']);
 function sand(g, e) {
   const lost = g.rs(g.room.id).taken.has(SLEPT);
-  return Object.assign(Object.create(Sand), { g, e, phase: null, music: 'title', mode: lost ? 'nap' : 'asleep', t: 0, x: (e.x + 0.5) * T, y: (e.y + 1) * T,
-    facing: 1, pose: 'sleep', rig: null, wig: 0, quiet: lost, woke: false, lunges: 0, catches: 0, cool: 0, roarCool: 0, aim: 0, stop: 0, bite: 'sand',
-    tellN: 0, skit: 0, signed: false, bermTold: false, lastToast: null, heldBack: false, pulse: false });
+  return Object.assign(Object.create(Sand), { g, e, phase: null, music: 'title', musicNow: null, warmMusic: 'chase',
+    mode: lost ? 'nap' : 'asleep', t: 0, x: (e.x + 0.5) * T, y: (e.y + 1) * T, facing: 1,
+    pose: 'sleep', anim: null, animAt: 0, held: null, rig: null, ghost: null, wig: 0, twitch: 0, flick: 0, stir: 0,
+    quiet: lost, woke: false, pounces: 0, cool: 0, roarCool: 0, tellN: 0, speed: 0,
+    x0: 0, y0: 0, x1: 0, y1: 0, bite: 'sand', skit: 0, why: null, dark: 0, black: 0, card: -1, downBuf: 0, peekAt: -1,
+    pipGone: false, chase: false, loopName: null, loopRate: 1, signed: false, bermTold: false, heldBack: false, lastToast: null });
 }
 const Sand = {
   setPhase() {},
   nose() { return this.x + this.facing * NOSE; },
   log() { return this.g.hideSpots[0] || { x: 58 * T, y: 16 * T - 24, w: T, h: 24 }; },
   logFace() { const l = this.log(); return this.facing > 0 ? l.x : l.x + l.w; },
-  // her feet: the sand, or a berm or ripple top under her middle (she walks over them)
+  awake() { return HUNT.has(this.mode) && !this.g.rs(this.g.room.id).taken.has(SLEPT); },
+  // her feet: the sand, or a ripple, berm or her rock under her middle (she runs over them)
   floorAt(x) { const c = Math.floor(x / T); for (let r = 8; r < 17; r++) if (this.g.grid.at(c, r) === K.SOLID) return r * T; return 16 * T; },
-  // the berm faces ahead of her nose (the side she faces), nearest first; none while she's up on one
-  facesAhead() {
-    const s = this, f = s.facing, n = s.nose();
-    if (s.y < 15.5 * T) return [];
-    return (s.e.berms || [31, 49]).map((b) => (f > 0 ? (b - 1) * T : (b + 2) * T)).filter((face) => (face - n) * f > -2).sort((a, b) => (a - b) * f);
-  },
-  // the snout box sits on the floor under the nose (not under her middle: on a ripple that lifted it a tile)
-  snout() { const n = this.nose(), fy = this.floorAt(n - this.facing * 2); return { x: n - (this.facing > 0 ? 1.4 * T : 0), y: fy - 1.7 * T, w: 1.4 * T, h: 1.7 * T }; },
+  // asleep, only her head counts as bumping her (not her body or tail)
+  headBox() { const s = this, [a, b, h] = SAND.head, x0 = s.x + s.facing * a, x1 = s.x + s.facing * b; return { x: Math.min(x0, x1), y: s.y - h, w: Math.abs(x1 - x0), h }; },
+  // a catch: her snout at the landing (low, at the sand: a cricket in the air clears it)
+  snout() { const n = this.nose(), f = this.facing, fy = this.floorAt(n - f * 2); return { x: f > 0 ? n - 1.3 * T : n - 0.3 * T, y: fy - 0.6 * T, w: 1.6 * T, h: 0.6 * T }; }, // on the floor under her nose (a ripple under her middle lifts her, not her jaws)
+  pipBox() { const p = this.g.player; return { x: p.x + 3, y: p.y + 3, w: p.w - 6, h: p.h - 6 }; },
   tellFrames() { return Math.round((this.g.gentle ? TELL.gentle : TELL.normal) * FPS); }, // Gentle Mode's longer tell
-  startTell(mode) {
-    const s = this, n = s.tellFrames();
-    s.mode = mode; s.t = 0; s.pose = 'idle'; s.tellN = n; s.wig = n; s.aim = s.g.player.cx;
-    s.g.emit('tell', { x: s.nose(), y: s.y - 70, boss: 'duchess', frames: n });
-  },
-  // the lunge's end is fixed when it starts: where he was when the tell began, stopping at a berm face
-  startLunge() {
-    const s = this, f = s.facing;
-    let stop = s.aim + f * 0.8 * T, bite = 'sand';
-    const face = s.facesAhead()[0];
-    if (face != null && (stop - face) * f > 0) { stop = face; bite = 'berm'; }
-    if (f < 0) stop = Math.max(stop, SAND.minX - NOSE);
-    s.stop = stop; s.bite = bite; s.mode = 'lunge'; s.t = 0; s.pose = 'strike';
-    s.g.emit('sfx', { name: 'gecko-growl', gain: 0.4, rate: 1.2, x: s.x });
-  },
-  endLunge(bite) {
-    const s = this, g = s.g, n = s.nose();
-    s.lunges++; s.mode = 'shake'; s.t = 0; s.pose = 'idle';
-    g.emit('dust', { x: n, y: s.y - 20 });
-    if (bite === 'log') { // a thunk and bark chips: the log keeps him safe
-      g.emit('sfx', { name: 'bonk', gain: 0.8, rate: 0.55, x: s.x }); g.emit('crumble', { x: n, y: s.y - 24 });
-      g.emit('land', { x: n, y: s.y, hard: true });
-    } else g.emit('sfx', { name: 'gecko-chomp', gain: 0.6, x: s.x });
-    if (bite === 'berm' && !s.bermTold) { s.bermTold = true; g.toast(TK.bermBite, 180); }
-  },
-  // a catch (her snout, never her body): a roar and a skitter the way she faces; no damage
-  catchPip(walkedIn) {
-    const s = this, g = s.g, p = g.player;
-    if (s.mode === 'lunge') s.lunges++;
-    s.roarCool = SAND.cool; s.mode = 'shake'; s.t = 0; s.pose = 'idle'; s.skit = 40;
-    g.emit('sfx', { name: 'gecko-growl', gain: 0.7, rate: 0.7, x: s.x });
-    p.shove(s.facing, g.ctx, { vx: 380, vy: -420, lock: 30 });
-    const l = s.log(), toLog = p.cx + s.facing * 4 * T > l.x + l.w ? TK.caughtLogBack : TK.caughtLog; // the arrow points to the log from where he lands
-    const pick = walkedIn ? [TK.caughtWalk, toLog] : s.catches === 0 ? [TK.caughtFirst, toLog] : [toLog, TK.caughtFirst];
-    const text = pick[0] === s.lastToast ? pick[1] : pick[0];   // never the same one twice in a row
-    s.lastToast = text; g.toast(text, 150);
-    s.catches++; if (s.catches >= 2) s.pulse = true;
-  },
-  seen() { // he left the log (or chirped in it) while she was at it: a roar and a recoil, no skitter
+  // the rig: a still pose ('sleep', 'strike', 'idle'), or a frame animation played from now or held on frame i
+  still(p) { this.pose = p; this.anim = null; this.held = null; },
+  play(a) { this.anim = a; this.animAt = this.g.frame; this.held = null; },
+  hold(a, i) { this.anim = a; this.held = i; },
+  clampX() { this.x = Math.max(SAND.minX, Math.min(SAND.maxX, this.x)); },
+  sfx(name, o = {}) { this.g.emit('sfx', { name, x: this.x, ...o }); },
+  // [camera] while she hunts the camera frames them both (world.js Camera: Pip in the right third)
+  focus() {
     const s = this;
-    s.mode = 'recoil'; s.t = 0; s.pose = 'idle'; s.roarCool = SAND.cool;
-    s.g.emit('sfx', { name: 'gecko-growl', gain: 0.7, rate: 0.7, x: s.x });
+    if (!s.chase) return null;
+    const n = s.nose();
+    return { x0: Math.min(n, s.x - s.facing * 3.2 * T), y0: s.y - 3.2 * T, x1: Math.max(n, s.x - s.facing * 3.2 * T), y1: s.y, head: n };
+  },
+  // Pause > "Back to room entrance" while she hunts (or has just eaten him): the same quick retry
+  retry() {
+    const s = this;
+    if (!(s.awake() || s.mode === 'gulp')) return false;
+    const [tx, ty] = s.e.retry || [33, 15];
+    s.g.retryRoom(tx, ty);
+    return true;
+  },
+
+  startWake(why) {
+    const s = this, g = s.g, p = g.player;
+    s.mode = 'wake'; s.t = 0; s.facing = Math.sign(p.cx - s.x) || 1; s.play('wake');
+    s.musicNow = 'chase'; s.chase = true;
+    s.sfx('gecko-growl', { gain: 0.8, rate: 0.85 });
+    if (!s.woke) g.toast(TK.duchessWakes[0], 120);
+    s.why = why;
+    // [issue 9] the log's note shows from the wake (a note at the log's opening, fluttering down)
+    if (!s.signed) { const l = s.log(), rx = Math.floor((l.x + l.w) / T); s.signed = true; g.scriptNote('opening.tank.hideLog', { x: rx, y: s.e.y + 1, w: 2, nx: rx + 1, text: TK.hideLog }); }
+  },
+  startCrouch() {
+    const s = this, g = s.g, p = g.player, n = s.tellFrames();
+    if (!p.hidden) s.facing = Math.sign(p.cx - s.x) || s.facing;
+    s.mode = 'crouch'; s.t = 0; s.hold('pounce', 0); s.tellN = n; s.speed = 0;
+    s.wig = n + SAND.spring + SAND.air; // the tail tip wiggles from the crouch until she lands
+    g.emit('tell', { x: s.nose(), y: s.y - 70, boss: 'duchess', frames: n });
+  },
+  // the leap's end is fixed as she springs (the shadow goes down there): where he'll be when she lands if he
+  // keeps going as he is (a runner flat out); pounce 1 just behind that; the log if he's in it; a berm face
+  // if he's on or just past a berm (she slams into it)
+  startSpring() {
+    const s = this, g = s.g, p = g.player, f = s.facing, n0 = s.nose();
+    const flight = (SAND.spring + SAND.air) / FPS;
+    const ahead = p.cx + Math.max(-PIP_RUN, Math.min(PIP_RUN, p.vx)) * flight;
+    let target = ahead, bite = 'sand';
+    if (s.pounces === 0) target -= f * SAND.nearMiss;
+    const caught = g.duchessCatches || 0;
+    if (caught >= 3) target -= f * Math.min(SAND.shortenMax, SAND.shorten * (caught - 2)); // [issue 25] quietly shorter
+    let d = Math.max(SAND.leapMin, Math.min(SAND.leapMax, (target - n0) * f));
+    target = n0 + f * d;
+    if (s.floorAt(n0 - f * 2) > 15.5 * T) for (const b of s.e.berms || [31, 49]) { // (her front feet on the sand, not up on a berm)
+      const face = f > 0 ? (b - 1) * T : (b + 2) * T;
+      if ((face - n0) * f > 0 && (target - face) * f > 0 && (ahead - face) * f > -0.5 * T && (ahead - face) * f < 4.5 * T) { target = face; bite = 'berm'; break; }
+    }
+    const lf = s.logFace();
+    if (p.hidden && (target - lf) * f >= 0 && (lf - n0) * f > 0) { target = lf; bite = 'log'; }
+    target = Math.max(1.5 * T, Math.min(62.5 * T, target));
+    s.x0 = s.x; s.y0 = s.y; s.x1 = Math.max(SAND.minX, Math.min(SAND.maxX, target - f * NOSE)); s.y1 = s.floorAt(s.x1); s.bite = bite;
+    s.mode = 'spring'; s.t = 0; s.hold('pounce', 1);
+    s.sfx('gecko-growl', { gain: 0.45, rate: 1.25 });
+  },
+  land() {
+    const s = this, g = s.g;
+    s.x = s.x1; s.y = s.y1; s.mode = 'land'; s.t = 0; s.hold('pounce', 3);
+    const n = s.nose();
+    g.emit('sandSpray', { x: n, y: s.y, shake: 6 });
+    s.sfx('pounce-land', { gain: 0.9 });
+    s.pounces++;
+    if (s.bite === 'log') return s.snap();
+    if (s.bite === 'berm' && !s.bermTold) { s.bermTold = true; g.toast(TK.bermBite, 150); }
+    s.tryCatch();
+  },
+  tryCatch() {
+    const s = this, p = s.g.player;
+    if (s.bite !== 'sand' || s.pounces <= 1 || p.hidden || s.roarCool > 0) return false; // pounce 1 is always a near miss
+    if (!ov(s.snout(), s.pipBox())) return false;
+    if (s.g.gentle) s.shove(); else s.eat();
+    return true;
+  },
+  // Gentle Mode: #7's catch, a roar and a skitter the way she faces; no damage, no game over
+  shove() {
+    const s = this, g = s.g, p = g.player;
+    s.roarCool = SAND.shake + SAND.recover; s.mode = 'shake'; s.t = 0; s.still('strike');
+    s.sfx('gecko-growl', { gain: 0.7, rate: 0.7 });
+    p.shove(s.facing, g.ctx, { vx: 380, vy: -420, lock: 30 });
+    s.skit = 40;
+    const l = s.log(), toLog = p.cx + s.facing * 4 * T > l.x + l.w ? TK.caughtLogBack : TK.caughtLog;
+    const pick = s.lastToast === TK.caughtFirst ? toLog : TK.caughtFirst;
+    s.lastToast = pick; g.toast(pick, 150);
+  },
+  // a catch (not in Gentle Mode): her jaws close, he's gone in a puff of sand; black, a gulp, her asleep, a card, a retry
+  eat() {
+    const s = this, g = s.g, p = g.player;
+    g.duchessCatches = (g.duchessCatches || 0) + 1;
+    s.mode = 'gulp'; s.t = 0; s.pipGone = true; s.chase = false; s.loopName = null;
+    g.emit('sandPuff', { x: p.cx, y: p.y + p.h });
+    s.sfx('gecko-chomp', { gain: 0.8 });
+  },
+  gulpStep(inp) {
+    const s = this, g = s.g, G = SAND.gulp, t = s.t, p = g.player;
+    p.vx = 0; p.vy = 0;
+    if (t === G.puff) { s.black = 1; s.dark = 0; s.musicNow = null; s.sfx('gulp', { gain: 1 }); }
+    if (t === G.puff + G.black) s.play('tongue'); // back on her, licking her lips
+    if (t > G.puff + G.black) s.black = Math.max(0, 1 - (t - G.puff - G.black) / G.fade);
+    if (t === G.puff + G.black + 26) { s.still('sleep'); s.sfx('gecko-snore', { gain: 0.45 }); }
+    const at = G.puff + G.black + G.fade;
+    if (t >= at) {
+      s.card = t - at;
+      const any = Object.keys(inp.pressed || {}).some((k) => inp.pressed[k]);
+      if (s.card >= G.card || (s.card >= G.skip && any)) {
+        const offer = (g.duchessCatches || 0) >= 3 && !g.gentleOffered;
+        s.retry();
+        if (offer) { g.gentleOffered = true; g.emit('story', { name: 'gentleOffer' }); }
+      }
+    }
+  },
+  // Pip went into the log: she comes and snaps at it (jaws on bark)
+  snap() {
+    const s = this, g = s.g;
+    s.mode = 'snap'; s.t = 0; s.still('strike'); s.speed = 0;
+    g.hold = Math.max(g.hold, SAND.hitStop);
+    g.emit('barkChips', { x: s.logFace(), y: s.log().y - 6 });
+    s.sfx('gecko-chomp', { gain: 0.9 });
+  },
+  // seen (out of the log early, or a chirp in it): a roar, then a full tell before any pounce
+  seen() {
+    const s = this;
+    s.mode = 'roar'; s.t = 0; s.still('strike'); s.roarCool = SAND.roar; s.speed = 0;
+    s.sfx('gecko-growl', { gain: 0.8, rate: 0.7 });
+  },
+  curl() { // she loses interest: curls up asleep where she is; the light comes back, the music settles, the way on opens
+    const s = this, g = s.g;
+    g.rs(g.room.id).taken.add(SLEPT);
+    g.retireNote('opening.tank.hideLog');
+    s.mode = 'curl'; s.t = 0; s.still('sleep'); s.musicNow = null; s.chase = false; s.loopName = null; s.speed = 0;
+    s.sfx('relief-sting', { gain: 1 });
+    s.peekAt = g.frame + 40;
+    g.toast(TK.shrug, 150); g.toast(TK.lost, 180);
+  },
+  // the log's wide hiding zone while she hunts: a ↓ press is remembered for 0.2 s, and ↓ held on arrival counts
+  logZone(inp) {
+    const s = this, g = s.g, p = g.player, l = s.log();
+    if (inp.pressed?.down && !inp.pressed?.jump) s.downBuf = SAND.downBuf; else if (s.downBuf > 0) s.downBuf--;
+    if (p.state !== 'ground') return;
+    const near = Math.abs(p.cx - (l.x + l.w / 2)) < l.w / 2 + SAND.zone && Math.abs(p.y + p.h - (l.y + l.h)) < 0.5 * T;
+    if (near && (s.downBuf > 0 || inp.held?.down)) {
+      const from = p.cx;
+      p._enterHide(l, g.ctx); s.downBuf = 0;  // a slide-in snap
+      g.emit('dust', { x: from, y: p.y + p.h });
+    }
   },
   toward(x, v) { const s = this, d = x - s.x; s.x += Math.sign(d) * Math.min(Math.abs(d), v * DT); return Math.abs(d) <= v * DT; },
+
   update() {
-    const s = this, g = s.g, p = g.player, rs = g.rs(g.room.id);
+    const s = this, g = s.g, p = g.player, rs = g.rs(g.room.id), inp = g.inp || { pressed: {}, held: {} };
     const EXIT = (s.e.exit ?? 60) * T;
     s.t++;
     if (s.cool > 0) s.cool--;
     if (s.roarCool > 0) s.roarCool--;
+    if (s.twitch > 0) s.twitch--;
+    if (s.flick > 0) s.flick--;
     const lost = rs.taken.has(SLEPT);
     // the way on stays shut until she has lost him
     if (!lost && p.x + p.w > EXIT) {
       p.x = EXIT - p.w; if (p.vx > 0) p.vx = 0;
       if (!s.heldBack) { s.heldBack = true; g.toast(TK.exitShut, 180); }
     } else if (p.x + p.w < EXIT - T) s.heldBack = false;
-    // a skitter never takes him out of the room
-    if (s.skit > 0) { s.skit--; if (p.x < SAND.edge) { p.x = SAND.edge; if (p.vx < 0) p.vx = 0; } }
-    s.y += (s.floorAt(s.x) - s.y) * 0.25;
+    if (s.skit > 0) { s.skit--; if (p.x < SAND.edge) { p.x = SAND.edge; if (p.vx < 0) p.vx = 0; } } // a skitter never takes him out of the room
+    if (s.mode === 'gulp') return s.gulpStep(inp);
     const hidden = p.state === 'hide';
-    let revealed = false;
-    if (hidden) for (let i = g.fx.length - 1; i >= 0 && g.fx[i].f === g.frame; i--) if (g.fx[i].type === 'reveal') revealed = true;
-    const awake = s.mode !== 'asleep' && s.mode !== 'eye' && !lost;
-    // the "Hide in the log!" sign: once she has lunged, or once he's near the log
-    if (!s.signed && !lost && s.mode !== 'asleep' && (s.lunges > 0 || Math.abs(p.cx - (s.log().x + s.log().w / 2)) < 6 * T)) {
-      // [issue 9] a note at the log's opening (it faces right), fluttering down
-      const l = s.log(), rx = Math.floor((l.x + l.w) / T); // the first column right of the hide spot; the note just past the opening
-      s.signed = true; g.scriptNote('opening.tank.hideLog', { x: rx, y: s.e.y ?? 15, w: 2, nx: rx + 1, text: TK.hideLog });
+    let revealed = false, chirpAt = null;
+    for (let i = g.fx.length - 1; i >= 0 && g.fx[i].f === g.frame; i--) {
+      if (g.fx[i].type === 'reveal' && hidden) revealed = true;
+      if (g.fx[i].type === 'chirp') chirpAt = g.fx[i].d;
     }
-    const live = () => !p.hidden && s.roarCool === 0 && ov(s.snout(), { x: p.x + 3, y: p.y + 3, w: p.w - 6, h: p.h - 6 });
+    if (!lost && !hidden && s.awake()) s.logZone(inp);
+    const hiddenNow = p.state === 'hide';
+    const f = s.facing;
+    if (s.mode !== 'air' && s.mode !== 'spring') s.y += (s.floorAt(s.x) - s.y) * 0.25;
     switch (s.mode) {
-      case 'asleep':
-        s.pose = 'sleep';
-        if (!lost && p.cx > SAND.wake) {
-          s.mode = 'eye'; s.t = 0; s.pose = 'idle'; g.emit('sfx', { name: 'gecko-growl', gain: 0.5, rate: 1.1 });
-          if (!s.woke) g.toast(TK.duchessWakes[0], 150); // the wake line, once per visit
+      case 'asleep': {
+        if (lost) { s.mode = 'nap'; break; }
+        // she stirs as he creeps past: a tail twitch as he passes her middle, an eye flicker (and a low growl) past her nose
+        if (!(s.stir & 1) && p.cx > s.x - 1.5 * T) { s.stir |= 1; s.twitch = 45; }
+        if (!(s.stir & 2) && p.cx > s.nose() + 1.2 * T) { s.stir |= 2; s.flick = 12; s.sfx('gecko-growl', { gain: 0.22, rate: 0.55 }); }
+        const hb = s.headBox();
+        const bumped = !p.hidden && ov(hb, s.pipBox());
+        const chirped = chirpAt && Math.abs((chirpAt.x ?? p.cx) - (hb.x + hb.w / 2)) < SAND.chirp;
+        if (p.cx > SAND.wake || bumped || chirped) s.startWake(bumped ? 'bump' : chirped ? 'chirp' : 'past');
+        break;
+      }
+      case 'wake':
+        if (s.t >= SAND.wakeF) {
+          s.woke = true; s.mode = 'run'; s.t = 0; s.cool = 0; s.play('run');
+          if (s.why === 'past') g.toast(TK.duchessWakes[1], 120);
         }
         break;
-      case 'eye':
-        if (s.t === 70 && !s.woke) g.toast(TK.duchessWakes[1], 150);
-        if (s.t > 110) { s.woke = true; s.mode = 'stalk'; s.t = 0; s.cool = 30; }
-        break;
-      case 'stalk': {
-        if (hidden) { s.mode = 'seek'; s.t = 0; break; }
-        if ((p.cx - s.x) * s.facing < -1.5 * T) s.facing = -s.facing; // he got behind her: she turns
-        const ahead = (p.cx - s.nose()) * s.facing;
-        let want = Math.max(SAND.minX, p.cx - s.facing * (SAND.near + NOSE));
-        // a berm between them with him close behind it: she stops at its face (and lunges into it);
-        // further on, she walks over it
-        const face = s.facesAhead()[0];
-        if (face != null && (want + s.facing * NOSE - face) * s.facing > 0 && (p.cx - face) * s.facing + 2 < SAND.reach) want = face - s.facing * (NOSE + 2); // the same reach she tells inside
-        const there = s.toward(want, ahead > 9 * T ? SAND.scurry : SAND.plod);
-        s.pose = there ? 'idle' : 'walk';
-        if (live()) { s.catchPip(true); break; }
-        if (s.cool === 0 && ahead > -0.5 * T && ahead < SAND.reach && p.y + p.h > 13.4 * T && !p.hidden) s.startTell('tell');
+      case 'run': {
+        if (hiddenNow) { s.mode = 'toLog'; s.t = 0; break; }
+        let gap = (p.cx - s.nose()) * s.facing;
+        if (gap < -0.3 * T && (p.cx - s.x) * s.facing < 0) { s.facing = -s.facing; gap = (p.cx - s.nose()) * s.facing; } // he got behind her: she turns
+        const v = PIP_RUN * (gap > SAND.far ? SAND.catchUp : SAND.run);
+        if (gap < 0.5 * T) { s.speed = PIP_RUN * 0.6; s.x -= s.facing * s.speed * DT; } // he's under her chin: she backs off a step
+        else { s.speed = gap > 0.8 * T ? v : 0; s.x += s.facing * Math.min(s.speed * DT, Math.max(0, gap - 0.8 * T)); }
+        s.clampX();
+        if (s.anim !== 'run') s.play('run');
+        if (s.cool === 0 && gap <= (s.pounces === 0 ? SAND.first : SAND.later) && gap >= 0.5 * T) s.startCrouch();
         break;
       }
-      case 'tell':
-        if (hidden) { s.mode = 'seek'; s.t = 0; break; }
-        if (live()) { s.catchPip(true); break; }
-        if (s.t >= s.tellN) s.startLunge();
+      case 'crouch':                // the tell: stopped, crouched, the tail tip wiggling
+        if (s.t >= s.tellN) s.startSpring();
         break;
-      case 'lunge': {
-        const n = s.nose();
-        let stop = s.stop, bite = s.bite;
-        if (hidden && (s.logFace() - n) * s.facing >= -2 && (stop - s.logFace()) * s.facing > 0) { stop = s.logFace(); bite = 'log'; } // a lunge at a hidden Pip thunks into the log
-        const arrived = s.toward(s.x + (stop - n), SAND.lunge);
-        if (live()) { s.catchPip(false); break; }
-        if (arrived || s.t > 45) s.endLunge(bite);
+      case 'spring':                // the launch frame: the shadow is down where she'll land
+        if (s.t >= SAND.spring) { s.mode = 'air'; s.t = 0; s.hold('pounce', 2); s.sfx('whoosh', { gain: 0.9, rate: 0.8 }); }
+        break;
+      case 'air': {
+        // he dived into the log while she was in the air: her jaws find the bark
+        const lf = s.logFace();
+        if (hiddenNow && s.bite !== 'log' && (s.x1 + f * NOSE - lf) * f > 0 && (lf - (s.x0 + f * NOSE)) * f > 0) { s.x1 = lf - f * NOSE; s.y1 = s.floorAt(s.x1); s.bite = 'log'; }
+        const k = Math.min(1, s.t / SAND.air), d = Math.abs(s.x1 - s.x0);
+        s.x = s.x0 + (s.x1 - s.x0) * k;
+        s.y = s.y0 + (s.y1 - s.y0) * k - SAND.arc * (0.55 + 0.45 * Math.min(1, d / (10 * T))) * Math.sin(Math.PI * k);
+        if (s.t >= SAND.air) s.land();
         break;
       }
-      case 'shake':                 // she shakes it off (sand, a berm, a catch)
-        s.pose = 'idle';
-        if (s.t > SAND.shake) { s.mode = hidden ? 'seek' : 'stalk'; s.t = 0; s.cool = 30; }
+      case 'land':                  // jaws closing, sand flying: the first frames can catch him
+        if (s.t <= SAND.catchF && s.tryCatch()) break;
+        if (s.t >= SAND.land) { s.mode = hiddenNow ? 'toLog' : 'run'; s.t = 0; s.cool = SAND.recover; s.play('run'); }
         break;
-      case 'seek': {                // straight to the log at her scurry speed
-        if (!hidden) { s.mode = 'stalk'; s.t = 0; s.cool = 20; break; }
-        if (revealed) { s.seen(); break; }
+      case 'shake':                 // Gentle Mode: she shakes off the catch
+        if (s.t >= SAND.shake) { s.mode = hiddenNow ? 'toLog' : 'run'; s.t = 0; s.cool = SAND.recover; s.play('run'); }
+        break;
+      case 'toLog': {               // straight to the log, then jaws on bark
+        if (!hiddenNow) { s.seen(); break; }
         const l = s.log(), lc = l.x + l.w / 2;
         s.facing = Math.sign(lc - s.x) || 1;
-        const noseAt = s.logFace() - s.facing * (s.lunges === 0 ? 3 * T : 0.4 * T);
-        s.pose = 'walk';
-        if (s.toward(noseAt - s.facing * NOSE, SAND.scurry)) {
-          if (s.lunges === 0) s.startTell('logTell');   // she hasn't lunged yet: the tell, at the log
-          else { s.mode = 'sniff'; s.t = 0; s.pose = 'idle'; g.toast(TK.sniff, 150); }
-        }
+        const goal = s.logFace() - s.facing * (0.2 * T + NOSE);
+        s.speed = PIP_RUN * SAND.run * 1.2;
+        if (s.anim !== 'run') s.play('run');
+        if (s.toward(goal, s.speed)) s.snap();
         break;
       }
-      case 'logTell':
-        if (!hidden || revealed) { s.seen(); break; }
-        if (s.t >= s.tellN) { s.mode = 'logLunge'; s.t = 0; s.pose = 'strike'; g.emit('sfx', { name: 'gecko-growl', gain: 0.4, rate: 1.2, x: s.x }); }
-        break;
-      case 'logLunge':
-        if (!hidden || revealed) { s.seen(); break; }
-        if (s.toward(s.x + (s.logFace() - s.nose()), SAND.lunge) || s.t > 45) {
-          s.endLunge('log'); s.mode = 'sniff'; s.t = -30; g.toast(TK.sniff, 150); // the thunk, a beat, then the sniff
+      case 'snap':
+        if (s.t >= SAND.snap) {
+          if (!hiddenNow) { s.seen(); break; }
+          s.mode = 'sniff'; s.t = 0; s.play('tongue'); g.toast(TK.sniff, 150);
         }
         break;
-      case 'sniff':
-        s.pose = s.t > 0 && Math.floor(s.t / 20) % 2 ? 'walk' : 'idle';
-        if (!hidden || revealed) { s.seen(); break; }
-        if (s.t > SAND.sniff) { // she shrugs and turns away: the way on opens right then
-          rs.taken.add(SLEPT);
-          g.retireNote('opening.tank.hideLog'); // the note's job is done
-          s.mode = 'shrug'; s.t = 0; s.pose = 'idle'; s.pulse = false;
-          g.toast(TK.shrug, 150); g.toast(TK.lost, 180);
-        }
+      case 'sniff':                 // the sniff: her tongue flicks at the bark, twice
+        if (!hiddenNow || revealed) { s.seen(); break; }
+        if (s.t === 50) s.play('tongue');
+        if (s.t >= SAND.sniff) s.curl();
         break;
-      case 'recoil':                // seen at the log: she rears back, roars, and gives him a moment
-        s.pose = 'idle';
-        if (s.t < 20) s.x = Math.max(SAND.minX, s.x - s.facing * 4.5 * T * DT);
-        if (s.t > SAND.recoil) { s.mode = hidden ? 'seek' : 'stalk'; s.t = 0; s.cool = 30; }
+      case 'roar':                  // seen: a roar, then a full tell before any pounce
+        if (s.t >= SAND.roar) { if (hiddenNow) { s.mode = 'sniff'; s.t = 0; s.play('tongue'); } else s.startCrouch(); }
         break;
-      case 'shrug':                 // a step back from the log (her tail clear of it), then she turns away
-        s.pose = s.t <= 30 ? 'walk' : 'idle';
-        if (s.t <= 30) s.x -= s.facing * 2.5 * T / 30;
-        if (s.t === 30) s.facing = -1;
-        if (s.t > 50) { s.mode = 'home'; s.t = 0; }
-        break;
-      case 'home':                  // her plod home and her nap play on behind him
-        s.pose = 'walk'; s.facing = -1;
-        if (s.toward((s.e.x + 0.5) * T, SAND.plod * 0.8)) { s.mode = 'nap'; s.t = 0; s.pose = 'sleep'; s.facing = 1; }
+      case 'curl':                  // asleep where she is; the light comes back over 1.5 s
+        if (s.t >= SAND.lightOut) s.mode = 'nap';
         break;
       case 'nap':
-        s.pose = 'sleep';
-        if (!s.quiet && s.t % 150 === 1) g.emit('sfx', { name: 'gecko-snore', gain: 0.35, x: s.x });
+        if (s.pose !== 'sleep' || s.anim) s.still('sleep');
+        if (!s.quiet && s.t % 150 === 1) s.sfx('gecko-snore', { gain: 0.35 });
         break;
       default: break;
     }
-    // hidden while she comes and sniffs: only Jump leaves the log (player.js _hide)
-    p.hideHold = hidden && awake;
+    // the darkening wash (0.4 s) while she hunts; the light comes back over 1.5 s once she's lost him
+    if (s.awake()) s.dark = Math.min(1, s.dark + 1 / SAND.darkIn);
+    else if (s.dark > 0) s.dark = Math.max(0, s.dark - 1 / SAND.lightOut);
+    s.chase = s.awake();
+    // her feet on the sand: the skitter loop, its rate tied to her speed (audio.js)
+    const moving = (s.mode === 'run' || s.mode === 'toLog') && s.speed > 0;
+    s.loopName = moving ? 'gecko-skitter' : null; s.loopRate = moving ? Math.max(0.7, Math.min(1.8, s.speed / PIP_RUN)) : 1;
+    // hidden while she hunts: only Jump leaves the log (player.js _hide)
+    p.hideHold = hiddenNow && s.awake();
+  },
+
+  // ---- drawing (render only) ----
+  drawBack(c, r) { // her silhouette looming on the glass while she's in the air
+    const s = this;
+    if (s.mode !== 'air' && s.mode !== 'spring') return;
+    if (!s.ghost) s.ghost = Geckos.create('duchess', { autoTick: false });
+    if (!Geckos.ready('duchess')) return;
+    const k = s.mode === 'air' ? Math.sin(Math.PI * Math.min(1, s.t / SAND.air)) : 0.2;
+    s.ghost.hold('pounce', 2); s.ghost.breathe = false; s.ghost.glint = false; s.ghost.tellMark = false;
+    c.save(); c.globalAlpha = 0.16 + 0.14 * k; c.filter = 'brightness(0) blur(3px)';
+    s.ghost.draw(c, s.x - s.facing * 30, s.y - 1.2 * T - 1.4 * T * k, s.ghost.scaleFor(LEN * (1.7 + 0.4 * k)), s.facing);
+    c.restore();
+    void r;
   },
   draw(c, r) {
     const s = this, g = s.g;
-    // from the second catch: the log's outline pulses
-    if (s.pulse && !g.player.hidden) {
-      const l = s.log(), k = 0.5 + 0.5 * Math.sin(r.t / 6);
-      c.save(); c.setLineDash([7, 5]); c.strokeStyle = `rgba(242,196,109,${0.45 + 0.5 * k})`; c.lineWidth = 3 + k * 2;
-      c.beginPath(); c.ellipse(l.x + l.w / 2, l.y + l.h, l.w * 0.9 + k * 6, l.h * 1.9 + k * 4, 0, Math.PI, 0); c.stroke(); c.restore();
+    // her rock (tiles 22-27): a flat stone
+    const rock = s.e.rock;
+    if (rock) {
+      const im = S.get('props/pebble.webp'), x0 = rock[0] * T - 6, w = rock[1] * T + 12, y1 = (rock[2] + 1) * T + 4, h = 1.35 * T;
+      if (im) c.drawImage(im, x0, y1 - h, w, h);
+      else { c.fillStyle = '#9A9486'; c.beginPath(); c.ellipse(x0 + w / 2, y1 - h / 2, w / 2, h / 2, 0, 0, 7); c.fill(); }
     }
     if (!s.rig) { s.rig = Geckos.create('duchess'); Geckos.preload('duchess'); }
     if (!Geckos.ready('duchess')) return;
-    if (s.wig) { s.rig.wiggle(s.wig); s.wig = 0; }
-    s.rig.setPose(s.pose); s.rig.walkSpeed = s.mode === 'seek' ? 2.4 : 1.2;
-    const jig = s.mode === 'shake' && s.t < 40 ? Math.sin(s.t * 1.3) * 4 : 0;
-    s.rig.draw(c, s.x + jig, s.y, s.rig.scaleFor(LEN), s.facing);
-    if (s.mode === 'asleep' || s.mode === 'nap') {
-      const tt = (r.t % 150) / 150;
-      c.save(); c.globalAlpha = Math.sin(tt * Math.PI) * 0.8; c.fillStyle = '#5A4632'; c.font = `bold ${18 + 10 * tt}px "Patrick Hand", sans-serif`;
-      c.fillText('z', s.x + 90 + 10 * tt, s.y - 110 - 30 * tt); c.restore();
+    // the landing shadow: down as she springs, darker as she comes down
+    if (s.mode === 'spring' || s.mode === 'air') {
+      const k = s.mode === 'air' ? Math.min(1, s.t / SAND.air) : 0, sx = s.x1 + s.facing * NOSE * 0.35;
+      c.save(); c.globalAlpha = 0.22 + 0.4 * k; c.fillStyle = '#2E3550';
+      c.beginPath(); c.ellipse(sx, s.y1 - 3, (2.4 + 1.6 * k) * T, (0.22 + 0.12 * k) * T, 0, 0, 7); c.fill(); c.restore();
     }
-    if (s.mode === 'sniff' && s.t > 0) { // a "?" above her head
-      const qx = s.nose() - s.facing * 0.9 * T, qy = s.y - 170 - 5 * Math.sin(s.t / 9);
-      c.save(); c.globalAlpha = Math.min(1, s.t / 20); c.font = 'bold 48px "Patrick Hand", sans-serif'; c.textAlign = 'center';
+    const rig = s.rig;
+    if (s.wig) { rig.wiggle(s.wig); s.wig = 0; }
+    if (s.twitch > 0) rig.twitchT = Math.max(rig.twitchT || 0, s.twitch);
+    if (s.anim) { if (s.held != null) rig.hold(s.anim, s.held); else rig.play(s.anim, (g.frame - s.animAt) / FPS); }
+    else rig.setPose(s.pose);
+    rig.walkSpeed = s.mode === 'run' || s.mode === 'toLog' ? Math.max(0.6, s.speed / PIP_RUN) : 1;
+    const jig = s.mode === 'shake' && s.t < 40 ? Math.sin(s.t * 1.3) * 4 : 0;
+    const sc = rig.scaleFor(LEN);
+    rig.draw(c, s.x + jig, s.y, sc, s.facing);
+    // asleep: an eye flicker as he passes (her eye opens a crack, then shuts)
+    if (s.flick > 0 && s.pose === 'sleep' && !s.anim) {
+      const e = rig._xf(s.x, s.y, sc, s.facing)(156, 377), k = Math.sin(Math.PI * s.flick / 12);
+      c.save(); c.fillStyle = '#E8A93A'; c.beginPath(); c.ellipse(e.x, e.y, 11, 6 * k + 1, 0, 0, 7); c.fill();
+      c.fillStyle = '#2A1E14'; c.fillRect(e.x - 1.5, e.y - 6 * k, 3, 12 * k); c.restore();
+    }
+    // awake: her eye glints amber in the dark
+    if (s.dark > 0.05 && s.pose !== 'sleep') {
+      const e = rig.point('eye', s.x, s.y, sc, s.facing), a = s.dark * (0.55 + 0.25 * Math.sin(r.t / 5));
+      const gr = c.createRadialGradient(e.x, e.y, 0, e.x, e.y, 22);
+      gr.addColorStop(0, `rgba(255,190,70,${a.toFixed(2)})`); gr.addColorStop(1, 'rgba(255,170,40,0)');
+      c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = gr; c.beginPath(); c.arc(e.x, e.y, 22, 0, 7); c.fill(); c.restore();
+    }
+    if ((s.mode === 'asleep' || s.mode === 'nap' || s.mode === 'curl' || (s.mode === 'gulp' && s.pose === 'sleep' && !s.anim))) {
+      const tt = (r.t % 150) / 150, zx = s.x + s.facing * 70;
+      c.save(); c.globalAlpha = Math.sin(tt * Math.PI) * 0.8; c.fillStyle = '#5A4632'; c.font = `bold ${18 + 10 * tt}px "Patrick Hand", sans-serif`;
+      c.fillText('z', zx + 10 * tt, s.y - 80 - 30 * tt); c.restore();
+    }
+    if (s.mode === 'sniff' && s.t > 10) { // a "?" above her head
+      const qx = s.nose() - s.facing * 0.9 * T, qy = s.y - 150 - 5 * Math.sin(s.t / 9);
+      c.save(); c.globalAlpha = Math.min(1, (s.t - 10) / 20); c.font = 'bold 48px "Patrick Hand", sans-serif'; c.textAlign = 'center';
       c.lineJoin = 'round'; c.lineWidth = 6; c.strokeStyle = '#F4EBDD'; c.strokeText('?', qx, qy);
       c.fillStyle = '#5A4632'; c.fillText('?', qx, qy); c.restore();
+    }
+  },
+  // screen space: the darkening wash and the vignette round Pip, her eye glinting at the screen's edge
+  // when her head is off the view, the black of the gulp, and the card after it
+  drawOver(c, r, g) {
+    const s = this, cam = g.camera, z = cam.zoom, W = 1280, H = 720 * (cam.hFrac || 1), p = g.player;
+    const S2 = (x, y) => ({ x: (x - cam.x) * z, y: (y - cam.y) * z });
+    if (s.dark > 0.01) {
+      const d = s.dark, pc = S2(p.cx, p.cy);
+      c.save();
+      c.fillStyle = `rgba(46,53,80,${(0.34 * d).toFixed(3)})`; c.fillRect(0, 0, W, H);
+      const r0 = 900 - 520 * d, vg = c.createRadialGradient(pc.x, pc.y, r0 * 0.35, pc.x, pc.y, r0);
+      vg.addColorStop(0, 'rgba(20,22,40,0)'); vg.addColorStop(1, `rgba(20,22,40,${(0.62 * d).toFixed(3)})`);
+      c.fillStyle = vg; c.fillRect(0, 0, W, H);
+      c.restore();
+    }
+    if (s.chase && s.rig) {
+      const e = S2(s.nose() - s.facing * 0.6 * T, s.y - 1.6 * T);
+      if (e.x < 0 || e.x > W) {
+        const ex = e.x < 0 ? 16 : W - 16, ey = Math.max(30, Math.min(H - 30, e.y)), k = 0.6 + 0.4 * Math.sin(r.t / 4);
+        const gr = c.createRadialGradient(ex, ey, 0, ex, ey, 34);
+        gr.addColorStop(0, `rgba(255,200,90,${(0.9 * k).toFixed(2)})`); gr.addColorStop(0.4, `rgba(232,150,40,${(0.5 * k).toFixed(2)})`); gr.addColorStop(1, 'rgba(232,150,40,0)');
+        c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = gr; c.beginPath(); c.arc(ex, ey, 34, 0, 7); c.fill();
+        c.fillStyle = `rgba(40,20,10,${(0.8 * k).toFixed(2)})`; c.fillRect(ex - 1.5, ey - 7, 3, 14); c.restore();
+      }
+    }
+    if (s.black > 0) { c.save(); c.fillStyle = `rgba(8,8,14,${s.black.toFixed(3)})`; c.fillRect(0, 0, W, H); c.restore(); }
+    if (s.mode === 'gulp' && s.card >= 0) {
+      const a = Math.min(1, s.card / 8), cw = 760, ch = 92, cx = (W - cw) / 2, cy = H * 0.24;
+      c.save(); c.globalAlpha = a;
+      c.fillStyle = 'rgba(42,32,26,0.35)'; c.fillRect(cx + 6, cy + 8, cw, ch);
+      c.fillStyle = '#F4EBDD'; c.fillRect(cx, cy, cw, ch);
+      c.strokeStyle = '#5A4632'; c.lineWidth = 3; c.strokeRect(cx + 1.5, cy + 1.5, cw - 3, ch - 3);
+      c.fillStyle = '#2A201A'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      const [l1, l2] = TK.eaten.split('. ');
+      c.font = 'bold 34px "Patrick Hand", sans-serif'; c.fillText(`${l1}.`, W / 2, cy + 30);
+      c.font = '26px "Patrick Hand", sans-serif'; c.fillText(l2, W / 2, cy + 66);
+      c.restore();
     }
   },
 };
@@ -438,11 +643,11 @@ const Lid = {
 const BEATS = { cup, sand, decor, lid };
 // [art] what each beat draws (room-art.js loads it before the room shows); the sand's Duchess rig
 const ART = {
-  cup: { gecko: null, props: ['feeder-cup-open', 'tongs'] }, sand: { gecko: 'duchess', props: [] },
+  cup: { gecko: null, props: ['feeder-cup-open', 'tongs'] }, sand: { gecko: 'duchess', props: ['pebble'] },
   decor: { gecko: null, props: ['pebble'] }, lid: { gecko: null, props: ['mesh-lid', 'store-cup', 'store-cup-tipped'] },
 };
 export default {
   create(game, e) { return (BEATS[e.beat] || cup)(game, e); },
-  sfx: ['bonk', 'crinkle', 'gecko-chomp', 'gecko-growl', 'gecko-snore', 'hinge-creak', 'splat', 'squeak-toy'], // [issue 14] the recorded effects the beats play (src/zone-sfx.js)
+  sfx: ['bonk', 'crinkle', 'gecko-chomp', 'gecko-growl', 'gecko-skitter', 'gecko-snore', 'gulp', 'hinge-creak', 'pounce-land', 'relief-sting', 'splat', 'squeak-toy'], // [issue 14] the recorded effects the beats play (src/zone-sfx.js)
   art(e) { return { crickets: {}, ...(ART[e.beat] || ART.cup) }; },
 };

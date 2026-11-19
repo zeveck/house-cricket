@@ -313,6 +313,7 @@ function storyEvent(name) {
   if (name === 'tankEscaped') afterEscape();
   else if (name === 'ending') playEnding();
   else if (name === 'damper') { openModal(); Screens.damperCard(A); }
+  else if (name === 'gentleOffer' && !settings.gentle) { openModal(); Screens.gentleOffer(A); } // [issue 25] after three catches in the tank
 }
 function playEnding() {
   const m = game.meta; m.won = true; game.gameWon = true;

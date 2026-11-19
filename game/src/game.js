@@ -186,7 +186,7 @@ export class Game {
     if (this.hold > 0) { this.hold--; if (pin.pressed.jump) this.player.jumpBuf = 7; return; }
     this.playFrames++;
     const p = this.player;
-    p.update(pin, this.ctx);
+    if (!this.boss?.pipGone) p.update(pin, this.ctx); // [issue 25] eaten: he's gone until the retry
     // kick hits
     const kb = p.kickBox();
     if (kb) kickEnemies(this.enemies, kb, p.facing, this);
@@ -322,12 +322,26 @@ export class Game {
   // [final-S] Pause > "Back to room entrance": free; in a gecko fight it is the phase restart.
   backToEntrance() {
     if (this.inFight()) { this.boss.lose(); return 'phase'; }
+    if (this.boss?.retry?.()) return 'room'; // [issue 25] the tank's chase: the same quick retry as being eaten
     const p = this.player, at = this.entrySafe || this.entry;
     p.reset(); p.x = at.x; p.y = at.y; p.state = 'air'; p.invuln = 60; p.lastSafe = { ...at };
     this.hold = 18; this.trans = { f: 0, dur: 24, kind: 'fade' };
     this.camera.snap(p, this.room);
     this.emit('entrance', {});
     return 'room';
+  }
+  // [issue 25] A quick retry of this room (the tank's chase after Duchess eats Pip; Pause > Back to room
+  // entrance there): Pip at tile (tx, ty), feet on its bottom, as on a fresh entry (the room rebuilt: its
+  // script, notes and toasts); health, items and everything else kept. Never die().
+  retryRoom(tx, ty) {
+    const room = this.room, p = this.player;
+    p.reset();
+    const x = tx * TILE + (TILE - p.w) / 2, y = (ty + 1) * TILE - p.h;
+    this.toasts = [];
+    this.enterRoom(room, room.wx + x, room.wy + y, 'retry');
+    p.state = 'air';
+    this.hold = 12; this.trans = { f: 0, dur: 24, kind: 'fade' };
+    this.emit('retry', { room: room.id });
   }
   die() {
     const p = this.player;

@@ -7,6 +7,7 @@
 //                                                   // t seconds (0 restarts; omitted carries on); rig.animDone once a one-shot ends
 //   rig.hold('pounce', 0)                           // show one frame of it and stay there (the pounce's crouch/launch/air/land)
 //   rig.wiggle(60);                                 // tail-tip tell for 60 frames (+ "!" splat, + Geckos.onTell / rig.onTell hook)
+//   rig.twitchT = 40;                               // [issue 24] a sleepy tail twitch for 40 frames (no "!", no hook)
 //   rig.draw(ctx, x, y, scale, facing);             // see "Anchor" below; facing -1 = left (as painted), +1 = right
 //   rig.box(x, y, scale, facing)  -> {x, y, w, h}   the body's on-screen box (no tail), for hitboxes
 //   rig.point('eye'|'nose'|'pivot'|'tail', x, y, scale, facing) -> {x, y}  on-screen points (tail = tail tip)
@@ -85,7 +86,7 @@ export class GeckoRig {
     this.walkSpeed = 1;      // steps per second-ish (leg cycle rate); 0 holds the legs
     this.t = 0;              // seconds (advanced by tick; draw ticks once per call unless autoTick=false)
     this.phase = 0;          // walk phase (rad)
-    this.wiggleT = 0; this.wiggleDur = 0;
+    this.wiggleT = 0; this.wiggleDur = 0; this.twitchT = 0;
     this.tellMark = true;    // draw the "!" ink splat during a wiggle
     this.onTell = o.onTell || null;
     this.autoTick = o.autoTick !== false;
@@ -131,6 +132,7 @@ export class GeckoRig {
     if (this.pose === 'walk' || this.pose === 'run') this.phase += dt * this.walkSpeed * TAU; // run: the tail's sway
     else this.phase *= 0.85; // legs settle
     if (this.wiggleT > 0) this.wiggleT--;
+    if (this.twitchT > 0) this.twitchT--;
   }
   scaleFor(len) { const m = this.meta; if (!m) return 0.5; return len / (m.frame === 'tall' ? m.size[1] : m.size[0]); }
 
@@ -257,6 +259,7 @@ export class GeckoRig {
     else if (pose === 'walk' || pose === 'run') a = tn.walkAmp * Math.sin(this.phase - u * 3.5) * u;
     else if (pose === 'strike') a = -0.18 * u + 0.08 * Math.sin(t * 9 - u * 4) * u;
     else a = tn.amp * Math.sin(t * 1.3 - u * 2.4) * u + 0.03 * Math.sin(t * 0.5) * u;
+    if (this.twitchT > 0) a += 0.32 * Math.sin(t * 16) * Math.min(1, this.twitchT / 12) * u * u; // [issue 24] a sleepy tail twitch (no tell)
     if (this.wiggleT > 0) {
       const env = Math.min(1, this.wiggleT / 10, (this.wiggleDur - this.wiggleT) / 6 + 0.2);
       const tip = Math.max(0, (u - 0.55) / 0.45);

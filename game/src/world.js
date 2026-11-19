@@ -179,6 +179,13 @@ export class Camera {
     let ty = p.cy - this.vh * this.touchFrac() + this.lookV;
     const B = this.framed ? this.bossRect() : null;
     this._fzT = 1;
+    if (B && this.game?.boss?.chase) {
+      // [issue 25] the tank's chase: no look-ahead; Pip in the third of the view away from her, so she's in
+      // view behind him (the script draws her eye glinting at the edge if her head is off it)
+      const behind = (B.x0 + B.x1) / 2 < p.cx;
+      tx = p.cx - (behind ? 0.68 : 0.32) * this.vw;
+      return { tx, ty, ahead: 0, chase: true };
+    }
     if (B) {
       // [polish-V] frame the boss and the cricket together
       // the first 2.5 s in an arena: an establishing shot (down to 0.5x) so the boss is seen from the start
@@ -263,6 +270,7 @@ export class Camera {
       this.x = cx - this.vw / 2; this.y = cy - this.vh / 2;
     }
     const t = this.target(p, room);
+    if (t.chase) this.look = 0; // [issue 25] the chase has no look-ahead
     this.x += (t.tx - this.x) * 0.14;
     const fy = p.state === 'ground' || p.state === 'cling' || p.state === 'hide' ? 0.1 : (p.vy > 300 ? 0.2 : 0.06);
     this.y += (t.ty - this.y) * fy;

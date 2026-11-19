@@ -75,6 +75,11 @@ export class FX {
         case 'hide': case 'unhide': this.puff(d.x, d.y, 2, 0.5); break;
         case 'bellow': this.shake(14); break;
         case 'tell': this.tell(d.x, d.y); break;
+        // [issue 25] the opening chase: Duchess lands (a sand spray, a 6 px shake: the setting applies), Pip is
+        // gone in a puff of sand, her jaws hit the log (bark chips)
+        case 'sandSpray': this.puff(d.x, d.y, 8, 1.4); this.dots(d.x, d.y - 6, 14, '#D9C29A', 260, 900, 3.5, 40); this.shake(d.shake || 6); break;
+        case 'sandPuff': this.puff(d.x, d.y - 8, 9, 1.3); this.dots(d.x, d.y - 10, 10, '#E3CFA4', 200, 700, 3, 34); break;
+        case 'barkChips': this.dots(d.x, d.y, 9, '#7A5230', 220, 900, 3.5, 40); this.dots(d.x, d.y, 5, '#B98A52', 160, 900, 2.5, 34); this.shake(3); break;
         default: break;
       }
     }

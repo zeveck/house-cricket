@@ -63,6 +63,7 @@ let saveFn = null;
 const st = {
   screen: 'title', paused: false, listen: false, want: null, override: null, cutHz: null,
   loopsWanted: [], carrier: [], lastFxObj: null, glide: false, raft: false,
+  warmTrack: null, bossLoop: null, // [issue 25] the boss's track kept decoded ahead; the boss's own loop {name, src, g}
 };
 const mus = { decoded: new Map(), loading: new Map(), cur: null, fading: [] };
 const sfx = { buf: new Map(), norm: new Map(), asked: new Set(), decoding: new Set(), live: new Map(), late: new Set() };
@@ -282,6 +283,7 @@ function trackFor(game) {
   if (st.override) return st.override;
   if (st.screen !== 'play' || !game) return 'title';
   const room = game.room, zone = zoneInfo(game.zone);
+  if (game.boss?.musicNow) return game.boss.musicNow; // [issue 25] a boss's own cue beats the room's music (the tank's chase)
   if (room?.def?.music) return room.def.music;
   if (game.boss) return zone?.id === 'lair' ? 'lair' : (game.boss.music || 'boss');
   if (zone?.music) return zone.music;
@@ -290,6 +292,28 @@ function trackFor(game) {
   if (id === 'carrier' || id === 'lair' || id === 'finale') return id;
   if (id === 'z00-tank') return 'title';
   return 'z01-bedroom';
+}
+// [issue 25] Fetch and decode a track ahead of need and keep it (a room's boss cue: the tank's chase), so it
+// starts at full energy the moment it's wanted. One at a time; null lets it go.
+function warmTrack(name) {
+  st.warmTrack = name || null;
+  if (!name || typeof fetch === 'undefined' || mus.decoded.has(name)) return;
+  if (ac) loadTrack(name); else fetchBytes(MUSIC_DIR + name + '.mp3').catch(() => {});
+}
+// [issue 25] A boss's own loop (Duchess's feet on the sand), its rate following her speed: name null stops it.
+function bossLoop(name, rate = 1) {
+  if (!N) return;
+  const cur = st.bossLoop, t = now();
+  if (cur && cur.name !== name) { cur.g.gain.setTargetAtTime(0, t, 0.06); try { cur.src.stop(t + 0.4); } catch { /* done */ } st.bossLoop = null; }
+  if (!name) return;
+  if (!st.bossLoop) {
+    const buf = sfx.buf.get(name); if (!buf) { lateSfx(name); return; }
+    const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+    const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.setTargetAtTime(db(LOOP_DB[name] || 0), t, 0.05);
+    src.connect(g); g.connect(N.sfxVol); src.start(t);
+    st.bossLoop = { name, src, g };
+  }
+  st.bossLoop.src.playbackRate.setTargetAtTime(rate, t, 0.05);
 }
 /** Force a track ('finale', 'carrier', ...) until music(null). */
 export function music(name) { st.override = name || null; wantTrack(st.override || st.want); }
@@ -308,12 +332,12 @@ async function loadTrack(name) {
     }).catch((e) => { mus.loading.delete(name); console.warn('music', name, e.message); return null; }));
   }
   const buf = await mus.loading.get(name);
-  if (buf && st.want === name) { mus.decoded.set(name, { buf, used: performance.now() }); release(); }
+  if (buf && (st.want === name || st.warmTrack === name)) { mus.decoded.set(name, { buf, used: performance.now() }); release(); }
   return buf;
 }
 // Keep only the wanted track plus the Carrier and boss tracks (if decoded), at most 3.
 function release() {
-  const keep = new Set([st.want, 'carrier', 'boss']);
+  const keep = new Set([st.want, 'carrier', 'boss', st.warmTrack]);
   for (const k of [...mus.decoded.keys()]) if (!keep.has(k)) mus.decoded.delete(k);
   while (mus.decoded.size > 3) {
     const lru = [...mus.decoded.entries()].filter(([k]) => k !== st.want).sort((a, b) => a[1].used - b[1].used)[0];
@@ -446,6 +470,7 @@ function roomChanged(game) {
   const loops = [...(room?.def?.loops || zone?.loops || [])];
   if ((game.enemies || []).some((e) => e.type === 'vacuum') && !loops.includes('vacuum')) loops.push('vacuum'); // [mech] the robot vacuum hums
   setLoops(loops);
+  warmTrack(game.boss?.warmMusic || null); // [issue 25] the tank's chase cue, warm before she wakes
   // decoys moved to the sim (src/mechanics.js emits 'decoy' events on the game clock)
 }
 
@@ -469,6 +494,7 @@ export function tick(game) {
   if (p.gliding && !st.glide) play('glide-whoosh'); st.glide = !!p.gliding;
   if (p.onRaft && !st.raft) play('raft-splash'); st.raft = !!p.onRaft;
   setListen(p.listening);
+  bossLoop(game.boss?.loopName || null, game.boss?.loopRate || 1); // [issue 25]
   wantTrack(trackFor(game));
   updateBeacon(game);
   // cues (game clock, 100 ms lookahead)
@@ -490,6 +516,7 @@ export function tick(game) {
 export function rewound(game) {
   for (const list of sfx.live.values()) for (const s of list) { try { s.stop(); } catch { /* done */ } }
   sfx.live.clear();
+  bossLoop(null);
   cues = [];
   st.lastFxObj = game.fx.length ? game.fx[game.fx.length - 1] : null;
   bc.key = null; bc.spec = null; bc.pulses = []; bc.answerAt = null; bc.ripplesUntil = -1; bc.room = null; bc.lastPulse = -999;
@@ -556,6 +583,7 @@ function answer(frame) {
 export function frame({ screen, paused, game } = {}) {
   if (screen && screen !== st.screen) { st.screen = screen; if (screen !== 'play') { bc.key = null; bc.spec = null; bc.m = null; setLoops([]); } }
   if (!!paused !== st.paused) { st.paused = !!paused; applyDuck(); }
+  if (st.paused || st.screen !== 'play') bossLoop(null); // [issue 25] (tick starts it again)
   if (st.screen !== 'play') wantTrack(trackFor(null));
   else if (game && !st.want) wantTrack(trackFor(game));
   carrierLayers();

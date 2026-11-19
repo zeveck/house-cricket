@@ -95,6 +95,41 @@ function dropDown(a, cond, max = 20) {
 // a ladder of platforms: [[x, row], ...]
 function climb(a, steps, o = {}) { for (const [x, row, oo] of steps) { if (oo?.from != null) walkTo(a, oo.from); jumpTo(a, x, row, { ...o, ...(oo || {}) }); } return a; }
 
+
+// [issues 24, 25] the tank's escape (tank.js Sand), from the sand room's left edge to hidden in the log
+// with her asleep: also used by tools/solutions/full-run.mjs (via its own copy of these steps)
+export function sandEscape(a, react = 18) {
+  const sand = (g) => g.boss;
+  walkTo(a, 21);
+  a.down(R).tap(J, 8).until(ground, 90, 'onto her rock').up(R);
+  walkTo(a, 24.8);
+  a.down(R).tap(J, 20).until(ground, 120, 'over her head').log(`past her (${sand(a.g).mode})`);
+  // run for the log: hop when blocked (the berms, the ripple), hop `react` frames after each spring
+  let hopT = 0, auto = 0, hopAt = -1, jumpHeld = false, downHeld = false;
+  const set = (code, on, cur) => { if (on && !cur) a.down(code); if (!on && cur) a.up(code); return on; };
+  for (let f = 0; f < 2400; f++) {
+    const g = a.g, p = a.p, b = g.boss;
+    if (p.state === 'hide') break;
+    if (b.mode === 'gulp') throw new Error(`sandEscape: eaten at ${JSON.stringify(a.state())}`);
+    if (b.mode === 'spring' && b.t === 0) hopAt = a.f + react;
+    if (a.f === hopAt) hopT = 20;
+    if (p.grounded && Math.abs(p.vx) < 30 && auto === 0 && hopT === 0 && p.cx < 57 * T) auto = 18;
+    let jump = false;
+    if (hopT > 0) { hopT--; jump = true; } else if (auto > 0) { auto--; jump = auto > 2; }
+    const down = !jump && p.cx > 56.6 * T && f % 4 < 2;
+    if (f === 0) a.down(R);
+    jumpHeld = set(J, jump, jumpHeld);
+    downHeld = set(D, down, downHeld);
+    a.wait(1);
+  }
+  if (jumpHeld) a.up(J);
+  if (downHeld) a.up(D);
+  a.up(R);
+  a.until((g) => g.player.state === 'hide', 1, 'hidden').log(`hidden in the log (pounces ${a.g.boss.pounces})`);
+  a.until((g) => g.rs('tank-sand').taken.has('duchess-asleep'), 900, 'she loses him');
+  return a.wait(20);
+}
+
 export { jumpTo, climb, R, L, U, D, J, KICK, CHIRP, USE, T, walkTo, hop, ground, at, atL, want };
 
 // ---------------------------------------------------------------- zone 0: the tank escape
@@ -114,20 +149,12 @@ if (want('zone-00')) {
   walkTo(a, 15.2);
   a.down(R).tap(J, 22).until(ground, 120, 'out of the cup').log('out');
   a.until((g) => g.room.id === 'tank-sand', 300, 'to the sand').log('sand');
-  // past Duchess (asleep); hop the ripples and berms
-  a.until((g) => g.player.cx > 16 * T, 300, 'by her').tap(J, 8).wait(30)
-   .until((g) => g.player.cx > 28.5 * T, 300, 'berm 1').tap(J, 14).wait(20)
-   .until((g) => g.player.cx > 38.5 * T, 300, 'ripple').tap(J, 10).wait(20)
-   .until((g) => g.player.cx > 46.5 * T, 300, 'berm 2').tap(J, 14)
-   .until((g) => g.player.cx >= 52 * T, 300, 'past berm 2').up(R).log('at 52');
-  // [issue 7] Duchess hunts: she lunges at him behind berm 2 (the tell is taught), then he hides in the
-  // log until she sniffs, shrugs and turns away: the exit opens. (The hunt made the tank 239 frames
-  // longer: full-run.mjs's G0, the Bedroom's start frame, moved with it.)
-  a.until((g) => g.boss.lunges >= 1 && g.boss.mode !== 'lunge', 900, 'her first lunge').log(`her first lunge ended (${a.g.boss.catches} catches)`);
-  walkTo(a, 58.5, 'the log');
-  for (let i = 0; i < 20 && a.p.state !== 'hide'; i++) a.tap(D, 2).wait(2); // [issue #27] Enter: ↓
-  a.until((g) => g.player.state === 'hide', 1, 'hidden').log('hidden in the log');
-  a.until((g) => g.rs('tank-sand').taken.has('duchess-asleep'), 900, 'she loses him').log('she has lost him');
+  // [issues 24, 25] the escape: creep past Duchess asleep on her rock (onto it behind her, then a full jump
+  // over her head), run for the log; she wakes at 38 and pounces: hop each one about 0.3 s after she springs
+  // (the shadow goes down), hop the ripple and the berm, then ↓ at the log; hidden until she sleeps.
+  // (The chase changed the tank's length: full-run.mjs's G0, the Bedroom's start frame, moved with it.)
+  sandEscape(a);
+  a.log('she has lost him');
   a.down(R).until((g) => g.room.id === 'tank-decor', 400, 'to the decor').up(R).log('decor');
   walkTo(a, 4);
   climb(a, [[7, 32], [12, 32]]);

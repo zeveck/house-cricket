@@ -1,6 +1,6 @@
 // Zone 0: the Tank (builder A). The opening's playable escape, in six beats (design: Screens,
-// Opening). Off the house map (cells 0-3, 18-20) and never revisited. Nothing here can hurt you.
-// The set pieces (tongs, Duchess stirring, the pebble, the lid gap and the cup tipping) are
+// Opening). Off the house map (cells 0-3, 18-20) and never revisited. Nothing here costs health (Duchess can eat Pip: a quick room retry).
+// The set pieces (tongs, Duchess's chase, the pebble, the lid gap and the cup tipping) are
 // scripts in src/bosses/tank.js; the last one emits story 'tankEscaped'.
 import { grid } from './grid-a.js';
 import { TEXT } from '../text.js';
@@ -19,12 +19,13 @@ function cup() {
   return g.rows();
 }
 
-// ---------------------------------------------------------------- tank-sand (1,20): beat 3, Duchess hunts (issue #7)
+// ---------------------------------------------------------------- tank-sand (1,20): beat 3, the escape (issues #24, #25)
 // Open on the left (back to the cup), the exit on the right held shut until she has lost him in the log.
 function sand() {
   const g = grid(2, 1);
   g.clear(0, 1, 64, 15);
-  g.row(18, 15, 2, '#').row(40, 15, 3, '#');   // sand ripples (little hops)
+  g.row(22, 15, 6, '#');                       // [issue 24] Duchess's rock, mid-room: she sleeps on it (drawn by the script)
+  g.row(40, 15, 3, '#');                       // a sand ripple (a little hop)
   g.box(30, 14, 3, 2, '#').box(48, 14, 3, 2, '#'); // sand berms
   g.put(58, 15, 'h');                          // the hide log
   return g.rows();
@@ -94,12 +95,14 @@ export default {
         { prop: 'sand-berm', x: 31, y: 15.3, h: 2.2 }, { prop: 'sand-berm', x: 49, y: 15.3, h: 2.2, flip: true },
         { prop: 'hide-log', x: 58.5, y: 15, h: 1.8, layer: 'back' },
         { prop: 'water-dish', x: 40, y: 15.4, h: 1.1, layer: 'back' },
-        { prop: 'pebble-chip', x: 24, y: 15.2, h: 0.7 },
+        { prop: 'pebble-chip', x: 16, y: 15.2, h: 0.7 },
       ],
       entities: [
-        // [issue 7] Duchess hunts: berms = the berms' middle columns, exit = where the way on is held shut
-        // until she has lost him; the "Hide in the log!" sign is put up by the script (src/bosses/tank.js)
-        { type: 'boss', boss: 'tank', beat: 'sand', x: 6, y: 15, berms: [31, 49], exit: 60 },
+        // [issue 25] the escape: she sleeps on her rock (rock: [x, w, row] tiles); berms = the berms' middle
+        // columns; exit = where the way on is held shut until she has lost him; retry = the tile a catch
+        // restarts from (about 6 tiles before the wake point at 38). The "Hide in the log!" note is put
+        // up by the script as she wakes (src/bosses/tank.js)
+        { type: 'boss', boss: 'tank', beat: 'sand', x: 24, y: 14, rock: [22, 6, 15], berms: [31, 49], exit: 60, retry: [33, 15] },
         { type: 'sign', x: 14, y: 15, w: 5, text: S.tell }, // [issue 9] a note where the lesson starts, before the wake ripple (was a 14-tile zone)
       ],
     },

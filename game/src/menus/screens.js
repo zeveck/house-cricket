@@ -442,6 +442,14 @@ export function damperCard(A) {
   A.ui.menu('damper', [{ label: 'OK', action: () => A.resume() }], { title: 'The damper is stuck', sub: line('damper.shut'), body, back: () => A.resume(), class: 'panel-card' });
 }
 
+// [issue 25] After Duchess has eaten Pip three times in the opening chase: offer Gentle Mode (once)
+export function gentleOffer(A) {
+  A.ui.menu('gentle', [
+    { label: 'Turn on Gentle Mode', action: () => { A.setSetting('gentle', true); A.toast(line('ui.gentleOn')); A.resume(); } },
+    { label: 'Keep trying', action: () => A.resume() },
+  ], { title: 'Gentle Mode?', sub: line('opening.tank.gentleOffer'), back: () => A.resume(), class: 'panel-card' });
+}
+
 // ---------------------------------------------------------------- Carrier facilities
 export const SHOP = [
   { id: 'heart', cost: 30, max: 5, key: 'hearts' },

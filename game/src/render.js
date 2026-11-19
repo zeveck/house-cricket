@@ -1127,12 +1127,15 @@ export class Renderer {
       if (age < hideLen) { o.look = 'hide'; o.frame = Math.floor(age / 6); }
       else if ((age - hideLen) % 200 > 150) { o.look = 'peek'; o.frame = Math.floor(((age - hideLen) % 200 - 150) / 13); }
       else { o.look = 'hide'; o.frame = 3; }
+      const pk = game.boss?.peekAt ?? -1; // [issue 25] the escape: he peeks out as she falls asleep
+      if (pk >= 0 && game.frame >= pk && game.frame - pk < 52) { o.look = 'peek'; o.frame = Math.min(3, Math.floor((game.frame - pk) / 13)); }
       o.shade = 0.5; o.squash = 0.06; o.alpha = 0.92; // tucked into the spot's shadow (drawn over its art)
     }
     return o;
   }
   drawPlayer(c, game) {
     const p = game.player;
+    if (game.boss?.pipGone) return; // [issue 25] eaten (a sand puff, then black)
     if (p.invuln > 0 && p.invuln % 8 < 3 && p.state !== 'hide') return;
     const o = this.playerLook(game);
     let x = p.cx, y = p.y + p.h;

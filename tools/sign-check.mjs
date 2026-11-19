@@ -73,10 +73,10 @@ const script = [];
   ok(!g.signs.some((q) => q.text === TEXT.opening.tank.tongs), 'the tongs note retires when the tongs finish');
   for (const s of g.signs.filter((q) => q.born != null)) script.push(['tank-cup', s]);
 }
-{ // the sand: Duchess awake, Pip near the log: "Hide in the log!" at its mouth
+{ // the sand: Duchess wakes (issue 25): "Hide in the log!" at its mouth
   const g = newGame(); g.startAt('tank-sand', undefined, undefined, { party: ['pip'], items: [] });
   const b = g.boss, l = b.log();
-  b.mode = 'stalk'; b.x = 30 * T; g.player.x = l.x - 3 * T; g.player.y = l.y + l.h - g.player.h;
+  b.startWake('test'); g.player.x = l.x - 3 * T; g.player.y = l.y + l.h - g.player.h;
   for (let i = 0; i < 3; i++) g.update({ held: {}, pressed: {} });
   for (const s of g.signs.filter((q) => q.born != null)) script.push(['tank-sand', s]);
 }
