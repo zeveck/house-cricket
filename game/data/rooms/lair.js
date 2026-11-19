@@ -130,7 +130,7 @@ export default {
         {"type": "hide", "x": 56, "y": 27, "w": 1, "art": "hoard-coins"},
         {"type": "hide", "x": 63, "y": 23, "w": 1, "art": "hoard-coins"},
         {"type": "hide", "x": 67, "y": 21, "w": 1, "art": "hoard-coins"},
-        {"type": "sign", "x": 2, "y": 33, "w": 5, "text": "Press {up} near a bottle cap to duck under it. He hunts with his eye, and his ears."},
+        {"type": "sign", "x": 2, "y": 33, "w": 5, "text": "Press {enter} near a bottle cap to duck under it. He hunts with his eye, and his ears."},
         {"type": "sign", "x": 71, "y": 19, "w": 6, "text": "Some creatures say hello with a slow wave. Hold {listen} and press {kick}."},
         {"type": "boss", "boss": "barty", "x": 86, "y": 19, "checkpoints": [[3, 33], [39, 27], [71, 19]]},
       ],

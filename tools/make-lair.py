@@ -77,7 +77,7 @@ coins = [(35, 29), (40, 27), (56, 27), (63, 23), (67, 21)]
 for x, y in coins:
     d.ent('hide', x=x, y=y, w=1, art='hoard-coins')
 
-d.ent('sign', x=2, y=33, w=5, text='Press {up} near a bottle cap to duck under it. He hunts with his eye, and his ears.')
+d.ent('sign', x=2, y=33, w=5, text='Press {enter} near a bottle cap to duck under it. He hunts with his eye, and his ears.')
 d.ent('sign', x=71, y=19, w=6, text='Some creatures say hello with a slow wave. Hold {listen} and press {kick}.')
 d.ent('boss', boss='barty', x=86, y=19, checkpoints=[[3, 33], [39, 27], [71, 19]])
 

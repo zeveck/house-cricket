@@ -182,7 +182,7 @@ export default {
         {"type": "sign", "x": 8, "y": 9, "w": 6, "text": "Thimble: {down} + {jump} in the air ground-pounds. Cereal crumbles."},
         {"type": "beetle", "x": 8, "y": 33, "range": [1, 12]},
         {"type": "item", "item": "earplugs", "x": 2, "y": 33},
-        {"type": "sign", "x": 14, "y": 33, "w": 4, "text": "Beetles can’t be beaten. {up} at a crack hides you."},
+        {"type": "sign", "x": 14, "y": 33, "w": 4, "text": "Beetles can’t be beaten. {enter} at a crack hides you."},
         {"type": "loud", "x": 20, "y": 28, "w": 5, "h": 6},
         {"type": "item", "item": "glow", "x": 27, "y": 33},
       ],

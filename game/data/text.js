@@ -3,6 +3,7 @@
 //
 // Conventions (read by src/lines.js `line('geckos.duchess.pre')` and src/dialog.js):
 // - {jump} {use} {chirp} {kick} {listen} {up} {down} {left} {right} {swapPrev} {swapNext} {map}
+//   {enter} (go in / use: ↓ on every scheme) {cloak} (hold: Shift, stick up) [issue #27]
 //   {pause} render as key caps / pad glyphs (never write a bare key letter).
 // - *word* is a dialog BEAT (italic, a short pause; for Lashes the portrait licks its eye on
 //   *slurp*). Never use asterisks for emphasis: use CAPITALS.
@@ -29,7 +30,7 @@ export const TEXT = {
       tell: 'When the tail tip wiggles, MOVE.',
       duchessWakes: ['Mm? Is it Saturday already?', '...Oh, hello, dinner.'],
       kick: '{kick} kicks. Loose pebbles make good steps.',
-      squeeze: 'Hold {up} to squeeze through the gap.',
+      squeeze: '{jump} up into the gap to squeeze through (or {enter} under it).', // [issue #27]
       // [issue 7] the hunt in the sand room (src/bosses/tank.js Sand): no damage, hide in the log to lose her
       hideLog: 'Hide in the log!',            // the sign the script puts up (after her first lunge, or near the log)
       exitShut: "She'd follow you out! Lose her first: hide in the log.",
@@ -49,15 +50,15 @@ export const TEXT = {
     move: '{left} {right} to move. {jump} to jump.',
     tell: 'When the tail tip wiggles, MOVE.',
     berm: 'Tail wiggling? Get behind a sand berm. She bites the sand: run up her back!', // [final-G] [issue 9]
-    squeeze: 'Hold {up} to squeeze through the gap.',
+    squeeze: '{jump} up into the gap to squeeze through (or {enter} under it).', // [issue #27]
     jumpHold: 'Hold {jump} to jump higher. Tap it for a little hop.',
     kick: '{kick} kicks. Bugs flip over, scurry off and come back later. Nobody gets hurt.',
     chirp: '{chirp} chirps: it stuns little bugs and calls your friends.',
     listen: 'Stand still and hold {listen}. Crickets hear through their front legs.',
     listenStrip: 'The strip under the arrow shows the rhythm. Crickets chirp in short, steady groups.',
-    carrier: 'Press {up} at the Carrier to go inside.', // [polish-T] a verb, then the key
-    save: 'Press {up} at a baseboard crack to save. Every crack leads home to the Carrier.', // [issue 9] 2 lines on a phone
-    hide: 'Press {up} near a cricket-sized gap to hide. Nothing big can see you in there.',
+    carrier: 'Press {enter} at the Carrier to go inside.', // [polish-T] a verb, then the key
+    save: 'Press {enter} at a baseboard crack to save. Every crack leads home to the Carrier.', // [issue 9] 2 lines on a phone
+    hide: 'Press {enter} near a cricket-sized gap to hide. Nothing big can see you in there.',
     drop: '{down} + {jump} drops through thin platforms.',
     wallJump: 'Jump at a wall to stick, {jump} again to kick off. Glass and porcelain are too slick.', // [issue 9]
     floss: 'Press {use} near a hook to grab it. {left} {right} to swing. {jump} to let go with a fling.',
@@ -81,7 +82,7 @@ export const TEXT = {
     aphids: 'Aphids are harmless. And bouncy.',
     thermostat: 'A thermostat lock. It wants {n}°F. Someone who hears temperature could help.', // [issue 9]
     beaconMaze: 'Four sounds. Only one is a cricket. Listen to the rhythm.',
-    cloak: 'Hold {up} in the open to vanish for a few seconds.',
+    cloak: 'Hold {cloak} in the open to vanish for a few seconds.',
     chute: 'The old laundry chute. One way only.',
     hatch: 'The attic hatch. A good pound would open it. From up here.',
   },
@@ -149,7 +150,7 @@ export const TEXT = {
     glow:     { name: 'Glow Bead',          line: 'It glows all by itself. Lights the dark; tap {use} to flash.' },
     earplugs: { name: 'Cotton Earplugs',    line: 'You hear with your legs, so these go on your knees. Loud places can\'t stop you now.' },
     feather:  { name: 'Swift Feather',      line: 'A gift from Soot. Press {jump} again in the air to flutter.' },
-    cloak:    { name: 'Cellophane Cloak',   line: 'A crinkly sweet wrapper from a dragon\'s hoard. Hold {up} in the open to vanish.' },
+    cloak:    { name: 'Cellophane Cloak',   line: 'A crinkly sweet wrapper from a dragon\'s hoard. Hold {cloak} in the open to vanish.' },
     battery:  { name: 'Spare Battery',      line: 'Someone tired would love this.' },
     seedHeart: { name: 'Seed-heart',        line: '+1 heart.' },
     songSeed: { name: 'Song-seed',          line: 'Your chirp meter grows.' },
@@ -390,7 +391,7 @@ export const TEXT = {
   },
   damper: { shut: 'Only a proper chorus will shake it.', missing: 'Still missing:', allFound: 'Everyone\'s found. Go home to the Carrier and sing together.', /* [polish-T] */ open: 'The damper is open. The Attic is up there.' },
   nana: { rule: 'Her stones want a low, a middle and a high voice.', low: 'Low (3.5 kHz or under)', mid: 'Middle (4 to 5 kHz)', high: 'High (5.5 kHz or over)', suggest: 'Suggest a trio', need: 'Your trio needs a {voice} voice.', chorus: 'Sing! {chirp} on the beat.', louder: 'Louder!',
-    p1: 'Kick {kick} each music stone to wake it. Tail wiggling? Hide ({up} at a gap) or dodge.', // [issue 9] 2 lines
+    p1: 'Kick {kick} each music stone to wake it. Tail wiggling? Hide ({enter} at a gap) or dodge.', // [issue 9] 2 lines
     p2: 'Each stone wants one voice. {swapPrev} {swapNext} swap, then {chirp} beside the stone.',
     wants: 'The {stone} wants a {voice} voice.', fork: 'tuning fork', glass: 'glass', bell: 'bell' },
   hump: { cheer: "I'll cheer from here.", tap: '(tap tap tap)' },

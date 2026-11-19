@@ -165,7 +165,7 @@ export default {
         {"type": "beetle", "x": 65, "y": 15, "range": [47, 82]},
         {"type": "centipede", "x": 36, "y": 33, "path": [[36, 33], [36, 31], [40, 31], [40, 33], [40, 31], [36, 31]], "speed": 200},
         {"type": "secret", "id": "bas-cloak", "x": 10, "y": 15},
-        {"type": "sign", "x": 4, "y": 33, "w": 8, "text": "That one can't be kicked. Hide and let it pass. ({up} near a gap)"},
+        {"type": "sign", "x": 4, "y": 33, "w": 8, "text": "That one can't be kicked. Hide and let it pass. ({enter} near a gap)"},
         {"type": "sign", "x": 82, "y": 15, "w": 6, "text": "No hiding spots at all. You'd have to be invisible."},
       ],
     },

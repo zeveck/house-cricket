@@ -14,7 +14,7 @@ T_SIGN = {
     'hinge': 'Creeeak. (A door hinge. Very convincing. Not a cricket.)',
     'radio': 'Bip-bip. (A clock radio. Not even trying.)',
     'frog': 'Peep... (from down the vent. Someone downstairs.)',
-    'hide': '{up} near a cricket-sized gap to hide. Nothing big can see you in there.',
+    'hide': '{enter} near a cricket-sized gap to hide. Nothing big can see you in there.',
     'musicbox': 'A music box with two keyholes. It wants two house crickets singing at once.',
     'dark': 'Too dark to go in without a light. (Glow Bead)',
 }

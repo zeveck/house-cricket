@@ -260,7 +260,7 @@ export const stairwell = {
         {"type":"hide","x":58,"y":33,"w":1,"art":"sock"},
         {"type":"silverfish","x":40,"y":33,"range":[33,56]},
         {"type":"silverfish","x":18,"y":33,"range":[12,26]},
-        {"type":"sign","x":26,"y":33,"w":6,"text":"Press {up} at a baseboard crack to save. Every crack leads home to the Carrier."},
+        {"type":"sign","x":26,"y":33,"w":6,"text":"Press {enter} at a baseboard crack to save. Every crack leads home to the Carrier."},
       ],
     },
   ],

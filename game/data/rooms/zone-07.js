@@ -171,7 +171,7 @@ export default {
         {"type": "hide", "x": 33, "y": 15, "w": 1, "art": "bottle-cap"},
         {"type": "hide", "x": 4, "y": 15, "w": 1, "art": "bottle-cap"},
         {"type": "wolfspider", "x": 26, "y": 15, "sight": 6},
-        {"type": "sign", "x": 34, "y": 15, "w": 4, "text": "{up} near a cricket-sized gap to hide. Nothing big can see you in there."},
+        {"type": "sign", "x": 34, "y": 15, "w": 4, "text": "{enter} near a cricket-sized gap to hide. Nothing big can see you in there."},
         {"type": "sign", "x": 13, "y": 15, "w": 4, "text": "A music box with two keyholes. It wants two house crickets singing at once."},
         {"type": "duet", "id": "stu-duet", "x": 15, "y": 15, "hear": 6, "window": 2, "then": [["secret", {"id": "stu-duet"}]]},
       ],

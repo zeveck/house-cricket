@@ -89,7 +89,7 @@ rooms.append(dict(id='sb-cellar', name='Sandbox: Cellar', x=104, y=99, grid=r.ro
     dict(type='sign', x=8, y=9, w=6, text='Thimble: {down} + {jump} in the air ground-pounds. Cereal crumbles.'),
     dict(type='beetle', x=8, y=33, range=[1, 12]),
     dict(type='item', item='earplugs', x=2, y=33),
-    dict(type='sign', x=14, y=33, w=4, text='Beetles can’t be beaten. {up} at a crack hides you.'),
+    dict(type='sign', x=14, y=33, w=4, text='Beetles can’t be beaten. {enter} at a crack hides you.'),
     dict(type='loud', x=20, y=28, w=5, h=6),
     dict(type='item', item='glow', x=27, y=33),
 ]))

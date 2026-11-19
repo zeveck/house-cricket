@@ -10,7 +10,7 @@ export const ITEMS = {
   glow:     { name: 'Glow Bead',          gate: 'dark',   verb: 'Lights dark rooms; tap Use to flash', color: '#CFF27A' },
   earplugs: { name: 'Cotton Earplugs',    gate: 'loud',   verb: 'Walk through loud zones',     color: '#F4EBDD' },
   feather:  { name: 'Swift Feather',      gate: 'chimney', verb: 'Press Jump in the air to flutter', color: '#5A4632' },
-  cloak:    { name: 'Cellophane Cloak',   gate: 'cloak',  verb: 'Hold Up in the open to vanish', color: '#C9D6E8' },
+  cloak:    { name: 'Cellophane Cloak',   gate: 'cloak',  verb: 'Hold Shift (or stick up) in the open to vanish', color: '#C9D6E8' },
   // quest items: carried, open no gate kind; an npc with give:'battery' takes it (Beep in laun-lair)
   battery:  { name: 'Spare Battery',      gate: null,     verb: 'Someone tired would love this.', color: '#7A8C99', quest: true },
 };

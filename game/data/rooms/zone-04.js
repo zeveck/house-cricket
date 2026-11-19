@@ -101,7 +101,7 @@ export default {
         { type: 'checkpoint', x: 14, y: 19 },
         { type: 'ant', x: 10, y: 33, range: [4, 17] },
         { type: 'crumbs', x: 18, y: 5, n: 10 },
-        { type: 'sign', x: 1, y: 33, w: 7, text: 'The bottom shelf. Mind the beetles: they can\'t be kicked. Hide with {up}.' },
+        { type: 'sign', x: 1, y: 33, w: 7, text: 'The bottom shelf. Mind the beetles: they can\'t be kicked. Hide with {enter}.' },
       ],
     },
     {
@@ -143,7 +143,7 @@ export default {
         { type: 'terrain', kind: 'crumble', x: 50, y: 12, w: 5, h: 1, delay: 0.4, respawn: 3 },
         { type: 'secret', id: 'pan-dash', x: 59, y: 11 },
         { type: 'crumbs', x: 40, y: 11, n: 5 },
-        { type: 'sign', x: 56, y: 15, w: 6, text: 'Beetles plod the same way every time. Wait under a bottle cap ({up}).' },
+        { type: 'sign', x: 56, y: 15, w: 6, text: 'Beetles plod the same way every time. Wait under a bottle cap ({enter}).' },
       ],
     },
     {
