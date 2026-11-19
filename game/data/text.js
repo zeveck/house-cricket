@@ -30,7 +30,7 @@ export const TEXT = {
       tell: 'When the tail tip wiggles, MOVE.',
       duchessWakes: ['Mm? Is it Saturday already?', '...Oh, hello, dinner.'],
       kick: '{kick} kicks. Loose pebbles make good steps.',
-      squeeze: '{jump} up into the gap to squeeze through (or {enter} under it).', // [issue #27]
+      squeeze: 'Jump into the gap with {jump} to squeeze through (or press {enter} under it).', // [issue #27]
       // [issue 7] the hunt in the sand room (src/bosses/tank.js Sand): no damage, hide in the log to lose her
       hideLog: 'Hide in the log!',            // the sign the script puts up (after her first lunge, or near the log)
       exitShut: "She'd follow you out! Lose her first: hide in the log.",
@@ -50,7 +50,7 @@ export const TEXT = {
     move: '{left} {right} to move. {jump} to jump.',
     tell: 'When the tail tip wiggles, MOVE.',
     berm: 'Tail wiggling? Get behind a sand berm. She bites the sand: run up her back!', // [final-G] [issue 9]
-    squeeze: '{jump} up into the gap to squeeze through (or {enter} under it).', // [issue #27]
+    squeeze: 'Jump into the gap with {jump} to squeeze through (or press {enter} under it).', // [issue #27]
     jumpHold: 'Hold {jump} to jump higher. Tap it for a little hop.',
     kick: '{kick} kicks. Bugs flip over, scurry off and come back later. Nobody gets hurt.',
     chirp: '{chirp} chirps: it stuns little bugs and calls your friends.',
