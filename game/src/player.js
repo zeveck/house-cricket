@@ -21,7 +21,7 @@ const F = {
   dash: toFrames(MOVES.dash.time),
   dashCd: toFrames(MOVES.dash.cooldown),
 };
-// [builder C] Cellophane Cloak (design: "The Dragon's Lair"): hold Up in the open (no hiding spot
+// [builder C] Cellophane Cloak (design: "The Dragon's Lair"): hold Shift / stick up in the open (no hiding spot
 // near) for up to 3 s of near-invisibility, then 6 s to recharge. Frames.
 export const CLOAK = { arm: 8, last: 180, recharge: 360 };
 const approach = (v, t, d) => (v < t ? Math.min(v + d, t) : Math.max(v - d, t));
@@ -184,20 +184,20 @@ export class Player {
     if (this.state === 'ground' && !this.onRaft) this._markSafe(ctx);
   }
 
-  // [builder C] the Cellophane Cloak: Up held in the open (ground or air, no hiding spot near)
+  // [builder C] the Cellophane Cloak: held in the open ([issue #27] Shift; stick / D-pad up) (ground or air, no hiding spot near)
   _cloak(inp, ctx) {
     if (this.cloakCd > 0) this.cloakCd--;
     if (!this.has('cloak')) return;
     const open = (this.state === 'ground' || this.state === 'air') && !this._nearHide(ctx);
     if (this.cloakT > 0) {
       this.cloakT--;
-      if (!inp.held.up || this.cloakT === 0 || !(this.state === 'ground' || this.state === 'air')) {
+      if (!inp.held.cloak || this.cloakT === 0 || !(this.state === 'ground' || this.state === 'air')) {
         this.cloakT = 0; this.cloakCd = CLOAK.recharge; this.cloakHold = 0;
         ctx.emit('uncloak', { x: this.cx, y: this.cy });
       }
       return;
     }
-    if (inp.held.up && open) this.cloakHold++; else this.cloakHold = 0;
+    if (inp.held.cloak && open) this.cloakHold++; else this.cloakHold = 0;
     if (this.cloakHold >= CLOAK.arm && this.cloakCd === 0) {
       this.cloakT = CLOAK.last; this.cloakHold = 0;
       ctx.emit('cloak', { x: this.cx, y: this.cy });
@@ -291,11 +291,11 @@ export class Player {
     if (this._tryHook(ctx)) return;
     if (this._useGround(inp, ctx)) return;
 
-    // Up: hide / interact
-    if (Pr.up && !crouched) {
+    // [issue #27] Enter (a ↓ press, input.js): hide / interact. ↓ is held, so it is crouched: that's fine
+    if (Pr.enter) {
       const spot = this._nearHide(ctx);
       if (spot) { this._enterHide(spot, ctx); return; }
-      ctx.emit('up', { x: this.cx, y: this.cy });
+      ctx.emit('enter', { x: this.cx, y: this.cy });
     }
 
     // Jump (fresh or buffered)

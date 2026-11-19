@@ -44,7 +44,7 @@ function game(zone, roomId, opts = {}) {
   const drv = driver(g);
   return { g, p: g.player, step: drv };
 }
-const KEYS = ['left', 'right', 'up', 'down', 'jump', 'use', 'chirp', 'kick', 'listen', 'swapPrev', 'swapNext'];
+const KEYS = ['left', 'right', 'up', 'down', 'jump', 'use', 'chirp', 'kick', 'listen', 'swapPrev', 'swapNext', 'enter', 'cloak', 'upJump', 'lookUp']; // [issue #27]
 function driver(g) {
   let prev = {};
   return (held = {}, n = 1) => {
@@ -106,8 +106,8 @@ section('gates', () => {
 section('doors', () => {
   const { g, p, step } = game(null, 'et-gates');
   settle(step); p.health = 3;
-  at(p, 1, 15); step({}, 10); step({ up: true }, 2); step({}, 10);
-  ok(g.room.id === 'et-walkers', 'Up at a door entity goes to its room');
+  at(p, 1, 15); step({}, 10); step({ enter: true }, 2); step({}, 10);
+  ok(g.room.id === 'et-walkers', 'Enter at a door entity goes to its room');
   ok(p.health === 3, 'a door keeps your health (no heal, unlike a save)');
   const z = zoneOf([mkRoom('da', [], [{ type: 'door', x: 10, y: 15, to: 'db', at: [5, 3], auto: true, needs: 'thimble' }]), mkRoom('db', [])]);
   const t = game(z, 'da', { x: 4, y: 15 });
@@ -255,8 +255,8 @@ section('thermostat', () => {
   ({ g, p, step } = game(null, 'et-thermo', { party: ['pip'] }));
   settle(step); at(p, 16, 15); step({}, 20); step({ chirp: true }, 2); step({}, 5);
   ok(!ensure(g).flags['sw:et-thermo'], 'nobody but Frost opens it');
-  at(p, 16, 15); step({}, 5); step({ up: true }, 2);
-  ok(g.toasts.some((t) => /Frost/.test(t.text)), 'Up at the lock: it wants 72°F + the Frost hint');
+  at(p, 16, 15); step({}, 5); step({ enter: true }, 2);
+  ok(g.toasts.some((t) => /Frost/.test(t.text)), 'Enter at the lock: it wants 72°F + the Frost hint');
 });
 
 section('decoys', () => {
@@ -298,7 +298,7 @@ section('meta', () => {
   };
   const { g, p, step } = game(null, 'et-thermo');
   const run = mk(g);
-  const tick = (held = {}, n = 1) => { for (let i = 0; i < n; i++) { step(held); run.step({ pressed: { up: !!held.up } }); } };
+  const tick = (held = {}, n = 1) => { for (let i = 0; i < n; i++) { step(held); run.step({ pressed: { enter: !!held.enter } }); } };
   tick({}, 10);
   ok(ITEMS.battery && ITEMS.battery.quest && !ITEMS.battery.gate, 'battery is a quest item in items.js');
   at(p, 7, 15); tick({ right: true }, 30); tick({}, 50);
@@ -306,11 +306,11 @@ section('meta', () => {
   at(p, 11, 15); tick({}, 10); ok(ensure(g).crumbs >= 5, 'crumbs pickup');
   const mh = p.maxHealth; at(p, 13, 12); tick({}, 10); ok(p.maxHealth === mh + 1 && ensure(g).secrets.includes('heart:et-test'), 'seed-heart secret: +1 heart');
   run.event('secret', { id: 'song:et-test' }); tick({}, 2); ok(ensure(g).secrets.includes('song:et-test'), 'song-seed secret');
-  at(p, 22, 15); tick({}, 20); tick({ up: true }, 1); tick({}, 5);
+  at(p, 22, 15); tick({}, 20); tick({ enter: true }, 1); tick({}, 5);
   ok(!p.has('battery') && ensure(g).flags['gave:beep'] && ensure(g).notCrickets.includes('beep'), 'NPC talk with give: hands over the battery and Beep joins (Not-Cricket)');
   run.event('recruit', { id: 'rolo' }); tick({}, 2); ok(g.recruits.has('rolo'), 'recruit join event');
-  at(p, 4, 15); tick({}, 10); tick({ up: true }, 1); tick({}, 3);
-  ok(calls.some((c) => c[0] === 'crack'), 'Up at a save crack opens the crack menu');
+  at(p, 4, 15); tick({}, 10); tick({ enter: true }, 1); tick({}, 3);
+  ok(calls.some((c) => c[0] === 'crack'), 'Enter at a save crack opens the crack menu');
   ok(/Go to the Carrier/.test(readFileSync(new URL('../game/src/menus/screens.js', import.meta.url), 'utf8')), 'the crack menu has "Go to the Carrier"');
   run.event('ready', { boss: 'practice' }); tick({}, 2); ok(calls.some((c) => c[0] === 'ready'), 'ready event -> the "Ready?" card');
 });
@@ -354,8 +354,8 @@ section('no-refight', () => {
       const A2 = { ...A, game: d.g }; calls.length = 0;
       const r2 = new MetaRun(A2);
       at(d.p, door.x, door.y); d.step({}, 20); d.p.state = d.p.grounded ? d.p.state : 'ground';
-      for (let i = 0; i < 3; i++) { d.step({}); r2.step({ pressed: { up: i === 1 } }); }
-      ok(calls.some((x) => x[0] === 'enter') && !calls.some((x) => x[0] === 'ready') && calls.some((x) => x[0] === 'toast' && /asleep|waves you in/.test(x[1])), `${b}: Up at the won lair's door: "${(calls.find((x) => x[0] === 'toast') || [])[1]}", straight in`);
+      for (let i = 0; i < 3; i++) { d.step({}); r2.step({ pressed: { enter: i === 1 } }); }
+      ok(calls.some((x) => x[0] === 'enter') && !calls.some((x) => x[0] === 'ready') && calls.some((x) => x[0] === 'toast' && /asleep|waves you in/.test(x[1])), `${b}: Enter at the won lair's door: "${(calls.find((x) => x[0] === 'toast') || [])[1]}", straight in`);
     }
   }
 });
@@ -422,7 +422,7 @@ section('enemies', () => {
   t = one('wolfspider', {}, { x: 15 }); let wt = false, jp = false; for (let i = 0; i < 90; i++) { t.step({}); if (t.e.mode === 'watch') wt = true; if (t.e.mode === 'jump') jp = true; }
   ok(wt && jp, 'wolf spider watches, then pounces');
   const hz = zoneOf([mkRoom(`hs${cellX}`, [], [{ type: 'wolfspider', x: 20, y: 15 }, { type: 'hide', x: 15, y: 15 }])]);
-  t = game(hz, hz.rooms[0].id, { x: 15, y: 15 }); t.e = t.g.enemies[0]; t.step({}, 3); t.step({ up: true }, 2); let seen = false; for (let i = 0; i < 120; i++) { t.step({}); if (t.e.mode !== 'idle') seen = true; }
+  t = game(hz, hz.rooms[0].id, { x: 15, y: 15 }); t.e = t.g.enemies[0]; t.step({}, 3); t.step({ enter: true }, 2); let seen = false; for (let i = 0; i < 120; i++) { t.step({}); if (t.e.mode !== 'idle') seen = true; }
   ok(t.p.hidden && !seen, 'wolf spider cannot see you hidden');
   // wasp: tell then dive in a straight line
   t = one('wasp', { y: 8 }, { x: 14 }); let tl = false, dv = null; for (let i = 0; i < 90; i++) { t.step({}); if (t.e.mode === 'tell') tl = true; if (t.e.mode === 'dive' && !dv) dv = { vx: t.e.vx, vy: t.e.vy }; }
@@ -524,7 +524,7 @@ section('fixer', () => {
   settle(step); step({ right: true }, 400);
   ok(p.cx < 19 * TILE, `no squeezing past a nest beetle without the Cloak (x ${(p.cx / TILE).toFixed(1)})`);
   ({ g, p, step } = game(zone, 'et-nest', { items: ['cloak'] }));
-  settle(step); step({ up: true }, 10); step({ up: true, right: true }, 170);
+  settle(step); step({ cloak: true }, 10); step({ cloak: true, right: true }, 170);
   ok(p.cx > 20 * TILE && p.health === p.maxHealth, 'cloaked, you walk straight through the nest');
   // a neighbour's broken cereal is open from this side too (the hearth plug seen from chim-ash)
   ({ g, p, step } = game(null, 'chim-ash', { x: 15, y: 1 }));

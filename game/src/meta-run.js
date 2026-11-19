@@ -70,19 +70,19 @@ export class MetaRun {
           break;
         case 'npc': {
           const near = Math.abs(p.cx - (box.x + TILE / 2)) < 56 && Math.abs(p.y + p.h - (box.y + TILE)) < 40;
-          if (near && p.grounded) { prompt = ['up', 'Talk']; if (f.pressed.up) this.talk(e); }
+          if (near && p.grounded) { prompt = ['enter', 'Talk']; if (f.pressed.enter) this.talk(e); }
           break;
         }
         case 'lair': {
-          if (ov(pb, box) && p.grounded) { prompt = ['up', `${line(`geckos.${e.boss}.name`)}'s lair`]; if (f.pressed.up) { const door = { boss: e.boss, to: e.to, at: e.at, room: g.room.id }; if (g.bossBeaten?.(e.boss)) { A.enterLair(door); A.toast(e.boss === 'barty' ? `${line('geckos.barty.name')} waves you in.` : `${line(`geckos.${e.boss}.name`)} is asleep.`); } else A.lairReady(door); } } // [final-2] a won lair: in, no Ready? card
+          if (ov(pb, box) && p.grounded) { prompt = ['enter', `${line(`geckos.${e.boss}.name`)}'s lair`]; if (f.pressed.enter) { const door = { boss: e.boss, to: e.to, at: e.at, room: g.room.id }; if (g.bossBeaten?.(e.boss)) { A.enterLair(door); A.toast(e.boss === 'barty' ? `${line('geckos.barty.name')} waves you in.` : `${line(`geckos.${e.boss}.name`)} is asleep.`); } else A.lairReady(door); } } // [final-2] a won lair: in, no Ready? card
           break;
         }
         default: break;
       }
     }
-    // [mech] door entities (Up to go through) and switches/thermostats you press Up at get a prompt too
-    if (!prompt) for (const d of g.doors || []) if (!d.auto && ov(pb, d)) { prompt = ['up', d.label || 'Go in']; break; }
-    if (!prompt) for (const s of [...(g.mech?.thermostats || []), ...(g.mech?.switches || []).filter((x) => x.by === 'up' && !x.on)]) if (ov({ x: pb.x - 8, y: pb.y - 8, w: pb.w + 16, h: pb.h + 16 }, s)) { prompt = ['up', s.target != null ? 'Read' : 'Pull']; break; }
+    // [mech] door entities (Enter to go through) and switches/thermostats you use with Enter ([issue #27] ↓) get a prompt too
+    if (!prompt) for (const d of g.doors || []) if (!d.auto && ov(pb, d)) { prompt = ['enter', d.label || 'Go in']; break; }
+    if (!prompt) for (const s of [...(g.mech?.thermostats || []), ...(g.mech?.switches || []).filter((x) => x.by === 'up' && !x.on)]) if (ov({ x: pb.x - 8, y: pb.y - 8, w: pb.w + 16, h: pb.h + 16 }, s)) { prompt = ['enter', s.target != null ? 'Read' : 'Pull']; break; }
     if (!prompt && m.flags.firstChirp) prompt = ['chirp', 'Call out. Somebody might answer.'];
     if (!g.inCarrier) A.ui.extraPrompt = prompt;
     // the ear on the map: where this zone's beacon was first heard

@@ -21,9 +21,24 @@ node tools/replay.mjs --touch   # ... iPhone 15 session at 852x393, real touches
 node tools/list-assets.mjs      # re-scan game/assets after adding art (see Sprites)
 node tools/entity-test.mjs      # every mechanic, enemy and the boss plumbing, headless (see Entities and mechanics)
 node tools/replay-headless.mjs  # every recorded solution through the node sim (quick check before the browser replay)
+node tools/controls-test.mjs    # [issue #27] real key codes, both layouts: ↑/W/Z/Space jump, ↓ Enter, Shift cloak, the labels per scheme
 ```
 
 `playwright-cli` must run from the project root (it reads `.playwright/cli.config.json`).
+
+## Input actions (issue #27: Up to jump)
+
+`src/input.js` turns keys, touch and the pad into actions. Besides the directions and buttons:
+- **upJump**: the keyboard's ↑ / W (also `up`). `game.js playerFrame()` makes it Jump for the player (press,
+  and its hold for height and glide after a press that jumped), except while swinging, where it only climbs
+  (`up`) and never lets go. Z / Space (`jump`) fling off a line. Pad and touch have their Jump button.
+- **enter**: a ↓ press on every scheme (↓ / S, stick down, D-pad down), resolved `ENTER_WAIT` (3) samples later
+  unless Jump came within 3 samples either side (↓ + Jump is always a drop-through). Hide spots, doors, save
+  cracks, lair doors, talkers, `by:'up'` switches, thermostats, Carrier spots and the tank's lid read it.
+  `main.js` cancels a pending Enter while a menu, dialog or story is up. The touch prompt tap presses it at once.
+- **cloak**: hold Shift; stick up / D-pad up on touch and pad. **lookUp**: stick up / D-pad up only.
+- Labels: `input.label()` names each per scheme (Enter: ↓ / S / Stick ↓ / Down; Cloak: Shift / Stick ↑ / Up);
+  text uses `{enter}` and `{cloak}`. `tools/controls-test.mjs` checks keys and labels.
 
 ## Files
 
@@ -653,7 +668,7 @@ secrets, triggers and joined NPCs are remembered in `roomState[room].taken` and 
 | `'crumbs', {n}` / `'secret', {id}` | crumbs / a secret from code |
 | `'rescue'` (the engine's cage) | autosave; 75 frames later the "X is safe! Return to the Carrier?" card (not in the test zones 98 and 99 unless `game.meta.flags.cardsInSandbox`) |
 
-**Lair door flow:** Up at a `lair` entity (or `emit('ready')`) opens the card: the gecko's
+**Lair door flow:** Enter (↓, issue #27) at a `lair` entity (or `emit('ready')`) opens the card: the gecko's
 picture, the trio (Change trio opens the picker), Enter, Not yet. Nana's card shows the voice
 rule and keeps Enter disabled until the trio covers low ≤3.5 kHz, middle 4-5 kHz, high ≥5.5 kHz
 (Suggest a trio fills one). Enter: Hump out front is swapped for the next chirper ("I'll cheer
@@ -771,7 +786,7 @@ also solid when seen from the neighbouring room across a shared edge.
 
 ```js
 { type: 'switch', id: 'pipe-valve', x: 5, y: 15 }               // by: 'kick' (default): kick it
-{ type: 'switch', id: 'chain-1', x: 8, y: 13, by: 'up' }         // press Up within 2 tiles below/beside it (pull-chain art)
+{ type: 'switch', id: 'chain-1', x: 8, y: 13, by: 'up' }         // press Enter (↓; issue #27) within 2 tiles below/beside it (pull-chain art)
 { type: 'switch', id: 'bell', x: 20, y: 6, by: 'chirp' }         // a chirp whose radius reaches it
 { type: 'switch', id: 'plate', x: 12, y: 15, by: 'pound' }       // a ground-pound landing on that tile (the Thimble)
 { type: 'switch', id: 'mat', x: 3, y: 15, by: 'touch' }          // walk into it
@@ -851,7 +866,7 @@ never "last safe ground" for pits. check-world adds a launch of rise `power` fro
 
 When **Frost** chirps anywhere in the room where `tempAt(room, x)` is within `tol` °F of the
 target, the lock opens (`sw:<id>`, `unlock`, toast). Chirping at the wrong spot reads the
-temperature out ("68°F. It wants 72°F."). Up at the lock: its target, and the Frost hint for
+temperature out ("68°F. It wants 72°F."). Enter (↓) at the lock: its target, and the Frost hint for
 anyone else. check-world counts a lock as open once it is reachable and Frost is home
 (`--rescued frost` for zones before the Pantry's rescue).
 
@@ -1021,7 +1036,7 @@ gen-reach also measures spring bounces (power 4/6/8 must rise exactly that, any 
   those HUD trio portraits glow (Nana phase 2). `meta-run.js`: a `rescue` event with `final: true`
   skips the zone-complete card (Nana's rescue: the boss emits the ending story itself).
 - [builder A] `game.js`: `this.inp = inp` at the top of `update()` (the last sampled input, so a
-  scripted set piece can read held buttons: the tank's "hold Up to squeeze"). Nothing else reads it.
+  scripted set piece can read held buttons: the tank's lid reads `pressed.enter`: ↓ under the gap; jumping into it needs no input read). Nothing else reads it.
 - [builder A] `bosses/tank.js`: the opening's set pieces as boss-registry scripts
   (`{type:'boss', boss:'tank', beat:'cup'|'sand'|'decor'|'lid'}`), with `music: 'title'` and
   `phase: null`; the lid beat emits `story {name:'tankEscaped'}` only when
@@ -1045,7 +1060,7 @@ gen-reach also measures spring bounces (power 4/6/8 must rise exactly that, any 
 - [builder A] `render.js drawBackground`: a room's `bg` object may name a painting folder,
   `bg: { folder: 'z00-tank', v: 'a' }` (bed-lair uses the tank's painting: you're inside Duchess's tank).
 - [builder C] **The Cellophane Cloak** (`player.js`, `CLOAK = {arm: 8, last: 180, recharge: 360}`
-  frames): hold Up in the open (ground or air, no hiding spot within reach) for 8 frames and you
+  frames): hold the Cloak key (Shift; stick / D-pad up: issue #27) in the open (ground or air, no hiding spot within reach) for 8 frames and you
   vanish for up to 3 s while Up stays held; then 6 s to recharge. While cloaked `p.hidden` is true
   (`p.cloaked` / `state().cloaked` too), so every enemy, gecko and projectile ignores you exactly as
   if you were in a hiding spot; tacks, pits and loud zones still count. Being hurt or reset drops it.
@@ -1118,7 +1133,7 @@ gen-reach also measures spring bounces (power 4/6/8 must rise exactly that, any 
   card 75 frames on, talking (Up near an NPC), a lair door's Up), releases every key and takes one input sample (the
   modal's), then, after that frame's own key events, presses the still-held keys again. `tools/replay.mjs` does the same
   in the browser (steps by **game** frames; Enter closes a dialog, Escape a card), so solutions that cross a trigger
-  (zone-03-path: the fridge; zone-05-path: the dryer) replay identically. Tap modal-opening keys (Up at a door) for one frame.
+  (zone-03-path: the fridge; zone-05-path: the dryer) replay identically. Tap modal-opening keys (↓ at a door: Enter fires 3 frames after the press) for one frame.
 - [playtest] **Whole-game run** `design/solutions/full-run.json` (`start: {from: 'title'}`, events on *step* numbers
   since the freeze; replay: `node tools/replay.mjs design/solutions/full-run.json`; browser only). Authored by
   `tools/solutions/full-run.mjs`: the gameplay is one continuous headless game (`RunAuthor`: Carrier rooms, arrivals and
@@ -1203,7 +1218,7 @@ gen-reach also measures spring bounces (power 4/6/8 must rise exactly that, any 
   (`b.done = true`, as duchess/chikchak/bigtok did): Lashes dozes on his shelf (`b.dozing`, `lashes-stairs` set), Peridot
   naps in the dark at col 78, Gargy dozes on the sofa back (`b.dozing`: no sulk-off), Mossy sleeps in plain sight at his
   first spot, Kite dozes on the high basket (56, 15), Ember sleeps (closed-eye glow). Nana (`chip`) and Barty (the Cloak)
-  already did. `game.bossBeaten(name)` (LAIRS cricket rescued; barty: `meta.barty` or the Cloak). meta-run: Up at a won
+  already did. `game.bossBeaten(name)` (LAIRS cricket rescued; barty: `meta.barty` or the Cloak). meta-run: Enter at a won
   lair's door goes straight in (`A.enterLair`) with the toast "<name> is asleep." ("Sir Bartholomew waves you in."); a
   `ready` event/trigger in a won arena opens no card. `tools/sim.mjs` MetaLite does the same (no Ready? modal; a won
   door is a `startAt`). Since the boss is done, `inFight()` is false: Pause > "Back to room entrance" is the room

@@ -186,7 +186,7 @@ export function updateMech(game) {
     }
   }
   m.touching = now;
-  // switches: kick (the kick box), touch, up (handled in onUp), pound (onPound), chirp (onChirp)
+  // switches: kick (the kick box), touch, up (Enter, handled in onEnter), pound (onPound), chirp (onChirp)
   const kb = p.kickBox();
   for (const s of m.switches) {
     if (s.on) continue;
@@ -315,7 +315,8 @@ export function flipSwitch(game, s) {
 export function setSwitch(game, id) { setFlag(game, `sw:${id}`); for (const s of game.mech?.switches || []) if (s.id === id) s.on = true; }
 
 // ---- hooks from game.emit ----
-export function onUp(game) {
+// [issue #27] Enter (a ↓ press): pull a lever, read a thermostat
+export function onEnter(game) {
   const m = game.mech; if (!m) return false;
   const p = game.player, near = { x: p.x - 12, y: p.y - 2 * TILE, w: p.w + 24, h: p.h + 3 * TILE }; // a lever or lock up to 2 tiles above you
   for (const s of m.switches) if (!s.on && s.by === 'up' && ov(near, s)) { flipSwitch(game, s); return true; }

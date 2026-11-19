@@ -137,7 +137,7 @@ addEventListener('blur', () => { if (screen === 'play' && !ui.screen && !frozen 
 ui.handlers = {
   pause: () => { if (screen === 'play' && !dialog.active && !story.active) (ui.screen ? resume() : pause()); },
   map: () => { if (screen === 'play' && !dialog.active && !story.active) { if (ui.screen === 'map') resume(); else if (ui.screen) { if (PAUSE_TABS.has(ui.screen)) Screens.pause(A, 'map'); } else pause(null, 'map'); } }, // [final-S] not from a card
-  promptTap: () => { if (game?.inCarrier) hub.tapPrompt(); else if (game) { input._press(['up'], 'touch'); input._release(['up']); } },
+  promptTap: () => { if (game?.inCarrier) hub.tapPrompt(); else if (game) { input._press(['enter'], 'touch'); input._release(['enter']); } },
   mute: () => toggleMute(),
   // [issue 10] the ear: a click does what the ear's state at the press says (Ear.clickAction): pin a
   // resting ear out, rest a pinned one, dismiss one that came out on its own; [issue 3] a double click
@@ -432,6 +432,7 @@ function step() {
   input.pollPad(navigator.getGamepads ? navigator.getGamepads.bind(navigator) : null);
   if (input.padConnected && !input.padStandard && !padNote) padNote = 'Controllers work best in Chrome or Edge.';
   const f = input.sample();
+  if (screen !== 'play' || story.active || dialog.active || ui.screen || fbk.isOpen()) input.cancelEnter(); // [issue #27] a ↓ in a menu never becomes Enter in play
   if (fbk.isOpen()) { if (f.pressed.back && input.last === 'gamepad') fbk.close(); return; } // the bug form is open: the game waits
   if (story.active) { story.step(f); return; }
   if (screen === 'title') {

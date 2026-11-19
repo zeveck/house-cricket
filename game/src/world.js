@@ -251,10 +251,10 @@ export class Camera {
     this.introT++; // [polish-V]
     const t0 = this.target(p, room);
     this.look += (t0.ahead - this.look) * 0.05;
-    // look up/down while standing still holding up/down
+    // look up/down while standing still holding up/down ([issue #27] look-up: stick / D-pad up only; ↑ jumps)
     const still = p.state === 'ground' && Math.abs(p.vx) < 5;
-    this._lookHold = still && (inp.held.up || (inp.held.down && p.stats.perk !== 'hugeLeap')) ? (this._lookHold || 0) + 1 : 0;
-    const want = this._lookHold > 24 ? (inp.held.up ? -160 : 160) : 0;
+    this._lookHold = still && (inp.held.lookUp || (inp.held.down && p.stats.perk !== 'hugeLeap')) ? (this._lookHold || 0) + 1 : 0;
+    const want = this._lookHold > 24 ? (inp.held.lookUp ? -160 : 160) : 0;
     this.lookV += (want - this.lookV) * 0.08;
     // [polish-V] the framing zoom eases (about the view's centre)
     if (Math.abs(this._fzT - this.fz) > 1e-4) {

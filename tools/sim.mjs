@@ -36,7 +36,7 @@ export class MetaLite {
           const k = e.emit || 'story';
           if (!modal && (k === 'dialog' || (k === 'ready' && !g.bossBeaten?.(e.boss)) || (k === 'story' && !(g.zone?.n >= 98)))) modal = { kind: k, trigger: true, boss: e.boss, name: e.name }; // [final-2] no Ready? card in a won arena
         }
-        const pressedUp = g.inp?.pressed?.up;
+        const pressedUp = g.inp?.pressed?.enter; // [issue #27] Enter: a ↓ press
         if (!modal && e.type === 'npc' && pressedUp && p.grounded && Math.abs(p.cx - (box.x + T / 2)) < 56 && Math.abs(p.y + p.h - (box.y + T)) < 40) modal = { kind: 'talk', who: e.who };
         if (!modal && e.type === 'lair' && pressedUp && p.grounded && ov(p, box)) {
           if (g.bossBeaten?.(e.boss)) { if (e.to && g.world.rooms[e.to]) g.startAt(e.to, e.at?.[0], e.at?.[1]); } // [final-2] a won lair: straight in (meta-run.js)

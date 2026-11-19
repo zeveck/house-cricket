@@ -142,7 +142,10 @@ export function howto(A, back, scheme) {
   scheme = scheme || (A.input.last === 'gamepad' ? 'gamepad' : (A.input.scheme ? A.input.scheme() : A.input.last) === 'touch' ? 'touch' : 'keyboard'); // [polish-T]
   const body = h('div', { class: 'howto-card' });
   // [polish-T] Move is both directions ({move}: ← → or A D), Swap both keys; no action id ever shows
-  const rows = [['move', 'Move'], ['jump', 'Jump (hold for higher)'], ['kick', 'Kick'], ['chirp', 'Chirp: call, stun bugs'], ['listen', 'Listen (hold, standing still)'], ['use', 'Use an item'], ['up', 'Hide, save, talk'], ['down', 'Drop through (+Jump)'], ['swap', 'Swap cricket'], ['map', 'Map'], ['pause', 'Pause']];
+  // [issue #27] the keyboard's ↑ / W jump too (and climb a line); Enter (go in, use) is ↓ on every scheme;
+  // look-up is the stick's (touch, pad); the Cloak is held: Shift on the keyboard, stick / D-pad up elsewhere
+  const kb = scheme === 'keyboard';
+  const rows = [['move', 'Move'], ['jump', 'Jump (hold for higher)'], kb ? ['upJump', 'Jump too; climb a line'] : ['up', 'Look up; climb a line'], ['kick', 'Kick'], ['chirp', 'Chirp: call, stun bugs'], ['listen', 'Listen (hold, standing still)'], ['use', 'Use an item'], ['enter', 'Hide, save, talk, go in'], ['down', 'Drop through (+Jump)'], ['cloak', 'Cloak (hold; once found)'], ['swap', 'Swap cricket'], ['map', 'Map'], ['pause', 'Pause']];
   const grid = h('div', { class: 'howto' });
   for (const [a, t] of rows) {
     const r = h('div', { class: 'howto-row' });
@@ -154,7 +157,7 @@ export function howto(A, back, scheme) {
       const tl = { map: 'Map icon', pause: 'Pause icon' }[a];
       keys.append(tl ? h('span', { class: 'cap cap-touch', text: tl }) : capAs(A, a, 'touch'));
     } else {
-      const pl = { up: 'Up', down: 'Down' }[a];
+      const pl = { up: 'Up', down: 'Down', enter: 'Down', cloak: 'Up' }[a];
       keys.append(pl ? h('span', { class: 'cap cap-pad', text: pl }) : capAs(A, a, 'gamepad'));
     }
     r.append(keys, h('span', { class: 'howto-what', text: t }));

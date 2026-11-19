@@ -7,7 +7,7 @@
 //         (taught here); only her snout catches, with a roar and a skitter (no damage). Hide in the
 //         log until she sniffs, shrugs and turns away: then the way on opens. No-fail.
 //   decor (beat 4)    a loose pebble on a ledge: kick it off and it lands as a step.
-//   lid   (beats 5-6) hold Up under the lid gap to squeeze through; Pip's leap off the rim tips the
+//   lid   (beats 5-6) jump up into the lid gap (or ↓ under it, issue #27) to squeeze through; Pip's leap off the rim tips the
 //         feeder cup off the tank; then story 'tankEscaped' (panel 4, the Bedroom).
 // Deterministic, no DOM in update; draws with the renderer's props and the gecko rig.
 // [issue 11] Each beat's state is an object whose methods (update, draw, finish) live on a shared
@@ -392,7 +392,7 @@ const Decor = {
 
 // ---------------------------------------------------------------- beats 5-6: the lid gap
 function lid(g, e) {
-  return Object.assign(Object.create(Lid), { g, e, phase: null, music: 'title', mode: 'wait', t: 0, held: 0, cupX: (e.cup[0] + 0.5) * T, cupY: (e.cup[1] + 1) * T, cupRot: 0, cupVy: 0, cupVx: 0 });
+  return Object.assign(Object.create(Lid), { g, e, phase: null, music: 'title', mode: 'wait', t: 0, cupX: (e.cup[0] + 0.5) * T, cupY: (e.cup[1] + 1) * T, cupRot: 0, cupVy: 0, cupVx: 0 });
 }
 const Lid = {
   setPhase() {},
@@ -402,10 +402,10 @@ const Lid = {
     const p = g.player, inp = g.inp;
     s.t++;
     if (s.mode === 'wait') {
-      const under = Math.abs(p.cx - (gx + 0.5) * T) < 0.9 * T && p.y < (gy + 3) * T && p.y > gy * T && p.grounded;
-      if (under && inp?.held?.up) { s.held++; p.squash = -0.25 * Math.min(1, s.held / 30); }
-      else s.held = Math.max(0, s.held - 2);
-      if (s.held >= 30) { s.mode = 'squeeze'; s.t = 0; g.emit('sfx', { name: 'crinkle', gain: 0.8 }); }
+      // [issue #27] jump up into the gap (his head at its mouth, still rising), or press Enter (↓) under it
+      const under = Math.abs(p.cx - (gx + 0.5) * T) < 0.9 * T && p.y < (gy + 3) * T && p.y > gy * T;
+      const jumpIn = under && !p.grounded && p.state === 'air' && p.vy <= 0 && p.y <= (gy + 1) * T + 4;
+      if (jumpIn || (under && p.grounded && inp?.pressed?.enter)) { s.mode = 'squeeze'; s.t = 0; p.squash = -0.25; g.emit('sfx', { name: 'crinkle', gain: 0.8 }); }
     } else if (s.mode === 'squeeze') {    // through the mesh, one wriggle at a time
       p.vx = 0; p.vy = 0; p.state = 'air'; p.x = (gx + 0.5) * T - p.w / 2;
       p.y = (gy + 1) * T - p.h - (s.t / 40) * (T + p.h + 4);
@@ -432,7 +432,6 @@ const Lid = {
     const tipped = s.mode === 'leap' || s.mode === 'done';
     const h = tipped ? 1.92 * T : 2.8 * T;
     img(c, tipped ? 'props/store-cup-tipped.webp' : 'props/store-cup.webp', s.cupX, s.cupY, h * (tipped ? 440 / 277 : 346 / 400), h, 1, s.cupRot);
-    if (s.mode === 'wait' && s.held > 0) { c.save(); c.globalAlpha = 0.7; c.strokeStyle = '#F2C46D'; c.lineWidth = 4; c.beginPath(); c.arc(g.player.cx, g.player.y - 14, 12, -Math.PI / 2, -Math.PI / 2 + (s.held / 30) * Math.PI * 2); c.stroke(); c.restore(); }
   },
 };
 

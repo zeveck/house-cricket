@@ -14,6 +14,18 @@ import { LAIRS } from '../data/house.js'; // [final-2] bossBeaten
 import { targetInRoom as beaconTargetInRoom } from './beacon.js'; // [audio] beacon target
 import { makeSign, floorProps } from './notes.js'; // [issue 9] tutorial notes on the path
 
+// [issue #27] The player's view of the input: the keyboard's ↑ / W ('upJump') is Jump, except on a hanging
+// line, where it climbs (it is 'up' too) and never lets go. Its hold counts as Jump (variable height,
+// glide) only after a press that jumped, so ↑ still held from a climb doesn't glide after a fling.
+export function playerFrame(inp, p) {
+  if (!inp.pressed.upJump && !inp.held.upJump) { if (p) p.upLatch = false; return inp; }
+  const swinging = p?.state === 'swing';
+  const press = !!inp.pressed.upJump && !swinging;
+  if (p) { if (press) p.upLatch = true; else if (!inp.held.upJump) p.upLatch = false; }
+  const latch = p ? p.upLatch : !swinging;
+  return { ...inp, pressed: { ...inp.pressed, jump: inp.pressed.jump || press }, held: { ...inp.held, jump: inp.held.jump || (!!inp.held.upJump && latch && !swinging) } };
+}
+
 export class Game {
   constructor(zoneModules, opts = {}) {
     this.world = new World(zoneModules);
@@ -57,7 +69,7 @@ export class Game {
       }
       case 'flash': flashEnemies(this.enemies || [], d.x, d.y, 170, 4 * FPS, this); this.lightAt = { x: d.x, y: d.y, f: this.frame }; break;
       case 'pound': Mech.onPound(this, d); break;
-      case 'up': if (!Mech.onUp(this)) this.interact(); break;
+      case 'enter': if (!Mech.onEnter(this)) this.interact(); break; // [issue #27] a ↓ press (Enter) with no hiding spot near
       case 'tap': this.toast(d.msg, 120); break;
       case 'useNothing': break;
       case 'dazed': this.toast('Too loud! Your legs ring. (Cotton Earplugs)', 150); break;
@@ -170,10 +182,11 @@ export class Game {
     if (this.trans) { this.trans.f++; if (this.trans.f >= this.trans.dur) this.trans = null; }
     if (this.card && this.frame - this.card.f > 150) this.card = null;
     this.toasts = this.toasts.filter((t) => this.frame - t.f < t.dur);
-    if (this.hold > 0) { this.hold--; if (inp.pressed.jump) this.player.jumpBuf = 7; return; }
+    const pin = playerFrame(inp, this.player); // [issue #27] ↑ / W jump (but climb on a line)
+    if (this.hold > 0) { this.hold--; if (pin.pressed.jump) this.player.jumpBuf = 7; return; }
     this.playFrames++;
     const p = this.player;
-    p.update(inp, this.ctx);
+    p.update(pin, this.ctx);
     // kick hits
     const kb = p.kickBox();
     if (kb) kickEnemies(this.enemies, kb, p.facing, this);

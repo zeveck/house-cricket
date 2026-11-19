@@ -325,7 +325,7 @@ export class UI {
     // [issue 10] no separate Listen arrow: while Listening the ear guide comes out and is the arrow
   }
   verbLine(item) {
-    const verbs = { booties: [['Press toward a wall in the air', null]], floss: [['Grab a hook', 'use']], raft: [['Float on water', null]], band: [['Hold to charge a super-jump', 'use']], glider: [['Hold while falling to glide', 'jump']], thimble: [['Ground-pound:', 'down'], ['+', 'jump']], glow: [['Light the dark; tap to flash', 'use']], earplugs: [['Walk through loud places', null]], feather: [['Press in the air to flutter', 'jump']] };
+    const verbs = { booties: [['Press toward a wall in the air', null]], floss: [['Grab a hook', 'use']], raft: [['Float on water', null]], band: [['Hold to charge a super-jump', 'use']], glider: [['Hold while falling to glide', 'jump']], thimble: [['Ground-pound:', 'down'], ['+', 'jump']], glow: [['Light the dark; tap to flash', 'use']], earplugs: [['Walk through loud places', null]], feather: [['Press in the air to flutter', 'jump']], cloak: [['Hold in the open to vanish', 'cloak']] }; // [issue #27] the cloak's key per scheme
     const p = h('div', { class: 'card-verb' });
     for (const [text, action] of verbs[item] || [[ITEMS[item].verb, null]]) {
       if (action) p.append(this.cap(action), ' ');
@@ -361,8 +361,8 @@ export class UI {
   updateHints(game) {
     const p = game.player;
     let prompt = null;
-    for (const s of game.hideSpots || []) if ((!s.small || p.tiny) && Math.abs(s.x + s.w / 2 - p.cx) < s.w / 2 + 14 && Math.abs(s.y + s.h - (p.y + p.h)) < 12 && p.state === 'ground') prompt = ['up', 'Hide'];
-    for (const s of game.saves || []) if (Math.abs(s.x + 20 - p.cx) < 40 && Math.abs(s.y + 40 - (p.y + p.h)) < 40 && p.grounded) prompt = ['up', 'Save'];
+    for (const s of game.hideSpots || []) if ((!s.small || p.tiny) && Math.abs(s.x + s.w / 2 - p.cx) < s.w / 2 + 14 && Math.abs(s.y + s.h - (p.y + p.h)) < 12 && p.state === 'ground') prompt = ['enter', 'Hide']; // [issue #27] Enter: ↓
+    for (const s of game.saves || []) if (Math.abs(s.x + 20 - p.cx) < 40 && Math.abs(s.y + 40 - (p.y + p.h)) < 40 && p.grounded) prompt = ['enter', 'Save'];
     if (p.state === 'hide') prompt = p.hideHold ? ['jump', 'Jump to leave'] : ['right', 'Move to leave']; // [issue 7] the tank's sniff: only Jump leaves
     if (p.has('floss') && p.state !== 'swing') for (const k of game.hooks || []) if (Math.hypot(k.x - p.cx, k.y - p.cy) < 70) prompt = ['use', 'Grab'];
     if (p.state === 'swing') prompt = ['jump', 'Fling'];

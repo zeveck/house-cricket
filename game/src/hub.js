@@ -1,7 +1,7 @@
 // The Cricket Carrier: the hub room. A plastic keeper on the Bedroom floor whose painting
 // ("shell") changes at 3, 6 and 9 rescues, with one painted object per arrival in its own slot,
 // residents who wander and bob and talk when you come close, and facilities you walk up to
-// (Up) to use. The player moves with the normal physics in an invisible tile room that matches
+// (Enter: ↓, issue #27) to use. The player moves with the normal physics in an invisible tile room that matches
 // the painting; hub.draw() paints the room instead of the renderer's platform painter.
 import { CRICKETS } from '../data/crickets.js';
 import * as S from './sprites.js';
@@ -179,9 +179,9 @@ export class Hub {
       if (r.id === p.id) continue;
       if (Math.abs(p.cx - r.x) < 60 && Math.abs(feet - r.y) < 34) { this.talk = r; break; }
     }
-    ui.extraPrompt = near && p.grounded ? ['up', near.label] : null;
+    ui.extraPrompt = near && p.grounded ? ['enter', near.label] : null; // [issue #27] Enter: ↓
     this.near = near;
-    if (near && p.grounded && f.pressed.up) this.use(near);
+    if (near && p.grounded && f.pressed.enter) this.use(near);
   }
   use(near) {
     if (!near) return;

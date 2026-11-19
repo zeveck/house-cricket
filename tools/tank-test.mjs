@@ -15,7 +15,7 @@ let pass = 0, fail = 0;
 const ok = (cond, label) => { if (cond) pass++; else { fail++; console.log('  FAIL', label); } };
 const section = (name, fn) => { if (only && !name.includes(only)) return; try { fn(); } catch (e) { fail++; console.log('  FAIL', name, 'threw', e.stack.split('\n').slice(0, 3).join(' | ')); } };
 
-const KEYS = ['left', 'right', 'up', 'down', 'jump', 'use', 'chirp', 'kick', 'listen', 'swapPrev', 'swapNext'];
+const KEYS = ['left', 'right', 'up', 'down', 'jump', 'use', 'chirp', 'kick', 'listen', 'swapPrev', 'swapNext', 'enter', 'cloak', 'upJump', 'lookUp']; // [issue #27]
 // a game in the sand room (Pip at its left edge), every event logged, and a key driver
 function sandGame(gentle) {
   const g = new Game(ZONES);
@@ -46,7 +46,7 @@ function sandGame(gentle) {
   };
   const runTo = (x, max = 900) => { for (let i = 0; i < max && Math.abs(g.player.cx - x * T) > 6; i++) run(Math.sign(x * T - g.player.cx)); jt = 0; step({}, 3); };
   const until = (cond, max, fn = () => step({})) => { for (let i = 0; i < max; i++) { if (cond()) return true; fn(); } return cond(); };
-  const hide = () => until(() => g.player.state === 'hide', 40, () => { step({ up: true }); step({}); });
+  const hide = () => until(() => g.player.state === 'hide', 40, () => { step({ enter: true }); step({}); });
   return { g, p: g.player, b: () => g.boss, ev, toasts, step, run, runTo, until, hide, lost: () => g.rs('tank-sand').taken.has(SLEPT) };
 }
 const count = (ev, t, since = -1, pred = () => true) => ev.filter((e) => e.t === t && e.f > since && pred(e.d)).length;
