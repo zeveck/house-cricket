@@ -125,7 +125,7 @@ if (want('zone-00')) {
   // longer: full-run.mjs's G0, the Bedroom's start frame, moved with it.)
   a.until((g) => g.boss.lunges >= 1 && g.boss.mode !== 'lunge', 900, 'her first lunge').log(`her first lunge ended (${a.g.boss.catches} catches)`);
   walkTo(a, 58.5, 'the log');
-  for (let i = 0; i < 20 && a.p.state !== 'hide'; i++) a.tap(U, 2).wait(2);
+  for (let i = 0; i < 20 && a.p.state !== 'hide'; i++) a.tap(D, 2).wait(2); // [issue #27] Enter: ↓
   a.until((g) => g.player.state === 'hide', 1, 'hidden').log('hidden in the log');
   a.until((g) => g.rs('tank-sand').taken.has('duchess-asleep'), 900, 'she loses him').log('she has lost him');
   a.down(R).until((g) => g.room.id === 'tank-decor', 400, 'to the decor').up(R).log('decor');
@@ -142,7 +142,7 @@ if (want('zone-00')) {
   a.down(J).until((g) => g.room.id === 'tank-lid', 40, 'lid').wait(20).up(J).until(ground, 60).log('lid');
   climb(a, [[14, 16], [13.5, 14], [17.5, 12, { from: 15.3, delay: 2 }], [14, 10, { from: 16.4, delay: 2 }], [18, 8, { from: 15.3, delay: 2 }]]).log('under the gap');
   walkTo(a, 20.4);
-  a.down(U).until((g) => g.boss.mode === 'out', 120, 'squeeze').up(U).log('through!');
+  a.down(J).until((g) => g.boss.mode === 'out', 120, 'squeeze').up(J).log('through!'); // [issue #27] jump up into the gap
   a.down(R).until((g) => g.boss.mode === 'leap', 300, 'the leap').up(R).log('the leap (the cup tips; then story panel 4)');
   a.end();
   a.save('zone-00-path', {});
@@ -215,7 +215,7 @@ if (want('zone-02-path')) {
   a.save('zone-02-path', {});
 }
 
-const hide = (a, x) => { walkTo(a, x); a.tap(U, 3).until((g) => g.player.hidden, 20, `hide at ${x}`); return a; };
+const hide = (a, x) => { walkTo(a, x); a.tap(D, 3).until((g) => g.player.hidden, 20, `hide at ${x}`); return a; };
 const cloudOn = (name, minLeft = 0) => (g) => (g.boss.clouds || []).some((v) => v === name || v.x === name) && true;
 
 if (want('zone-02-boss')) {

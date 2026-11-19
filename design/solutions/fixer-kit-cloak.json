@@ -1,4 +1,4 @@
 {"name":"fixer-kit-cloak","start":{"room":"kit-undersink","x":3,"y":15,"items":["booties","floss","raft","cloak"],"party":["pip"],"rescued":["stripe","katy","duo"]},"frames":252,"events":[[20,"ArrowLeft","down"],
-[93,"ArrowUp","down"],
-[222,"ArrowUp","up"],
+[93,"ShiftLeft","down"],
+[222,"ShiftLeft","up"],
 [222,"ArrowLeft","up"]],"expect":{"room":"kit-table","levelComplete":false,"items":["booties","floss","raft","cloak"]},"endState":{"room":"kit-table","x":3118.4,"y":1336,"state":"ground","health":5,"items":["booties","cloak","floss","raft"],"rescued":["duo","katy","stripe"],"levelComplete":false,"frame":246}}

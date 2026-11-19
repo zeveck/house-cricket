@@ -104,12 +104,12 @@ function cellar(a) {
   a.down(L).until((g) => g.player.x < 9.2 * T, 200, 'spot 9').up(L).wait(2);
   a.until(() => beetle().x < 4 * T || beetle().dir > 0, 600).log('beetle at end');
   // the beetle is between us and the earplugs: hide at spot 9 and let it pass back
-  a.tap(U, 3).until((g) => g.player.hidden, 10, 'hidden').log('hidden')
+  a.tap(D, 3).until((g) => g.player.hidden, 10, 'hidden').log('hidden')
     .until(() => beetle().x > 11 * T, 900, 'beetle passed').log('beetle passed ' + Math.round(beetle().x));
   a.down(L).until((g) => g.player.has('earplugs'), 300, 'earplugs').up(L).log('earplugs').wait(45);
   // back out: hide at spot 4 while it comes back, then leave
   a.until(() => beetle().dir < 0, 900, 'beetle returning');
-  a.down(R).until((g) => g.player.x > 3.6 * T, 60).up(R).wait(3).tap(U, 3).until((g) => g.player.hidden, 10, 'hidden 2').log('hidden 2')
+  a.down(R).until((g) => g.player.x > 3.6 * T, 60).up(R).wait(3).tap(D, 3).until((g) => g.player.hidden, 10, 'hidden 2').log('hidden 2')
     .until(() => beetle().x < 2 * T, 900, 'beetle past').log('beetle past');
   a.down(R).until((g) => g.player.has('glow'), 400, 'glow').log('glow').wait(45)
     .until((g) => g.room.id === 'sb-dark', 200, 'exit').log('exit').end();

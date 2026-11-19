@@ -68,7 +68,7 @@ if (want('path')) {
       if (spot) {
         const sx = spot.x + spot.w / 2, k = sx > g.player.cx ? R : L;
         if (Math.abs(sx - g.player.cx) > 8) a.down(k).until((gg) => Math.abs(sx - gg.player.cx) < 8, 120, 'to the hiding spot').up(k);
-        a.wait(2).tap(U, 3).until((gg) => gg.player.hidden, 20, 'hidden').log('hide');
+        a.wait(2).tap(D, 3).until((gg) => gg.player.hidden, 20, 'hidden').log('hide');
         a.until((gg) => bx(b) < gg.player.cx - 1.6 * T, 900, 'beetle passed').log('beetle passed');
         continue;
       }

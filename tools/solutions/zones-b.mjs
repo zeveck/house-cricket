@@ -81,7 +81,7 @@ export function sneak(a, spots, exitX) {
   for (let i = 0; i < legs.length; i++) {
     const to = legs[i];
     if (!clear(a.g, here, to)) {
-      a.tap(U, 3).until((g) => g.player.hidden, 30, 'hide at ' + here).log('hide ' + here.toFixed(1));
+      a.tap(D, 3).until((g) => g.player.hidden, 30, 'hide at ' + here).log('hide ' + here.toFixed(1));
       a.until((g) => clear(g, here, to), 1200, 'clear to ' + to);
     }
     walkTo(a, to, 'to spot ' + to).log('spot ' + to);
@@ -278,7 +278,7 @@ function livingFromSeat(a) {
   a.down(J).wait(8).up(J).wait(8).down(D).tap(J, 3).up(D).log('pound');
   a.until((g) => g.room.id === 'liv-rug' && ground(g), 200, 'back on the rug').log('back on the rug');
   // the vacuum: wait under the TV remote until it has gone past going left, then run
-  walkTo(a, 21.2, 'magazine').tap(U, 3).until((g) => g.player.hidden, 20, 'hidden').log('hidden');
+  walkTo(a, 21.2, 'magazine').tap(D, 3).until((g) => g.player.hidden, 20, 'hidden').log('hidden');
   const vac = (g) => g.enemies.find((e) => e.type === 'vacuum');
   a.until((g) => vac(g).dir < 0 && vac(g).x + vac(g).w < 15 * T, 1500, 'vacuum passed').log('vacuum went by');
   // the dust bunny: jump at it and ground-pound it apart from above ([fixer] no hit)

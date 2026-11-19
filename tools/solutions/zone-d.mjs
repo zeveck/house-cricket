@@ -140,7 +140,7 @@ function nanaBrain(target) {
         if (b.band === 'high' || levelOf(g) > 0) { keys.add(D); keys.add(J); m.jumpT = 3; m.jdir = D; return keys; } // drop through
         const hx = HIDES.reduce((a2, h) => (Math.abs(h + 0.5 - cx) < Math.abs(a2 + 0.5 - cx) ? h : a2));
         if (Math.abs(hx + 0.5 - cx) > 0.3) { keys.add(hx + 0.5 > cx ? R : L); return keys; }
-        if (m.last !== 'up') { m.last = 'up'; keys.add(U); m.tapT = 2; return keys; }
+        if (m.last !== 'enter') { m.last = 'enter'; keys.add(D); m.tapT = 2; return keys; } // [issue #27] Enter: ↓
         m.last = null; return keys;
       }
     }

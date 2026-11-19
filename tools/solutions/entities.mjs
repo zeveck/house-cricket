@@ -54,7 +54,7 @@ if (want('thermo')) {
   a.wait(10).down(R).until((g) => g.player.has('battery'), 300, 'battery').log('battery')
     .until((g) => g.player.cx > 15.6 * T, 300, 'at 72F').up(R).wait(10).tap(CHIRP, 3).wait(10).log('chirped')
     .until((g) => g.mech.gates[0].open, 20, 'thermo gate')
-    .down(R).until((g) => g.player.x > 28.7 * T, 300, 'door').up(R).wait(10).tap(U, 3)
+    .down(R).until((g) => g.player.x > 28.7 * T, 300, 'door').up(R).wait(10).tap(D, 3)
     .until((g) => g.room.id === 'et-boss', 60, 'through the door').log('door').end();
   a.save('entities-4-thermo', {});
 }

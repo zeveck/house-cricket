@@ -72,10 +72,10 @@ const firstAt = (name, room, x0, x1, row) => {
 // the crack. Leaving the Carrier restarts the room at the crack: an exact start for what follows.
 const viaCarrier = (tx, trio, after = 3) => {
   walkTo(a, tx + 0.5); settle();
-  a.plan('save', 'carrier').tap(U, 1);
+  a.plan('save', 'carrier').tap(D, 1);
   a.until((g) => g.inCarrier, 60, 'in the Carrier').wait(20);
   if (trio) a.plan('hubcrack', 'trio+back', trio); else a.plan('hubcrack', 'back');
-  a.tap(U, 1).until((g) => !g.inCarrier, 10, 'back from the Carrier').wait(after);
+  a.tap(D, 1).until((g) => !g.inCarrier, 10, 'back from the Carrier').wait(after);
   return a.log(`back at the crack (${a.g.room.id})`);
 };
 // walk to a recorded solution's start marker (to the pixel, as near as taps get)
@@ -88,19 +88,19 @@ const toStart = (name) => {
 chapter('bedroom', () => {
   a.play(sol('zone-01-path'), { cut: 3541 });
   walkInto(2085, 2120);
-  a.tap(U, 1);                       // Duchess's door: the Ready? card, Enter (into bed-lair)
+  a.tap(D, 1);                       // Duchess's door: the Ready? card, Enter (into bed-lair)
   a.plan('complete', 'carrier');     // "Stripe is safe!": Return to the Carrier ([polish-T] planned first: the card opens as her lines close, inside the solution)
   a.play(sol('zone-01-boss'));       // ends on the rescue (her lines)
   a.until((g) => g.inCarrier, 120, 'the Carrier').wait(20);
   a.plan('hubcrack', 'back');
-  a.tap(U, 1);                       // the crack in the corner: Back to the Bedroom
+  a.tap(D, 1);                       // the crack in the corner: Back to the Bedroom
 });
 
 chapter('to-bathroom', () => {
   a.until((g) => !g.inCarrier, 10, 'back').wait(10).log('back at the bed-dresser crack');
   // [fullrun] "Return to the Carrier" now comes back to the lair's save crack (bed-dresser): in by Duchess's door again
   walkInto(2085, 2120);
-  a.tap(U, 1);                       // a won lair's door goes straight in (no Ready? card, no lines)
+  a.tap(D, 1);                       // a won lair's door goes straight in (no Ready? card, no lines)
   a.wait(10).log('in bed-lair');
   // off the middle block, up the leaves by the glass wall, over it, out to the Hall
   travel(a, 1, (g) => g.player.cx > 54.5 * T && g.player.state === 'ground', 900, 'under the leaves');
@@ -118,7 +118,7 @@ chapter('bathroom', () => {
   const cut = firstAt('zone-02-path', 'bath-sink', 28 * T - 25, 30 * T - 2, 34);
   playChecked('zone-02-path', { cut });
   settle();
-  a.tap(U, 1);                         // Chikchak's door: Ready?, Enter
+  a.tap(D, 1);                         // Chikchak's door: Ready?, Enter
   playChecked('zone-02-boss');
 });
 
@@ -159,7 +159,7 @@ chapter('kitchen', () => {
   const cut = firstAt('zone-03-path', 'kit-counter', 2 * T - 29, 4 * T - 1, 16);
   playChecked('zone-03-path', { cut });
   settle();
-  a.tap(U, 1);                         // Big Tok's door: Ready?, Enter
+  a.tap(D, 1);                         // Big Tok's door: Ready?, Enter
   playChecked('zone-03-boss');
 });
 
@@ -221,7 +221,7 @@ const sneakRight = (spots, exitX) => {
   let here = tx(a.g);
   for (const to of [...spots, exitX]) {
     if (!clear(a.g, here, to)) {
-      a.tap(U, 3).until((g) => g.player.hidden, 30, 'hide at ' + here).log('hide ' + here.toFixed(1));
+      a.tap(D, 3).until((g) => g.player.hidden, 30, 'hide at ' + here).log('hide ' + here.toFixed(1));
       a.until((g) => clear(g, here, to), 1500, 'clear to ' + to);
     }
     walkTo(a, to).log('spot ' + to);
@@ -277,7 +277,7 @@ chapter('laundry-to-kitchen', () => {
   a.down(L).tap(J, 3).wait(6).down(J).until((g) => tx(g) < 10.4, 120, 'in the updraft').up(L);
   a.until((g) => ty(g) < 8.5, 200, 'lifted').down(L).until((g) => tx(g) < 5 || ground(g), 200, 'over the ledge').up(L).up(J).until(ground, 120, 'landed').log('door ledge');
   if (ty(a.g) > 10.5) throw new Error('not on the door ledge ' + JSON.stringify(a.state()));
-  walkTo(a, 3.5); settle(); a.tap(U, 2); a.until((g) => g.room.id === 'laun-stairs', 30, 'up the hose').wait(5).log('stair head');
+  walkTo(a, 3.5); settle(); a.tap(D, 2); a.until((g) => g.room.id === 'laun-stairs', 30, 'up the hose').wait(5).log('stair head');
   travel(a, -1, (g) => tx(g) < 20.3 && ground(g), 900, 'to the ladder');
   walkTo(a, 19.8);
   for (let i = 0; i < 8 && a.g.room.id === 'laun-stairs'; i++) a.tap(J, 20).until((g) => ground(g) || g.room.id !== 'laun-stairs', 120, 'rung').wait(3);
@@ -318,7 +318,7 @@ chapter('kitchen-to-living', () => {
   a.log('fridge floor');
   travel(a, 1, (g) => g.room.id === 'stair-foot' && tx(g) > 29.5, 1500, 'to the stair foot').log('stair foot');
   // save at the stair-foot crack: after the Living Room, "Return to the Carrier" comes back here
-  walkTo(a, 30.5); settle(); a.plan('save', 'close').tap(U, 1).wait(2);
+  walkTo(a, 30.5); settle(); a.plan('save', 'close').tap(D, 1).wait(2);
   travel(a, 1, (g) => tx(g) > 59.5, 900, 'to the doorway'); walkTo(a, 60.5); settle();
 });
 
@@ -351,7 +351,7 @@ chapter('living', () => {
   walkTo(a, 50.5).log('hide spot 50.5');
   // hide spot to hide spot, hiding until the vacuum has gone by when it's in the way
   for (const s of [41.5, 30.5, 20.5, 11.5, -1]) {
-    if (!legOk(a.g, s)) { a.tap(U, 3).until((g) => g.player.hidden, 30, 'hide').log('hide'); a.until(passed, 3000, 'vacuum passed').log('vacuum passed'); }
+    if (!legOk(a.g, s)) { a.tap(D, 3).until((g) => g.player.hidden, 30, 'hide').log('hide'); a.until(passed, 3000, 'vacuum passed').log('vacuum passed'); }
     if (s < 0) travel(a, -1, (g) => g.room.id === 'liv-armchair', 600, 'to the armchair'); else walkTo(a, s);
   }
   a.log('armchair floor');
@@ -392,7 +392,7 @@ chapter('to-study', () => {
 chapter('study', () => {
   playChecked('zone-07-path');
   walkInto(61 * T - 29, 63 * T - 1);
-  a.tap(U, 1);                       // Mossy's door: Ready?, Enter
+  a.tap(D, 1);                       // Mossy's door: Ready?, Enter
   a.plan('complete', 'carrier');       // [polish-T] "Rin is safe!" opens as the lines close (on the solution's last frame)
   a.play(sol('zone-07-boss'));        // [polish-T] not playChecked: the card's Return to the Carrier moves us on its last frame
   if (!a.g.inCarrier) throw new Error('zone-07-boss: no rescue card / Carrier');
@@ -402,7 +402,7 @@ chapter('study-to-sunroom', () => {
   // "Rin is safe!": Return to the Carrier (planned before the fight), back to the lair ledge's crack (stu-shelves)
   a.until((g) => g.inCarrier, 200, 'the Carrier').wait(20);
   a.plan('hubcrack', 'back');
-  a.tap(U, 1).until((g) => !g.inCarrier, 10, 'back').wait(3).log('lair ledge');
+  a.tap(D, 1).until((g) => !g.inCarrier, 10, 'back').wait(3).log('lair ledge');
   // [fullrun] down the drop hole, up the new rails out of the pit onto P3, glide left to the desk, the Study door
   walkTo(a, 49.5); a.until((g) => ground(g) && ty(g) > 51, 200, 'the pit').log('the pit');
   walkTo(a, 43.5); settle();
@@ -456,7 +456,7 @@ chapter('sunroom', () => {
   toStart('zone-08-path');
   playChecked('zone-08-path');
   walkInto(15 * T - 25, 17 * T - 5);
-  a.tap(U, 1);                       // Kite's door: Ready?, Enter
+  a.tap(D, 1);                       // Kite's door: Ready?, Enter
   a.plan('complete', 'carrier');       // [polish-T] "Digby is safe!" (see zone-07)
   a.play(sol('zone-08-boss'));        // [polish-T] not playChecked: the card's Return to the Carrier moves us on its last frame
   if (!a.g.inCarrier) throw new Error('zone-08-boss: no rescue card / Carrier');
@@ -542,7 +542,7 @@ chapter('basement', () => {
   // "Digby is safe!": Return to the Carrier (planned before the fight), back to Kite's crack (sun-glass), down to the Sunroom door
   a.until((g) => g.inCarrier, 200, 'the Carrier').wait(20);
   a.plan('hubcrack', 'back');
-  a.tap(U, 1).until((g) => !g.inCarrier, 10, 'back').wait(3).log("Kite's crack");
+  a.tap(D, 1).until((g) => !g.inCarrier, 10, 'back').wait(3).log("Kite's crack");
   glassToDoor();
   travel(a, -1, (g) => g.room.id === 'liv-hearth' && tx(g) < 17.5 && ground(g), 900, 'to the ash dump');
   walkTo(a, 15.8); settle().log('on the ash plug');
@@ -559,7 +559,7 @@ chapter('basement', () => {
     .until((g) => g.player.cx < 15.2 * T, 300, 'shaft top').up(L).until(ground, 200, 'shaft foot').log('shaft foot')
     .down(L).until(ZB.inRoom('bas-coal'), 600, 'coal bin').up(L).log('coal bin');
   walkTo(a, 49.2); settle();
-  a.tap(U, 1);                         // Ember's door: Ready?, Enter (her lines; no move)
+  a.tap(D, 1);                         // Ember's door: Ready?, Enter (her lines; no move)
   climbChute();
   a.g.levelComplete = false;           // authoring only: nothing in the game reads it
   a.plan('complete', 'carrier');       // [polish-T] "Mote is safe!" (planned before the fight: it may open as her lines close)
@@ -630,7 +630,7 @@ chapter('carrier-sings', () => {
   a.until((g) => g.inCarrier, 200, 'the Carrier').log('the Carrier (nine home)');
   a.until(() => a.modals.some((m) => m.kind === 'dialog' && m.f > 0 && a.g.inCarrier && metaOf().damperOpen), 1500, 'the Carrier sings').wait(30).log('sung');
   a.plan('hubcrack', 'back');
-  a.tap(U, 1).until((g) => !g.inCarrier, 10, 'back').wait(3).log("back at Ember's crack (the coal bin)");
+  a.tap(D, 1).until((g) => !g.inCarrier, 10, 'back').wait(3).log("back at Ember's crack (the coal bin)");
   coalToHearth();
 });
 
@@ -682,7 +682,7 @@ chapter('attic', () => {
   playChecked('zone-10-path');
   // Nana's fight: Mote out front (E twice: Duo, Digby, Mote), then her door: the Ready? card (low, middle, high voices)
   swapTo('mote'); settle();
-  a.tap(U, 1);                         // Ready?, Enter (into att-lair), her lines
+  a.tap(D, 1);                         // Ready?, Enter (into att-lair), her lines
   a.plan('story', 'none');             // the ending: played by the browser part
   playChecked('zone-10-boss');
   a.until(() => a.modals.some((m) => m.kind === 'story'), 600, 'the ending').log('the ending starts');

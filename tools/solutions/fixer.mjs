@@ -10,7 +10,7 @@
 import { Author } from '../author.mjs';
 import { flag } from '../../game/src/mechanics.js';
 
-const R = 'ArrowRight', L = 'ArrowLeft', U = 'ArrowUp', D = 'ArrowDown', J = 'KeyZ', USE = 'KeyV', CHIRP = 'KeyC', SWAPN = 'KeyE';
+const R = 'ArrowRight', L = 'ArrowLeft', U = 'ArrowUp', D = 'ArrowDown', SHIFT = 'ShiftLeft', J = 'KeyZ', USE = 'KeyV', CHIRP = 'KeyC', SWAPN = 'KeyE';
 const T = 40;
 const only = process.argv[2];
 const want = (n) => !only || n.includes(only);
@@ -78,8 +78,8 @@ if (want('att-duet')) duet('att-duet', 'att-boxes', 20, 15, 'chip');
 if (want('kit-cloak')) {
   const a = new Author({ room: 'kit-undersink', x: 3, y: 15, items: ['booties', 'floss', 'raft', 'cloak'], party: ['pip'], rescued: ['stripe', 'katy', 'duo'] });
   a.wait(20).down(L).until((g) => g.room.id === 'kit-table' && tx(g) < 92.5, 300, 'into the table room').log('east of the dishwasher');
-  a.down(U).until((g) => g.player.cloaked, 30, 'cloaked').log('cloaked');
-  a.until((g) => tx(g) < 78.5, 240, 'through the nest').up(U).log('through the beetle nest');
+  a.down(SHIFT).until((g) => g.player.cloaked, 30, 'cloaked').log('cloaked');
+  a.until((g) => tx(g) < 78.5, 240, 'through the nest').up(SHIFT).log('through the beetle nest');
   must(a.p.health === a.p.maxHealth, 'hurt in the nest');
   a.up(L).end();
   a.save('fixer-kit-cloak', { room: 'kit-table' });

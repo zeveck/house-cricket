@@ -1,8 +1,8 @@
-{"name":"entities-4-thermo","start":{"room":"et-thermo","x":1,"y":15,"items":[],"party":["frost"]},"frames":373,"events":[[10,"ArrowRight","down"],
+{"name":"entities-4-thermo","start":{"room":"et-thermo","x":1,"y":15,"items":[],"party":["frost"]},"frames":374,"events":[[10,"ArrowRight","down"],
 [182,"ArrowRight","up"],
 [192,"KeyC","down"],
 [195,"KeyC","up"],
 [205,"ArrowRight","down"],
 [330,"ArrowRight","up"],
-[340,"ArrowUp","down"],
-[343,"ArrowUp","up"]],"expect":{"room":"et-boss","levelComplete":false,"items":["battery"]},"endState":{"room":"et-boss","x":125,"y":616,"state":"ground","health":5,"items":["battery"],"rescued":[],"levelComplete":false,"frame":327}}
+[340,"ArrowDown","down"],
+[343,"ArrowDown","up"]],"expect":{"room":"et-boss","levelComplete":false,"items":["battery"]},"endState":{"room":"et-boss","x":125,"y":616,"state":"ground","health":5,"items":["battery"],"rescued":[],"levelComplete":false,"frame":328}}

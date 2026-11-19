@@ -7,7 +7,7 @@ import { makeSim } from '../sim.mjs';
 import { ZONE_INFO } from '../../game/data/zones.js';
 import { gazeAt, EYE, GAZE_HALF } from '../../game/src/bosses/barty.js';
 
-const R = 'ArrowRight', L = 'ArrowLeft', U = 'ArrowUp', J = 'KeyZ', KICK = 'KeyX', LISTEN = 'KeyB';
+const R = 'ArrowRight', L = 'ArrowLeft', U = 'ArrowUp', D = 'ArrowDown', SHIFT = 'ShiftLeft', J = 'KeyZ', KICK = 'KeyX', LISTEN = 'KeyB';
 const T = 40;
 const ITEMS = ZONE_INFO.lair.minItems[0];
 const only = process.argv[2];
@@ -28,7 +28,7 @@ function runRight(a, x, label = 'run') {
   a.up(R).until((g) => ground(g) && Math.abs(g.player.vx) < 5, 60, label + ' settle');
   return a;
 }
-const hide = (a) => a.tap(U, 3).until((g) => g.player.hidden, 10, 'hidden');
+const hide = (a) => a.tap(D, 3).until((g) => g.player.hidden, 10, 'hidden');
 
 if (want('cloak')) {
   // The Cloak: a darkling beetle walks through a cloaked cricket; it lasts 3 s, then 6 s to recharge.
@@ -39,22 +39,22 @@ if (want('cloak')) {
   const { spawnEnemy } = await import('../../game/src/enemies.js');
   g.enemies.push(spawnEnemy({ type: 'beetle', x: 13, y: 33, range: [3, 15], dir: -1, i: 0 }, 0, 'dragon-lair'));
   for (let i = 0; i < 20; i++) g.update(inp.sample());
-  inp.keyDown(U);
+  inp.keyDown(SHIFT); // [issue #27] the cloak: hold Shift
   let first = -1, last = -1, crossed = false; const hp = g.player.health;
   for (let i = 0; i < 260; i++) { g.update(inp.sample()); if (g.player.cloaked) { if (first < 0) first = i; last = i; const e = g.enemies[0]; if (e.x < g.player.x + g.player.w && e.x + e.w > g.player.x) crossed = true; } }
   const lasted = last - first + 1;
   const ok1 = crossed && first >= 0 && first <= 10 && lasted >= 178 && lasted <= 181 && g.player.health === hp;
-  // still holding Up: no re-arm during the recharge
+  // still holding Shift: no re-arm during the recharge
   let rearm = -1;
   for (let i = 0; i < 400; i++) { g.update(inp.sample()); if (g.player.cloaked && rearm < 0) rearm = i; }
-  inp.keyUp(U);
+  inp.keyUp(SHIFT);
   const ok2 = rearm + 260 - (first + lasted) >= 358 && rearm + 260 - (first + lasted) <= 362; // 6 s recharge
   // the beetle did cross the cricket while cloaked (it patrols 4..16 through x 10)
   console.log(`cloak: beetle crossed the cricket: ${crossed}; armed after ${first} f, lasted ${lasted} f, hearts ${hp} -> ${g.player.health}, recharge ${rearm + 260 - (first + lasted)} f -> ${ok1 && ok2 ? 'OK' : 'FAIL'}`);
   // and without the cloak the same beetle hurts
   const s2 = makeSim(); const g2 = s2.game; g2.startAt('dragon-lair', 10, 33, { items: ITEMS, party: ['pip'] }); g2.boss = null;
   g2.enemies = [spawnEnemy({ type: 'beetle', x: 13, y: 33, range: [3, 15], dir: -1, i: 0 }, 0, 'dragon-lair')];
-  s2.input.keyDown(U); for (let i = 0; i < 300; i++) g2.update(s2.input.sample());
+  s2.input.keyDown(SHIFT); for (let i = 0; i < 300; i++) g2.update(s2.input.sample());
   console.log(`no cloak: hearts 5 -> ${g2.player.health} (${g2.player.health < 5 ? 'OK, hurt' : 'FAIL'})`);
   if (!(ok1 && ok2) || g2.player.health >= 5) process.exitCode = 1;
 }

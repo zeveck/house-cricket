@@ -68,8 +68,10 @@ function replayCode(sol) {
     const sol = ${JSON.stringify({ start, events: sol.events, frames: sol.frames })};
     const mode = ${JSON.stringify(mode)};
 
-    const PADB = { KeyZ: 0, Space: 0, KeyB: 1, KeyL: 1, KeyX: 2, KeyJ: 2, KeyC: 3, KeyK: 3, KeyQ: 4, KeyE: 5, KeyV: 7, KeyI: 7, ArrowUp: 12, ArrowDown: 13, ArrowLeft: 14, ArrowRight: 15, KeyW: 12, KeyS: 13, KeyA: 14, KeyD: 15 };
-    const DIRS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', KeyA: 'left', KeyD: 'right', KeyW: 'up', KeyS: 'down' };
+    const PADB = { KeyZ: 0, Space: 0, KeyB: 1, KeyL: 1, KeyX: 2, KeyJ: 2, KeyC: 3, KeyK: 3, KeyQ: 4, KeyE: 5, KeyV: 7, KeyI: 7, ArrowUp: 12, ArrowDown: 13, ArrowLeft: 14, ArrowRight: 15, KeyW: 12, KeyS: 13, KeyA: 14, KeyD: 15, ShiftLeft: 12, ShiftRight: 12 };
+    // [issue #27] 1:1 because Enter is ↓ on every scheme; the Cloak (Shift) is D-pad / stick up. Recordings press
+    // ArrowUp only to climb a line (a keyboard ↑ elsewhere jumps, which the pad's up does not: author jumps with KeyZ)
+    const DIRS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', KeyA: 'left', KeyD: 'right', KeyW: 'up', KeyS: 'down', ShiftLeft: 'up', ShiftRight: 'up' };
     const TB = { KeyZ: 'jump', Space: 'jump', KeyV: 'use', KeyI: 'use', KeyC: 'chirp', KeyK: 'chirp', KeyX: 'kick', KeyJ: 'kick', KeyB: 'listen', KeyL: 'listen' };
     const held = new Set();
     const setup = () => page.evaluate((st) => { window.__game.goToRoom(st.room, { x: st.x, y: st.y, items: st.items || [], party: st.party || ['pip'], rescued: st.rescued || [] }); window.__game.freeze(); }, sol.start);
