@@ -338,7 +338,7 @@ export class RunAuthor extends Author {
           return m;
         }
       }
-      if (g.inCarrier && g.inp?.pressed?.up && p.grounded && Math.abs(p.cx - CRACK.x) < 40 && Math.abs(p.y + p.h - CRACK.y) < 30) {
+      if (g.inCarrier && g.inp?.pressed?.enter && p.grounded && Math.abs(p.cx - CRACK.x) < 40 && Math.abs(p.y + p.h - CRACK.y) < 30) {
         const m = { kind: 'hubcrack', f }; meta.seen.push(m);
         this.sim.input.releaseAll(); this.sim.input.sample(); meta.repress = true;
         return m;
