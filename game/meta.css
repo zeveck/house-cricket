@@ -184,6 +184,8 @@ body:not(.title-ready) .menus:has(.panel-title) { opacity: 0; }
 /* ---- meta HUD ---- */
 .crumbs { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px 0 6px; border-radius: 999px; background: rgba(42,32,26,.55); border: 2px solid rgba(244,235,221,.45); color: var(--paper); font-weight: 800; font-size: 17px; }
 .crumb-icon { width: 30px; height: 26px; background: url("assets/items/crumb.webp") center / contain no-repeat; }
+.crumbs { font-family: inherit; cursor: pointer; appearance: none; }
+.crumbs:focus-visible { outline: 3px solid var(--paper); outline-offset: 3px; }
 .crumbs.bump { animation: pop .25s ease-out; }
 .thermo { position: absolute; left: calc(14px + env(safe-area-inset-left)); top: calc(150px * var(--ui) + env(safe-area-inset-top)); display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 12px; background: rgba(42,32,26,.6); border: 2px solid rgba(244,235,221,.35); color: var(--paper); font-weight: 800; font-size: 16px; }
 .thermo[hidden] { display: none; }

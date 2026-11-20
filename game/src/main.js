@@ -138,6 +138,7 @@ ui.handlers = {
   pause: () => { if (screen === 'play' && !dialog.active && !story.active) (ui.screen ? resume() : pause()); },
   map: () => { if (screen === 'play' && !dialog.active && !story.active) { if (ui.screen === 'map') resume(); else if (ui.screen) { if (PAUSE_TABS.has(ui.screen)) Screens.pause(A, 'map'); } else pause(null, 'map'); } }, // [final-S] not from a card
   promptTap: () => { if (game?.inCarrier) hub.tapPrompt(); else if (game) { input._press(['up'], 'touch'); input._release(['up']); } },
+  crumbHint: (text) => { if (screen === 'play' && game) game.toast(text, 180); },
   mute: () => toggleMute(),
   // [issue 10] the ear: a click does what the ear's state at the press says (Ear.clickAction): pin a
   // resting ear out, rest a pinned one, dismiss one that came out on its own; [issue 3] a double click
@@ -593,7 +594,7 @@ function updateMetaHUD() {
   // [issue 10] one direction everywhere: the ripples come from the way to walk too
   const bc = d && d.show ? (a != null ? { ...d, dx: Math.cos(a), dy: Math.sin(a) } : d) : null;
   const temp = p.stats?.perk === 'thermometer' && !game.inCarrier ? Math.round(tempAt(game.room, p.cx)) : null;
-  ui.updateMetaHUD({ crumbs: m.crumbs || 0, temp, ear: earInfo, paused: paused || frozen, autoChirp: settings.beaconChirps === 'always', beacon: bc, listening: !!p.listening, alwaysRipples: !!settings.ripples });
+  ui.updateMetaHUD({ crumbs: m.crumbs || 0, rolo: game.recruits.has('rolo'), temp, ear: earInfo, paused: paused || frozen, autoChirp: settings.beaconChirps === 'always', beacon: bc, listening: !!p.listening, alwaysRipples: !!settings.ripples });
 }
 function logFrame(name) {
   const l = frameLog[frameLog.length - 1];

@@ -58,7 +58,11 @@ export class UI {
     this.btnPause = h('button', { class: 'icon-btn', 'aria-label': 'pause', title: 'Pause (Esc)', onclick: () => this.handlers.pause?.() });
     this.btnMap.innerHTML = ICON.map; this.btnPause.innerHTML = ICON.pause;
     // meta HUD: crumbs counter (top-right), Frost's thermometer, the chirp indicator (screen edge)
-    this.crumbs = h('div', { class: 'crumbs', 'aria-label': 'crumbs' });
+    this.crumbs = h('button', { class: 'crumbs', type: 'button', 'aria-label': 'Crumbs' });
+    // Native button handles click, touch, Enter and Space without activating game controls.
+    this.crumbs.addEventListener('pointerdown', (e) => e.stopPropagation());
+    this.crumbs.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); });
+    this.crumbs.addEventListener('click', (e) => { e.stopPropagation(); this.handlers.crumbHint?.(this.crumbs.title); });
     this.crumbs.append(h('span', { class: 'crumb-icon' }), h('span', { class: 'crumb-n', text: '0' }));
     this.thermo = h('div', { class: 'thermo', hidden: '' }, h('span', { class: 'thermo-tube' }, h('span', { class: 'thermo-fill' })), h('span', { class: 'thermo-read', text: '70°F' }));
     // [final-S] the chirp indicator: an ear with sound waves that pulse with each beacon chirp and grow with loudness
@@ -380,6 +384,9 @@ export class UI {
 // info: {crumbs, temp (null unless Frost leads), indicator: {on, angle, strength, pulse} | null}
 UI.prototype.updateMetaHUD = function (info) {
   const ck = String(info.crumbs);
+  const help = info.rolo ? "Spend them at Rolo's Crumb Shop (the Carrier)." : 'Hang on to these: someone in this house trades for them.';
+  this.crumbs.title = help;
+  this.crumbs.setAttribute('aria-label', `${ck} crumbs. ${help}`);
   if (this._crumbK !== ck) { this._crumbK = ck; this.crumbs.lastChild.textContent = ck; this.crumbs.classList.remove('bump'); void this.crumbs.offsetWidth; this.crumbs.classList.add('bump'); }
   if (info.temp != null) {
     this.thermo.hidden = false;
