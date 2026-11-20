@@ -258,26 +258,62 @@ for (const gentle of [false, true]) {
     s.step({ right: true }, 20);
     ok(s.p.state === 'hide', `${M}: Right doesn't leave the log while she's at it`);
     ok(s.until(() => s.b().mode === 'sniff', 60) && s.b().anim === 'tongue', `${M}: she sniffs (the tongue)`);
-    ok(s.until(() => s.lost(), 400), `${M}: she loses him: the room's flag`);
-    ok(s.b().mode === 'curl' && s.b().musicNow === null, `${M}: she gives up; the chase music stops`);
-    s.step({}, 22);
-    ok(s.b().pose === 'sleep' && !s.b().anim, `${M}: a step back off the log, and she curls up asleep there`);
-    ok(count(s.ev, 'sfx', f0, (d) => d.name === 'relief-sting') === 1, `${M}: the relief sting`);
-    s.step({}, 73);
-    ok(s.b().dark === 0 && s.b().mode === 'nap', `${M}: the light is back after 1.5 s`);
+    // [issue 31] she sniffs, looks about (a "?"), gives up: the way on opens as she turns away; she walks home
+    ok(s.until(() => s.b().mode === 'look', 300) && !s.lost(), `${M}: after the sniff she looks about for him (the way still shut)`);
+    const look0 = s.g.frame, faces = new Set();
+    s.until(() => s.b().mode !== 'look', 200, () => { s.step({}); if (s.b().mode === 'look') faces.add(s.b().facing); });
+    ok(faces.size === 2 && s.g.frame - look0 >= 60, `${M}: she looks one way, then the other (${s.g.frame - look0} frames)`);
+    ok(s.b().mode === 'home' && s.lost(), `${M}: she gives up and turns for home: the room's flag is set right then`);
+    ok(s.b().facing < 0 && s.b().musicNow === null && count(s.ev, 'sfx', f0, (d) => d.name === 'relief-sting') === 1, `${M}: she turns away; the chase music stops, the relief sting`);
     ok(s.p.state === 'hide', `${M}: still hidden`);
+    s.step({}, 92);
+    ok(s.b().dark === 0, `${M}: the light is back after 1.5 s`);
+    const home = (s.b().e.x + 0.5) * T;
+    ok(s.until(() => s.b().mode === 'curl' || s.b().mode === 'nap', 900) && Math.abs(s.b().x - home) < 2, `${M}: she walks back to her rock (${(s.b().x / T).toFixed(1)}) and curls up asleep there`);
+    s.step({}, 40);
+    ok(s.b().mode === 'nap' && s.b().pose === 'sleep', `${M}: asleep (${s.b().mode})`);
     s.step({ right: true }, 2);
-    ok(s.p.state !== 'hide', `${M}: once she's asleep, Right leaves the log`);
+    ok(s.p.state !== 'hide', `${M}: once she's left, Right leaves the log`);
     // she stays asleep: bumps and chirps don't wake her
     const f1 = s.g.frame;
     s.step({ chirp: true }); s.step({}, 30);
     ok(s.b().mode === 'nap', `${M}: a chirp doesn't wake her`);
-    ok(s.until(() => s.g.room.id === 'tank-decor', 300, () => s.step({ right: true })), `${M}: the way on is open`);
+    ok(s.until(() => s.g.room.id === 'tank-decor', 300, () => s.step({ right: true })), `${M}: through the crack to the decor`);
     s.step({}, 30);
     ok(s.until(() => s.g.room.id === 'tank-sand', 300, () => s.step({ left: true })), `${M}: back to the sand`);
     ok(s.b().mode === 'nap', `${M}: she's asleep (${s.b().mode})`);
     s.runTo(30, 1200); s.step({}, 200);
     ok(s.b().mode === 'nap' && count(s.ev, 'tell', f1) === 0, `${M}: and stays asleep (walking about, past her)`);
+  });
+
+  section(`the way on opens as she turns away (${M})`, () => {
+    const s = sandGame(gentle, 52);
+    s.step({}, 3); s.b().startWake('test'); s.step({}, 40);
+    s.runTo(58.5); s.hide();
+    s.until(() => s.b().mode === 'home', 600);
+    ok(s.lost() && s.b().mode === 'home' && s.b().t <= 1, `${M}: the flag at the turn-away, before she's walked anywhere`);
+    // out of the log at once and on through the crack while she plods home
+    let decor = false;
+    for (let i = 0; i < 300 && !decor; i++) { s.step({ right: true, jump: i === 0 }); decor = s.g.room.id === 'tank-decor'; }
+    ok(decor, `${M}: he can leave while she walks home`);
+  });
+
+  section(`the squeeze (${M})`, () => {
+    const s = sandGame(gentle, 52);
+    const g = s.g, gr = g.grid, crack = s.b().e.crack;
+    // the crack: one open tile row under the glass corner; glass above it to the ceiling
+    let open = 0, glass = 0;
+    for (const x of [62, 63]) { if (gr.at(x, 15) === 0) open++; for (let y = 1; y <= 14; y++) if (gr.at(x, y) !== 0) glass++; }
+    ok(open === 2 && glass === 28, `${M}: a 1-tile crack under the glass corner (open ${open}, glass ${glass})`);
+    ok(crack && crack[2] === 15, `${M}: drawn by the script (e.crack)`);
+    // while she hunts it's shut (held at the way on); once she's lost him he squeezes through
+    s.step({}, 3); s.b().startWake('test');
+    for (let i = 0; i < 120; i++) s.step({ right: true });
+    ok(g.room.id === 'tank-sand' && s.p.x + s.p.w <= 60 * T + 0.01, `${M}: shut while she hunts`);
+    g.rs('tank-sand').taken.add(SLEPT);
+    ok(s.until(() => g.room.id === 'tank-decor', 200, () => s.step({ right: true })), `${M}: once she's lost him, through the crack to the decor`);
+    // she can't follow: her middle never passes 59.5 (her body's far too big for a 1-tile crack)
+    ok(crack[0] * T > 59.5 * T + 2 * T, `${M}: the crack is beyond anywhere she can go`);
   });
 
   section(`out of the log early (${M})`, () => {

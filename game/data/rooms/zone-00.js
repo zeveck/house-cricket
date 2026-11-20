@@ -28,6 +28,7 @@ function sand() {
   g.row(40, 15, 3, '#');                       // a sand ripple (a little hop)
   g.box(30, 14, 3, 2, '#').box(48, 14, 3, 2, '#'); // sand berms
   g.put(58, 15, 'h');                          // the hide log
+  g.box(62, 1, 2, 14, 'G');                    // [issue 31] the tank's glass corner: the way on is the 1-tile crack under it (cricket-sized)
   return g.rows();
 }
 
@@ -101,8 +102,9 @@ export default {
         // [issue 25] the escape: she sleeps on her rock (rock: [x, w, row] tiles); berms = the berms' middle
         // columns; exit = where the way on is held shut until she has lost him; retry = the tile a catch
         // restarts from (about 6 tiles before the wake point at 38). The "Hide in the log!" note is put
-        // up by the script as she wakes (src/bosses/tank.js)
-        { type: 'boss', boss: 'tank', beat: 'sand', x: 24, y: 14, rock: [22, 6, 15], berms: [31, 49], exit: 60, retry: [33, 15] },
+        // up by the script as she wakes (src/bosses/tank.js); crack = the cricket-sized way out under the
+        // glass corner ([x, w, row] tiles; issue 31), drawn by the script
+        { type: 'boss', boss: 'tank', beat: 'sand', x: 24, y: 14, rock: [22, 6, 15], berms: [31, 49], exit: 60, retry: [33, 15], crack: [62, 2, 15] },
         { type: 'sign', x: 14, y: 15, w: 5, text: S.tell }, // [issue 9] a note where the lesson starts, before the wake ripple (was a 14-tile zone)
       ],
     },

@@ -141,7 +141,7 @@ const SAND = constant({
   wakeF: 33, darkIn: 24, lightOut: 90,         // frames: the wake; the wash darkening (0.4 s); the light coming back (1.5 s)
   minX: 4.5 * T, maxX: 59.5 * T,               // her middle stays in here: she never leaves the room
   zone: 1.5 * T, downBuf: 12,                  // the log's wide hiding zone (each side); a ↓ press remembered 0.2 s
-  snap: 24, sniff: 110, roar: 30, shake: 60,   // frames: jaws on bark, the sniff, the roar, a Gentle Mode catch's shake-off
+  snap: 24, sniff: 110, look: 80, roar: 30, shake: 60, // frames: jaws on bark, the sniff, looking about, the roar, a Gentle Mode catch's shake-off
   hitStop: 4,                                  // the hit-stop when her jaws hit the bark (~60 ms)
   edge: 1.5 * T,                               // a Gentle Mode skitter's left limit
   gulp: { puff: 14, black: 30, fade: 20, card: 90, skip: 30 }, // frames: the puff, black (~0.5 s), the fade back, the card (<= 1.5 s, skippable after 0.5 s)
@@ -181,6 +181,7 @@ function sand(g, e) {
 const Sand = {
   setPhase() {},
   nose() { return this.x + this.facing * NOSE; },
+  homeX() { return (this.e.x + 0.5) * T; }, // her rock
   log() { return this.g.hideSpots[0] || { x: 58 * T, y: 16 * T - 24, w: T, h: 24 }; },
   logFace() { const l = this.log(); return this.facing > 0 ? l.x : l.x + l.w; },
   awake() { return HUNT.has(this.mode) && !this.g.rs(this.g.room.id).taken.has(SLEPT); },
@@ -326,11 +327,13 @@ const Sand = {
     s.mode = 'roar'; s.t = 0; s.still('strike'); s.roarCool = SAND.roar; s.speed = 0;
     s.sfx('gecko-growl', { gain: 0.8, rate: 0.7 });
   },
-  curl() { // she loses interest: curls up asleep where she is; the light comes back, the music settles, the way on opens
+  // [issue 31] she gives up: she turns away and sets off back to her rock; the way on opens right then, the light
+  // comes back and the music settles (the relief); she curls up asleep once she's home
+  giveUp() {
     const s = this, g = s.g;
     g.rs(g.room.id).taken.add(SLEPT);
     g.retireNote('opening.tank.hideLog');
-    s.mode = 'curl'; s.t = 0; s.play('run'); s.musicNow = null; s.chase = false; s.loopName = null; s.speed = 0;
+    s.mode = 'home'; s.t = 0; s.facing = Math.sign(s.homeX() - s.x) || -1; s.play('run'); s.musicNow = null; s.chase = false; s.speed = 0;
     s.sfx('relief-sting', { gain: 1 });
     s.peekAt = g.frame + 40;
     g.toast(TK.shrug, 150); g.toast(TK.lost, 180);
@@ -449,14 +452,24 @@ const Sand = {
       case 'sniff':                 // the sniff: her tongue flicks at the bark, twice
         if (!hiddenNow || revealed) { s.seen(); break; }
         if (s.t === 50) s.play('tongue');
-        if (s.t >= SAND.sniff) s.curl();
+        if (s.t >= SAND.sniff) { s.mode = 'look'; s.t = 0; s.still('idle'); }
         break;
+      case 'look':                  // [issue 31] she looks about for him (away, then back at the log), puzzled; then gives up
+        if (!hiddenNow || revealed) { s.seen(); break; }
+        if (s.t === 22 || s.t === 52) s.facing = -s.facing;
+        if (s.t >= SAND.look) s.giveUp();
+        break;
+      case 'home': {                // [issue 31] the plod home to her rock (the way on is already open)
+        s.speed = PIP_RUN * 0.55;
+        if (s.anim !== 'run') s.play('run');
+        if (s.toward(s.homeX(), s.speed)) { s.mode = 'curl'; s.t = 0; s.facing = 1; s.still('sleep'); s.speed = 0; }
+        break;
+      }
       case 'roar':                  // seen: a roar, then a full tell before any pounce
         if (s.t >= SAND.roar) { if (hiddenNow) { s.mode = 'sniff'; s.t = 0; s.play('tongue'); } else s.startCrouch(); }
         break;
-      case 'curl':                  // she turns her back on the log and curls up asleep (her body off the log, her tail off the berm); the light comes back over 1.5 s
-        if (s.t === 16) { const lf = s.logFace(), f = s.facing; s.facing = -f; s.x = Math.max(SAND.minX, Math.min(SAND.maxX, lf - f * 3.4 * T)); s.still('sleep'); }
-        if (s.t >= SAND.lightOut) s.mode = 'nap';
+      case 'curl':                  // home on her rock: she curls up asleep
+        if (s.t >= 30) s.mode = 'nap';
         break;
       case 'nap':
         if (s.pose !== 'sleep' || s.anim) s.still('sleep');
@@ -469,7 +482,7 @@ const Sand = {
     else if (s.dark > 0) s.dark = Math.max(0, s.dark - 1 / SAND.lightOut);
     s.chase = s.awake();
     // her feet on the sand: the skitter loop, its rate tied to her speed (audio.js)
-    const moving = (s.mode === 'run' || s.mode === 'toLog') && s.speed > 0;
+    const moving = (s.mode === 'run' || s.mode === 'toLog' || s.mode === 'home') && s.speed > 0;
     s.loopName = moving ? 'gecko-skitter' : null; s.loopRate = moving ? Math.max(0.7, Math.min(1.8, s.speed / PIP_RUN)) : 1;
     // hidden while she hunts: only Jump leaves the log (player.js _hide)
     p.hideHold = hiddenNow && s.awake();
@@ -497,6 +510,7 @@ const Sand = {
       if (im) c.drawImage(im, x0, y1 - h, w, h);
       else { c.fillStyle = '#9A9486'; c.beginPath(); c.ellipse(x0 + w / 2, y1 - h / 2, w / 2, h / 2, 0, 0, 7); c.fill(); }
     }
+    s.drawCrack(c);
     if (!s.rig) { s.rig = Geckos.create('duchess'); Geckos.preload('duchess'); }
     if (!Geckos.ready('duchess')) return;
     // the landing shadow: down as she springs, darker as she comes down
@@ -512,7 +526,7 @@ const Sand = {
     if (s.twitch > 0) rig.twitchT = Math.max(rig.twitchT || 0, s.twitch);
     if (s.anim) { if (s.held != null) rig.hold(s.anim, s.held); else rig.play(s.anim, (g.frame - s.animAt) / FPS); }
     else rig.setPose(s.pose);
-    rig.walkSpeed = s.mode === 'run' || s.mode === 'toLog' ? Math.max(0.6, s.speed / PIP_RUN) : 1;
+    rig.walkSpeed = s.mode === 'run' || s.mode === 'toLog' || s.mode === 'home' ? Math.max(0.6, s.speed / PIP_RUN) : 1;
     // [issue 32] the crouch is the warning: a big fast tail shake, a bigger "!", her hips wiggling (like a cat
     // about to pounce) and her brow coming down over narrowed eyes; the shadow drops as she springs
     const crouch = s.mode === 'crouch';
@@ -545,12 +559,33 @@ const Sand = {
       c.save(); c.globalAlpha = Math.sin(tt * Math.PI) * 0.8; c.fillStyle = '#5A4632'; c.font = `bold ${18 + 10 * tt}px "Patrick Hand", sans-serif`;
       c.fillText('z', zx + 10 * tt, s.y - 80 - 30 * tt); c.restore();
     }
-    if (s.mode === 'sniff' && s.t > 10) { // a "?" above her head
+    if ((s.mode === 'sniff' && s.t > 10) || s.mode === 'look') { // a "?" above her head (she can't find him)
       const qx = s.nose() - s.facing * 0.9 * T, qy = s.y - 150 - 5 * Math.sin(s.t / 9);
-      c.save(); c.globalAlpha = Math.min(1, (s.t - 10) / 20); c.font = 'bold 48px "Patrick Hand", sans-serif'; c.textAlign = 'center';
+      c.save(); c.globalAlpha = s.mode === 'look' ? 1 : Math.min(1, (s.t - 10) / 20); c.font = 'bold 48px "Patrick Hand", sans-serif'; c.textAlign = 'center';
       c.lineJoin = 'round'; c.lineWidth = 6; c.strokeStyle = '#F4EBDD'; c.strokeText('?', qx, qy);
       c.fillStyle = '#5A4632'; c.fillText('?', qx, qy); c.restore();
     }
+  },
+  // [issue 31] the way on: a cricket-sized crack where the tank's glass corner meets the sand (e.crack: [x, w, row]
+  // tiles, the open tile row under the glass): dark inside, chipped edges, crazed glass above, plainly too small for her
+  drawCrack(c) {
+    const k = this.e.crack;
+    if (!k) return;
+    const x0 = k[0] * T, x1 = (k[0] + k[1]) * T, y0 = k[2] * T, y1 = (k[2] + 1) * T, t = this.g.frame;
+    c.save();
+    const gr = c.createLinearGradient(x0, 0, x1, 0);
+    gr.addColorStop(0, 'rgba(30,24,22,0.92)'); gr.addColorStop(1, 'rgba(12,10,12,0.98)');
+    c.fillStyle = gr; c.beginPath();
+    c.moveTo(x0 - 4, y1); c.lineTo(x0 + 2, y0 + 10); c.lineTo(x0 + 14, y0 + 2); c.lineTo(x0 + 30, y0 + 6); c.lineTo(x0 + 46, y0); c.lineTo(x1, y0 + 4); c.lineTo(x1, y1); c.closePath(); c.fill();
+    c.strokeStyle = '#4A3420'; c.lineWidth = 2.5; c.stroke();
+    // crazing in the glass above the gap
+    c.strokeStyle = 'rgba(235,245,250,0.55)'; c.lineWidth = 1.5; c.beginPath();
+    for (const [a, b, d] of [[x0 + 12, y0, -1], [x0 + 30, y0 + 4, 0.4], [x0 + 46, y0, 1]]) { c.moveTo(a, b); c.lineTo(a + d * 10, b - 26); c.lineTo(a + d * 4, b - 44); }
+    c.stroke();
+    // a faint draught of light from the other side, so it reads as a way through
+    c.globalCompositeOperation = 'lighter'; c.fillStyle = `rgba(255,214,150,${(0.10 + 0.05 * Math.sin(t / 20)).toFixed(3)})`;
+    c.fillRect(x1 - 18, y0 + 8, 18, y1 - y0 - 8);
+    c.restore();
   },
   // screen space: the darkening wash and the vignette round Pip, her eye glinting at the screen's edge
   // when her head is off the view, the black of the gulp, and the card after it

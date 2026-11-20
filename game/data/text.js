@@ -36,7 +36,7 @@ export const TEXT = {
       hideLog: 'Hide in the log!',            // the note the script puts up as she wakes
       eaten: 'Duchess got her dinner. She crouches and shakes her tail: get ready. Her shadow drops: HOP! Then hide in the log →', // [issue 25] the card after a catch (not Gentle Mode)
       gentleOffer: 'Duchess is quick! Try Gentle Mode? (Slower tells, and she only shoos you.)', // [issue 25] after three catches
-      exitShut: "She'd follow you out! Lose her first: hide in the log.",
+      exitShut: "Not with her right behind you! Lose her first: hide in the log.", // [issue 31] the crack is shut while she hunts
       caughtFirst: 'Too close! She crouches and shakes: get ready. Her shadow drops: HOP!', // Gentle Mode's catch (a roar and a skitter)
       caughtWalk: "Hey! She's not a pillow.",  // walking into her snout
       caughtLog: 'Run to the log! →',          // from the second catch (the log's outline pulses)
@@ -44,7 +44,7 @@ export const TEXT = {
       bermBite: "Sand won't hide you. A cricket-sized gap will.", // once, when she bites a berm
       sniff: 'Mm? Where did dinner go?',
       shrug: 'Hmph. Nap time.',
-      lost: "She's lost you. Go!",            // the exit opens
+      lost: "She's lost you. Squeeze out through the crack! →", // [issue 31] the way on opens as she turns away
     },
   },
 
