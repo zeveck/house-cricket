@@ -713,7 +713,7 @@ window.__game = {
   // note in the room (where it stands, read, still standing); measure: tip texts -> their lines in the card as it is
   tips: (opts = {}) => {
     const info = ui.tipsInfo(opts.measure || null);
-    info.notes = game ? (game.signs || []).map((s) => ({ key: s.key, kind: s.kind, text: s.text, tx: s.tx ?? null, gy: s.gy ?? null, x: s.nx ?? null, y: s.ny ?? null, bad: s.bad || null, read: tipsRead.has(s.key), live: noteLive(game, s) })) : [];
+    info.notes = game ? (game.signs || []).map((s) => ({ key: s.key, kind: s.kind, text: s.text, tx: s.tx ?? null, gy: s.gy ?? null, x: s.nx ?? null, y: s.ny ?? null, mx: s.mx ?? null, my: s.my ?? null, bad: s.bad || null, read: tipsRead.has(s.key), live: noteLive(game, s) })) : [];
     return JSON.parse(JSON.stringify(info));
   },
   held: () => Object.fromEntries(['left', 'right', 'up', 'down', 'jump', 'use', 'chirp', 'kick', 'listen'].map((k) => [k, input.heldNow(k)])),

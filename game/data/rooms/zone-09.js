@@ -287,7 +287,7 @@ export default {
         {"type": "current", "x": 14, "y": 31, "w": 68, "h": 3, "vx": 0.8},
         {"type": "centipede", "x": 16, "y": 21, "path": [[16, 21], [40, 21], [40, 32], [43, 32], [43, 21], [80, 21]]},
         {"type": "secret", "id": "bas-mote", "x": 86, "y": 33},
-        {"type": "sign", "x": 6, "y": 33, "w": 6, "text": "Walk onto water with the Raft. Currents carry you along."},
+        {"type": "sign", "x": 6, "y": 33, "w": 6, "nx": 11, "text": "Walk onto water with the Raft. Currents carry you along."},
       ],
     },
     {
@@ -428,7 +428,7 @@ export default {
         {"type": "lift", "kind": "steam", "x": 31, "y": 12, "w": 3, "h": 18, "vy": 9, "on": 2.5, "off": 1},
         {"type": "sign", "x": 17, "y": 30, "w": 6, "text": "Warm air rises off the furnace. Ride it up."},
         {"type": "sign", "x": 19, "y": 51, "w": 8, "text": "Jump at a wall to stick to it. {jump} again to kick off."},
-        {"type": "sign", "x": 7, "y": 30, "w": 3, "text": "A thermostat lock. It wants 60\u00b0F. Someone who hears temperature could help."},
+        {"type": "sign", "x": 7, "y": 30, "w": 4, "text": "A thermostat lock. It wants 60\u00b0F. Someone who hears temperature could help."},
       ],
     },
     {

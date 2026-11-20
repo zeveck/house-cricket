@@ -101,7 +101,7 @@ export default {
         { type: 'checkpoint', x: 14, y: 19 },
         { type: 'ant', x: 10, y: 33, range: [4, 17] },
         { type: 'crumbs', x: 18, y: 5, n: 10 },
-        { type: 'sign', x: 1, y: 33, w: 7, text: 'The bottom shelf. Mind the beetles: they can\'t be kicked. Hide with {enter}.' },
+        { type: 'sign', x: 1, y: 33, w: 7, nx: 2, /* [issue 34] the marker clear of the spice rack */ text: 'The bottom shelf. Mind the beetles: they can\'t be kicked. Hide with {enter}.' },
       ],
     },
     {

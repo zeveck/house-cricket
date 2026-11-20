@@ -17,7 +17,7 @@ import { drawCricket, drawCricketShape } from './cricket-art.js';
 import * as Geckos from './geckos.js'; // [builder B] dozing-gecko decor
 import { paintObject, OBJ_EDGE } from './objpaint.js'; // [polish] object painters
 import { LOOK } from '../data/look/index.js';
-import { noteLive, noteTilt } from './notes.js'; // [issue 9] tutorial notes on the path
+import { noteLive, notePhase, markerSize, MARKER } from './notes.js'; // [issue 9] tutorial notes on the path
 import { rescueCount, shellStage } from './meta.js'; // [final-G] the Carrier's outside grows with its stages      // [polish] render-only per-room look overlay
 
 const VW = 1280, VH = 720;
@@ -990,39 +990,41 @@ export class Renderer {
     for (const d of game.doors || []) { c.fillStyle = '#2A1E16'; c.beginPath(); c.roundRect(d.x + 6, d.y + 10, TILE - 12, 2 * TILE - 10, [12, 12, 0, 0]); c.fill(); }
   }
 
-  // [issue 9] A tip's note: a small paper card propped up off the ground (a corner lifted, leaning on
-  // a pin), an ink "!" scribble, a dark outline and a contact shadow; its tilt comes from its position.
-  // Unread, a soft glint pulses on it; read, it stays still. A script note flutters down as it appears.
+  // [issue 34] A tip's marker (was #9's propped "!" paper): a round paper badge with an ink "?",
+  // hovering at about head height over the note's spot (notes.js markerSpot), bobbing gently with a
+  // soft warm glow and a small tail pointing down at the spot. Unread, it's bright and its glow
+  // pulses; read, it's dimmer (still plain to see) and still. A script note's marker drops in and settles.
   drawNote(c, game, sg) {
     const read = this.view?.tipRead ? this.view.tipRead(sg) : false, t = this.t;
-    const w = this.fx.touch ? 30 : 24, h = 14, { tilt, flip } = noteTilt(sg);
-    let x = sg.nx, y = sg.ny, rot = tilt + flip * 0.1, lift = 5, shadow = 1;
+    const { r, bob, tail } = markerSize(sg, this.fx.touch), ph = notePhase(sg);
     const age = sg.born != null ? game.frame - sg.born : 1e9;
-    if (age < 45) { const k = 1 - age / 45; y -= k * k * 3 * TILE; x += Math.sin(age / 4) * 10 * k; rot += Math.sin(age / 5) * 0.9 * k; lift += 6 * k; shadow = 1 - k; }
+    let x = sg.mx ?? sg.nx, y = (sg.my ?? sg.ny - MARKER.hover.dy) + Math.sin(t / 22 + ph) * bob;
+    if (age < 40) { const k = 1 - age / 40; y -= k * k * 2.5 * TILE; } // a script note drops in
+    else if (age < 52) y -= Math.sin(((age - 40) / 12) * Math.PI) * 4; // and settles with a little hop
+    const pulse = read ? 0 : 0.5 + 0.5 * Math.sin(t / 14 + ph);
     c.save();
-    c.fillStyle = `rgba(20,14,10,${(0.45 * shadow).toFixed(2)})`; c.beginPath(); c.ellipse(sg.nx, sg.ny - 1, w * 0.66, 3.5, 0, 0, 7); c.fill();
-    if (!read && age >= 45) { // the unread glint
-      const k = 0.5 + 0.5 * Math.sin(t / 14 + sg.tx), r = w * (1.1 + 0.15 * k);
-      c.globalCompositeOperation = 'lighter';
-      const gr = c.createRadialGradient(x, y - h * 0.7, 0, x, y - h * 0.7, r);
-      gr.addColorStop(0, `rgba(255,236,180,${(0.22 + 0.2 * k).toFixed(2)})`); gr.addColorStop(1, 'rgba(232,184,90,0)');
-      c.fillStyle = gr; c.beginPath(); c.arc(x, y - h * 0.7, r, 0, 7); c.fill();
-      c.globalCompositeOperation = 'source-over';
-    }
-    c.translate(x, y); c.rotate(rot * 0.5);
-    // the pin it leans on (behind the paper): from its back to the ground
-    c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-flip * w * 0.15, -h * 0.8); c.lineTo(-flip * (w * 0.15 + 7), 0); c.stroke();
-    // the paper: the bottom edge on the ground, one corner lifted, leaning back a little (a quad)
-    const L = -w / 2, R = w / 2, liftL = flip > 0 ? 0 : lift, liftR = flip > 0 ? lift : 0, lean = flip * 3;
-    c.beginPath(); c.moveTo(L, -liftL); c.lineTo(R, -liftR); c.lineTo(R + lean, -h - liftR); c.lineTo(L + lean, -h - liftL); c.closePath();
-    c.fillStyle = '#F2D98E'; c.fill(); c.strokeStyle = '#2A201A'; c.lineWidth = 2; c.lineJoin = 'round'; c.stroke(); // a yellowed card: reads on cream, sand, tile and wood
-    // the lifted corner's fold (a darker triangle) and the ink "!"
-    const fx = flip > 0 ? R : L, fy = flip > 0 ? -liftR : -liftL;
-    c.fillStyle = '#C9A85E'; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx - flip * 5, fy); c.lineTo(fx + lean * 0.3, fy - 5); c.closePath(); c.fill(); c.stroke();
-    const mx = lean / 2, my = -h / 2 - (liftL + liftR) / 2;
-    c.strokeStyle = '#2A1A10'; c.lineWidth = 2.8; c.lineCap = 'round';
-    c.beginPath(); c.moveTo(mx + 0.8, my - 4.5); c.quadraticCurveTo(mx + 0.4, my - 1, mx - 0.3, my + 1.5); c.stroke();
-    c.beginPath(); c.arc(mx - 0.5, my + 4.6, 1.5, 0, 7); c.fillStyle = '#2A1A10'; c.fill();
+    // the glow (warm, soft; it pulses while unread)
+    const gr0 = r * (read ? 1.7 : 2.1 + 0.35 * pulse);
+    c.globalCompositeOperation = 'lighter';
+    const gr = c.createRadialGradient(x, y, r * 0.6, x, y, gr0);
+    gr.addColorStop(0, `rgba(255,226,150,${read ? '0.16' : (0.34 + 0.22 * pulse).toFixed(2)})`); gr.addColorStop(1, 'rgba(232,184,90,0)');
+    c.fillStyle = gr; c.beginPath(); c.arc(x, y, gr0, 0, 7); c.fill();
+    c.globalCompositeOperation = 'source-over';
+    c.globalAlpha = read ? 0.62 : 1;
+    const s = read ? 1 : 1 + 0.05 * pulse;
+    c.translate(x, y); c.scale(s, s);
+    // the badge: a paper disc with a little tail at the bottom (a speech bubble pointing at the spot)
+    c.beginPath(); c.arc(0, 0, r, Math.PI * 0.5 + 0.38, Math.PI * 2.5 - 0.38);
+    c.lineTo(0, r + tail); c.closePath();
+    c.fillStyle = read ? '#E9DDC4' : '#F7E3A0'; c.fill();
+    c.strokeStyle = '#2A201A'; c.lineWidth = 2.2; c.lineJoin = 'round'; c.stroke();
+    // an inner ring, like a stamped seal
+    c.strokeStyle = read ? 'rgba(90,70,50,0.35)' : 'rgba(176,120,50,0.55)'; c.lineWidth = 1.2;
+    c.beginPath(); c.arc(0, 0, r - 3.5, 0, 7); c.stroke();
+    // the ink "?"
+    c.fillStyle = '#2A1A10'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `bold ${Math.round(r * 1.55)}px "Patrick Hand", sans-serif`;
+    c.fillText('?', 0, 1);
     c.restore();
   }
   drawCage(c, it, game) {
@@ -1180,14 +1182,11 @@ export class Renderer {
       const gg = c.createRadialGradient(bx, by, 2, bx, by, 50); gg.addColorStop(0, 'rgba(244,235,221,0.5)'); gg.addColorStop(1, 'rgba(244,235,221,0)');
       c.fillStyle = gg; c.beginPath(); c.arc(bx, by, 50, 0, 7); c.fill();
     }
-    // [issue 9] an unread note's glint shows through the dark too (smaller and warmer than a beacon's)
-    for (const sg of game.signs || []) {
-      if (!noteLive(game, sg) || this.view?.tipRead?.(sg)) continue;
-      const bx = (sg.nx - cam.x) * cam.zoom, by = (sg.ny - 8 - cam.y) * cam.zoom, k = 0.5 + 0.5 * Math.sin(this.t / 14 + sg.tx), rr = (26 + 6 * k) * cam.zoom;
-      if (bx < -60 || bx > VW + 60 || by < -60 || by > VH + 60) continue;
-      const gg = c.createRadialGradient(bx, by, 1, bx, by, rr); gg.addColorStop(0, `rgba(255,236,180,${(0.45 + 0.25 * k).toFixed(2)})`); gg.addColorStop(0.3, `rgba(232,184,90,${(0.2 + 0.1 * k).toFixed(2)})`); gg.addColorStop(1, 'rgba(232,184,90,0)');
-      c.fillStyle = gg; c.beginPath(); c.arc(bx, by, rr, 0, 7); c.fill();
-    }
+    // [issue 9, 34] a note's marker shows through the dark too, the way beacons do (drawn again over the
+    // darkness, glow and all: a read one is dimmer and still)
+    c.save(); c.scale(cam.zoom, cam.zoom); c.translate(-Math.round(cam.x), -Math.round(cam.y));
+    for (const sg of game.signs || []) if (noteLive(game, sg)) this.drawNote(c, game, sg);
+    c.restore();
     if (p.has('glow')) { const gl = c.createRadialGradient(sx, sy, 4, sx, sy, r * 0.7); gl.addColorStop(0, 'rgba(207,242,122,0.10)'); gl.addColorStop(1, 'rgba(207,242,122,0)'); c.fillStyle = gl; c.beginPath(); c.arc(sx, sy, r * 0.7, 0, 7); c.fill(); }
   }
 

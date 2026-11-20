@@ -307,7 +307,7 @@ export default {
         {"type": "silverfish", "x": 26, "y": 6, "range": [18, 40]},
         {"type": "sign", "x": 2, "y": 51, "w": 5, "text": "{use} near a shelf pin to grab it. {left} {right} to swing. {jump} to fling."},
         {"type": "sign", "x": 1, "y": 33, "w": 4, "text": "Four sounds. Only one is a cricket. Listen to the rhythm."},
-        {"type": "sign", "x": 2, "y": 24, "w": 4, "text": "Creeeak. (A door hinge. Very convincing. Not a cricket.)"},
+        {"type": "sign", "x": 2, "y": 24, "w": 4, "nx": 2, "text": "Creeeak. (A door hinge. Very convincing. Not a cricket.)"},
         {"type": "sign", "x": 13, "y": 24, "w": 4, "text": "Bip-bip. (A clock radio. Not even trying.)"},
         {"type": "sign", "x": 24, "y": 24, "w": 4, "text": "Peep... (from down the vent. Someone downstairs.)"},
         {"type": "crumbs", "x": 3, "y": 24, "n": 5},

@@ -9,14 +9,18 @@
 //       ... plus the 2-line check: every tip set in the HUD card at 667x375 (touch), 14 px, must fit
 //       in 2 lines (needs the server and playwright-cli, run from the project root)
 //   node tools/sign-check.mjs --list          # every note and where it stands
+//   node tools/sign-check.mjs --shots DIR [--url ...] [--only room,room] [--touch]
+//       ... [issue 34] a picture of every note's marker at 1280x720 (844x390 with --touch), Pip two
+//       tiles off: DIR/<room>_<x>_<y>.png unread, then ..._read.png once its card has been read
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Game } from '../game/src/game.js';
 import { ZONES } from '../game/data/rooms/index.js';
 import { TILE } from '../game/data/movement.js';
 import { K } from '../game/src/physics.js';
-import { STANDABLE, floorProps } from '../game/src/notes.js';
+import { STANDABLE, floorProps, markerSize, markerObstacles, markerHits } from '../game/src/notes.js';
 import { TEXT } from '../game/data/text.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -27,8 +31,60 @@ let pass = 0, fail = 0;
 const ok = (cond, label) => { if (cond) pass++; else { fail++; console.log('  FAIL', label); } };
 const KN = Object.fromEntries(Object.entries(K).map(([a, b]) => [b, a]));
 
+const shotList = []; // [issue 34] {room, key, tx, gy, mx, my} for --shots
 const tips = new Map(); // text -> where (every tip the game can show)
 const addTip = (text, where) => { if (!tips.has(text)) tips.set(text, where); };
+
+// [issue 34] The marker (a "?" badge hovering over the note) sits in open air: no solid tile, hazard or
+// water under any part of it (the tail included), and it isn't drawn on a point prop (a hook, crumb, item,
+// switch, thermostat, save crack, beacon, light, talker) or a decor prop (notes.js markerObstacles).
+const MARK_BLOCK = new Set([K.SOLID, K.SLICK, K.CEREAL, K.CRACK, K.SOIL, K.PROP, K.HAZARD, K.WATER]);
+let markers = 0, lowMarkers = [];
+// the tank's script notes stay where its script puts them (the log's mouth: the tip is the log): listed, not failed
+const tankNote = (cond, label) => { if (!cond) console.log(`  (tank, left in place) ${label}`); };
+// the decor art's real width (the game's own guess, notes.js, is 0.8 of its height): read from the WebP header
+const webpSize = (file) => {
+  try {
+    const b = readFileSync(file);
+    const kind = b.toString('ascii', 12, 16);
+    if (kind === 'VP8X') return [1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)];
+    if (kind === 'VP8L') { const v = b.readUInt32LE(21); return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)]; }
+    if (kind === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
+  } catch { /* no art */ }
+  return null;
+};
+const artAspect = new Map();
+const aspectOf = (prop) => {
+  if (!artAspect.has(prop)) { const sz = webpSize(path.join(root, 'game', 'assets', prop.includes('/') ? prop : `props/${prop}.webp`)); artAspect.set(prop, sz ? sz[0] / sz[1] : 0.8); }
+  return artAspect.get(prop);
+};
+function markerClear(g, room, s, where, onProp = ok) {
+  markers++;
+  ok(s.mx != null && s.my != null, `${where}: no marker spot`);
+  if (s.my == null) return;
+  if (s.mark !== 'hover') lowMarkers.push(`${where}: ${s.mark === 'low' ? 'tucked low (a block above)' : 'under a plank'}`);
+  // the disc (touch size, at the top and bottom of its bob) and the tail's tip, in px; tiles and props as their cells
+  const { r, bob, tail } = markerSize(s, true);
+  const disc = { x0: s.mx - r, x1: s.mx + r, y0: s.my - r - bob, y1: s.my + r + bob };
+  const hits = (q, tx, ty) => q.x0 < (tx + 1) * T && q.x1 > tx * T && q.y0 < (ty + 1) * T && q.y1 > ty * T;
+  const tip = { x0: s.mx - 1, x1: s.mx + 1, y0: s.my, y1: s.my + r + tail + bob };
+  for (let ty = Math.floor(disc.y0 / T); ty <= Math.floor(tip.y1 / T); ty++) for (let tx = Math.floor(disc.x0 / T); tx <= Math.floor(disc.x1 / T); tx++) {
+    const k = g.grid.at(tx, ty);
+    if (!hits(disc, tx, ty) && !hits(tip, tx, ty)) continue;
+    // a one-way plank is drawn along its tile's top: the marker may hang below it
+    const plank = k === K.ONEWAY && disc.y0 >= ty * T + 13;
+    ok(!MARK_BLOCK.has(k) && !(k === K.ONEWAY && !plank), `${where}: the marker overlaps ${KN[k]} at (${tx},${ty})`);
+  }
+  const near = markerHits(markerObstacles(room.entities, room.def?.decor), s, (x, y) => g.grid.at(x, y)); // what the note steps aside from (notes.js)
+  onProp(!near && !s.markCrowd, `${where}: the marker is drawn on a ${near || s.markCrowd} (no step within its trigger clears it: move the note, nx)`);
+  // and against the decor's real width (85% of its art, for the art's margins)
+  const wide = (room.def?.decor || []).find((d) => {
+    if (!d.prop || d.gecko || (d.h || 1.5) > 4) return false;
+    const h = (d.h || 1.5) * T, w = h * aspectOf(d.prop) * 0.85, cx = (d.x + 0.5) * T, by = (d.y + 1) * T;
+    return cx - w / 2 < disc.x1 && cx + w / 2 > disc.x0 && by - h < disc.y1 + tail && by > disc.y0;
+  });
+  onProp(!wide, `${where}: the marker is drawn on the ${wide?.prop} at (${wide?.x},${wide?.y}) (move the note, nx)`);
+}
 
 // ---- room signs ----
 const newGame = () => new Game(ZONES);
@@ -59,6 +115,8 @@ for (const room of Object.values(g0.world.rooms)) {
     ok(!crowd, `${where}: crowds a ${crowd?.type}`);
     const twin = g.signs.find((q) => q !== s && q.kind === 'note' && q.tx === s.tx && q.gy === s.gy);
     ok(!twin, `${where}: shares its tile with another note`);
+    markerClear(g, room, s, where);
+    shotList.push({ room: room.id, key: s.key, tx: s.tx, gy: s.gy, mx: s.mx, my: s.my, px: [s.tx - 2, s.tx + 2, s.tx].find((x) => x >= 1 && x < room.tw - 1 && g.grid.at(x, s.gy - 1) === K.EMPTY && STANDABLE.has(g.grid.at(x, s.gy))) ?? s.tx });
     if (s.tx !== (e.nx ?? Math.floor(e.x + (e.w || 4) / 2))) stepped.push(`${where}: stepped to col ${s.tx}`);
     if (args.includes('--list')) console.log(`  ${where.padEnd(64)} note col ${s.tx}, ground row ${s.gy} (${KN[k]})`);
   }
@@ -95,7 +153,7 @@ for (const [where, s] of script) {
   addTip(s.text, `${where} (script ${s.key})`);
   const at = s.kind === 'card' ? 'card only' : s.bad ? `BAD ${s.bad}` : `note col ${s.tx}, ground row ${s.gy}`;
   console.log(`  ${where.padEnd(18)} ${s.kind.padEnd(4)} ${at.padEnd(28)} ${s.text}`);
-  if (s.kind === 'note') ok(!s.bad, `script note ${s.key}: ${s.bad}`);
+  if (s.kind === 'note') { ok(!s.bad, `script note ${s.key}: ${s.bad}`); if (!s.bad) markerClear(g0.world.rooms[where] ? (() => { const g = newGame(); g.startAt(where, undefined, undefined, { party: ['pip'], items: [] }); return g; })() : g0, g0.world.rooms[where] || { entities: [] }, s, `${where} (script ${s.key})`, where.startsWith('tank-') ? tankNote : ok); }
   else ok(s.tx == null, `script card ${s.key} has no note`);
 }
 
@@ -106,6 +164,8 @@ for (const [t, w] of long) console.log(`  long tip (${shown(t).length}): ${w}: $
 ok(!long.length, `${long.length} tips are longer than about 80 characters`);
 
 if (stepped.length) { console.log('stepped clear of a floor prop:'); for (const s of stepped) console.log('  ' + s); }
+if (lowMarkers.length) { console.log('markers lower than head height:'); for (const s of lowMarkers) console.log('  ' + s); }
+console.log(`${markers} markers in open air`);
 console.log(`${n} signs (${notes} notes, ${cards} cards), ${script.length} script tips, ${tips.size} distinct tips`);
 
 // ---- the 2-line check in the browser ----
@@ -151,6 +211,60 @@ if (args.includes('--wrap')) {
     for (const r of m) ok(r.lines <= 2, `wraps to ${r.lines} lines at 667x375 (${r.width}px wide, ${r.font}): ${tips.get(r.text)}: ${r.text}`);
     console.log(`wrap check: ${m.length} tips at 667x375 touch, the card at most ${m[0]?.max} wide, ${m[0]?.font}; the most lines: ${worst}`);
   }
+}
+
+// ---- [issue 34] a picture of every marker ----
+if (args.includes('--shots')) {
+  const dir = path.resolve(opt('--shots')), url = opt('--url', 'http://127.0.0.1:8131/?dev'), session = opt('--session', 'signshots');
+  const only = opt('--only', null)?.split(',');
+  const list = shotList.filter((q) => !only || only.includes(q.room));
+  const touch = args.includes('--touch');
+  const cli = (...a) => execFileSync('playwright-cli', [`-s=${session}`, ...a], { cwd: root, encoding: 'utf8', maxBuffer: 64 << 20, timeout: 1800000 });
+  const code = `async page => {
+    const list = ${JSON.stringify(list)}, dir = ${JSON.stringify(dir)}, touch = ${touch};
+    if (!touch) await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(${JSON.stringify(url)});
+    await page.waitForFunction(() => window.__game && document.fonts.status === 'loaded', null, { timeout: 60000 });
+    await page.waitForTimeout(600);
+    if (touch) await page.touchscreen.tap(300, 200); else await page.keyboard.press('Enter');
+    await page.waitForTimeout(400);
+    const out = [];
+    const shot = async (q, name) => {
+      const at = await page.evaluate((q) => { const c = window.__game.camera(), r = document.querySelector('canvas').getBoundingClientRect(), k = r.width / 1280;
+        return { x: r.left + (q.mx - c.x) * c.zoom * k, y: r.top + (q.my - c.y) * c.zoom * k, vw: innerWidth, vh: innerHeight }; }, q);
+      const w = touch ? 300 : 420, h = touch ? 190 : 260;
+      const x = Math.max(0, Math.min(at.vw - w, at.x - w / 2)), y = Math.max(0, Math.min(at.vh - h, at.y - h * 0.55));
+      await page.screenshot({ path: dir + '/' + name + '.png', clip: { x, y, width: w, height: h } });
+      return { x: Math.round(at.x), y: Math.round(at.y), onScreen: at.x > 0 && at.x < at.vw && at.y > 0 && at.y < at.vh };
+    };
+    for (const q of list) {
+      await page.evaluate((q) => window.__game.goToRoom(q.room, { x: q.px, y: q.gy - 1 }), q);
+      await page.waitForTimeout(700);
+      const base = q.room + '_' + q.key.split(':')[1].replace(',', '_');
+      const a = await shot(q, base);
+      await page.waitForTimeout(2600); // the card shows (Pip is in range) and is read after 1.5 s
+      const n = await page.evaluate((key) => window.__game.tips().notes.find((s) => s.key === key), q.key);
+      await page.evaluate((q) => window.__game.goToRoom(q.room, { x: q.px, y: q.gy - 1 }), q);
+      await page.waitForTimeout(300);
+      const b = await shot(q, base + '_read');
+      out.push({ key: q.key, unread: a, read: b, wasRead: !!n?.read });
+    }
+    return JSON.stringify(out);
+  }`;
+  try { cli('close'); } catch { /* not open */ }
+  if (touch) cli('open', '--device', 'iPhone 15', url); else cli('open', url);
+  if (touch) cli('resize', '844', '390');
+  let out = '';
+  try { out = cli('run-code', code); } finally { try { cli('close'); } catch { /* gone */ } }
+  const res = out.split('### Result')[1]?.split('###')[0]?.trim();
+  let r = null;
+  try { r = JSON.parse(JSON.parse(res)); } catch { console.log(out.slice(0, 3000)); }
+  ok(!!r && r.length === list.length, `shots: ${r?.length} of ${list.length} markers`);
+  for (const q of r || []) {
+    ok(q.unread.onScreen, `shots: ${q.key}: the marker is off screen (${q.unread.x},${q.unread.y})`);
+    if (!q.wasRead) console.log(`  shots: ${q.key}: not read yet in its read picture (Pip didn't stay in range: a dialog, a drop)`);
+  }
+  console.log(`shots: ${r?.length || 0} markers (unread and read) in ${dir}`);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

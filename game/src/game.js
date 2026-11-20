@@ -12,7 +12,7 @@ import * as Mech from './mechanics.js'; // [mech] gates, switches, lifts, spring
 import { BOSSES } from './bosses/index.js';
 import { LAIRS } from '../data/house.js'; // [final-2] bossBeaten
 import { targetInRoom as beaconTargetInRoom } from './beacon.js'; // [audio] beacon target
-import { makeSign, floorProps } from './notes.js'; // [issue 9] tutorial notes on the path
+import { makeSign, floorProps, markerObstacles } from './notes.js'; // [issue 9] tutorial notes on the path
 
 // [issue #27] The player's view of the input: the keyboard's ↑ / W ('upJump') is Jump, except on a hanging
 // line, where it climbs (it is 'up' too) and never lets go. Its hold counts as Jump (variable height,
@@ -170,7 +170,8 @@ export class Game {
     // its old self, so a note whose ground is gone stays retired (notes.js noteLive)
     if (signDefs.length) {
       const pristine = this.rs(room.id).broken.size ? this.world.makeGrid(room) : null, props = floorProps(room.entities);
-      for (const e of signDefs) this.signs.push(makeSign(e, `${room.id}:${e.x},${e.y}`, this.grid, pristine, props));
+      const obstacles = markerObstacles(room.entities, room.def?.decor); // [issue 34] the hovering marker keeps off props
+      for (const e of signDefs) this.signs.push(makeSign(e, `${room.id}:${e.x},${e.y}`, this.grid, pristine, props, obstacles));
     }
     this.ctx.hooks = this.hooks; this.ctx.hideSpots = this.hideSpots; this.ctx.currents = this.currents;
   }
