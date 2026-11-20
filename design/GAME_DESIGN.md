@@ -159,7 +159,7 @@ Landscape on phones. A small side-view game needs both thumbs, so a "turn your p
 
 | Action | Keyboard | Touch | Gamepad |
 |---|---|---|---|
-| Move / aim menus | ←→ or A/D | virtual stick, bottom-left (radius 70 px, appears where the thumb lands in the left third) | Left stick / D-pad |
+| Move / aim menus | ←→ or A/D | the joystick, bottom-left (radius 70 px; shown faintly at rest in the corner, and it jumps to wherever the thumb lands in the left third; issue #35) | Left stick / D-pad |
 | Up (issue #27): on the keyboard **↑ / W jump** (see Jump rules) and climb hanging lines; on touch and pad, stick up looks up and climbs | ↑ or W | stick up | stick up / D-pad up |
 | Down: drop, ground-pound, Hump's crouch; and **Enter** (issue #27): a ↓ press next to something you can go into or use (a hiding spot, door, save crack, lair door, a talker, a switch or thermostat, a Carrier spot) does that, on every scheme | ↓ or S | stick down | stick down / D-pad down |
 | Jump (see Jump rules) | Space / Z, and ↑ / W (issue #27) | **Jump**, bottom-right corner (88 px) | ✕ (bottom) |
@@ -207,6 +207,8 @@ The two keyboard layouts don't collide: arrows with Z X C V B under the left han
 
 - **Stick ↓ counts only past 60% of the stick's radius and within ±30° of straight down** (touch stick and pad stick alike; D-pad and keys are exact). A drifting thumb never pounds or drops by accident.
 - **Listen** works only while standing; moving or jumping cancels it.
+- **The joystick on screen** (issue #35; it was invisible until touched, and tips called it "Stick", which helped no one find it): whenever the touch controls show, a faint base and knob rest in the bottom-left corner (centre 92 px in from the left and bottom edges, inside the safe area, about half as strong as the buttons). A thumb anywhere in the left third grabs it there; when the thumb lifts it goes back to rest. It isn't one of the blocks the camera keeps the cricket clear of (it's faint, and the camera already keeps him in the upper middle on touch screens).
+- **Naming the joystick:** tips and How to Play never name it in words. Where a keyboard tip shows a keycap, a touch tip shows a small inline picture of the joystick as it looks on screen (the same base and knob, the knob pushed that way, an ink arrow on it; for moving, the knob centred with arrows both ways). Where words are needed (How to Play's Touch note, aria labels) it's "the joystick (bottom left)".
 - **Touch placement:** the right-thumb cluster is Jump in the corner, with Use beside it and Chirp above it, so the swing chain (Jump, Use, Jump, hold Jump) rocks between two neighbours. Buttons are semi-transparent watercolor blots in a DOM overlay, kept inside the safe area. The camera keeps Pip in the upper-middle of the screen on touch devices, so thumbs never cover him.
 - **Prompts** always show a key cap (a boxed "X") or a pad glyph, never a bare letter, so keyboard X (Kick) and pad ✕ (Jump) can't be confused.
 - **Controller extras:**

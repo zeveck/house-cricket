@@ -53,6 +53,9 @@ button { font: inherit; }
 .cap .cap-arrow { width: 1.15em; height: 1.15em; flex: none; color: inherit; } /* [issue #8] bold arrows, not the fallback font's thin ↑ */
 .cap-glyph svg { width: 1.1em; height: 1.1em; color: var(--paper); }
 .cap-touch { border-radius: 999px; }
+/* [issue 35] the joystick, drawn: no key-cap frame, the picture is the control */
+.cap-stick { border: 0; padding: 0; min-width: 0; width: 1.8em; height: 1.8em; margin: -0.1em 0; background: none; vertical-align: middle; } /* no taller than a cap: the rows don't grow */
+.cap-stick-svg { width: 100%; height: 100%; display: block; }
 
 /* ---- menus ---- */
 .menus { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, rgba(59,74,122,.55), rgba(20,16,14,.88)); }
@@ -78,7 +81,8 @@ button { font: inherit; }
 .touch-layer.on { display: block; }
 .touch-stick-zone { position: absolute; left: 0; top: 30%; width: 33%; bottom: 0; pointer-events: auto; touch-action: none; }
 .touch-stick-base { position: absolute; width: 140px; height: 140px; margin: -70px 0 0 -70px; border-radius: 50%; background: rgba(244,235,221,.16); border: 2px solid rgba(244,235,221,.35); pointer-events: none; }
-.touch-stick-base[hidden] { display: none; }
+/* [issue 35] at rest: faint, in the bottom-left corner (inside the stick zone), dimmer than the buttons */
+.touch-stick-base.rest { left: calc(92px + env(safe-area-inset-left)); top: calc(100% - 92px - env(safe-area-inset-bottom)); opacity: .55; }
 .touch-stick-knob { position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; border-radius: 50%; background: rgba(244,235,221,.45); transform: translate(-50%,-50%); }
 .touch-btn { position: absolute; display: grid; place-items: center; border-radius: 50%; pointer-events: auto; touch-action: none; color: rgba(42,32,26,.9); font-weight: 800; font-size: 14px; background: radial-gradient(circle at 40% 35%, rgba(244,235,221,.6), rgba(214,196,170,.45) 60%, rgba(160,130,100,.35)); border: 2px solid rgba(244,235,221,.6); }
 .touch-btn.down { background: rgba(232,184,90,.75); }
@@ -94,6 +98,7 @@ button { font: inherit; }
 .rotate-icon { width: 60px; height: 96px; border: 4px solid var(--paper); border-radius: 12px; margin: 0 auto 16px; animation: turn 2s ease-in-out infinite; }
 @keyframes turn { 50% { transform: rotate(90deg); } }
 @media (orientation: portrait) and (pointer: coarse) { .rotate-note { display: grid; } }
+@media (orientation: portrait) and (pointer: coarse) { .touch-stick-base.rest { display: none; } } /* [issue 35] under the turn-your-phone note: not over the Ear button */
 /* [issue 9] smaller screens: the tip card at 14 px or more; on a phone held sideways it is wider, not narrower
    (ui.js sets --tip-w to the space between the HUD columns) and at most 2 lines (tools/sign-check.mjs --wrap) */
 @media (max-width: 1000px) { .tip-card { font-size: max(14px, calc(15px * var(--ui))); } }

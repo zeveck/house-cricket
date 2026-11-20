@@ -497,7 +497,7 @@ export const TEXT = {
   howto: {
     keys: 'Keyboard', touch: 'Touch', pad: 'Controller',
     padNote: 'Plug in a PS5 or other controller and press any button. Works best in Chrome or Edge.',
-    touchNote: 'Turn your phone sideways. The stick appears where your left thumb lands.',
+    touchNote: 'Turn your phone sideways. The joystick (bottom left) follows your left thumb.',
     report: 'Ctrl+Shift+F: report a bug',
     ear: 'The ear beside the sound button comes out to point the way to go: while you listen, after the cricket answers your chirp, and when you seem lost. Tap it to keep it out. Settings > Ear guide.', // [issue 10]
     crumbs: 'Crumbs (top right): for trading', // [issue 33] a How to Play row, beside Pause

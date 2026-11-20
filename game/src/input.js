@@ -41,7 +41,12 @@ const CAPS = {
 };
 // [polish-T] on touch every action is named by the control that does it (ui.js cap(); 'move' and 'swap' are
 // the {left} {right} and {swapPrev} {swapNext} pairs, drawn as one chip)
-const TOUCH_NAMES = { jump: 'Jump', use: 'Use', chirp: 'Chirp', kick: 'Kick', listen: 'Ear', up: 'Stick ↑', down: 'Stick ↓', enter: 'Stick ↓', cloak: 'Stick ↑', lookUp: 'Stick ↑', upJump: 'Jump', left: 'Stick ←', right: 'Stick →', move: 'Stick', swapPrev: 'Tap a face', swapNext: 'Tap a face', swap: 'Tap a face', map: 'Map icon', pause: 'Pause icon', mute: 'Sound icon', confirm: 'Tap', back: 'Back' };
+const TOUCH_NAMES = { jump: 'Jump', use: 'Use', chirp: 'Chirp', kick: 'Kick', listen: 'Ear', upJump: 'Jump', swapPrev: 'Tap a face', swapNext: 'Tap a face', swap: 'Tap a face', map: 'Map icon', pause: 'Pause icon', mute: 'Sound icon', confirm: 'Tap', back: 'Back' };
+// [issue 35] the joystick's actions are never named in words on screen: ui.js cap() draws a small picture of
+// the on-screen joystick (base and knob, the knob pushed that way, an arrow); the text is its aria label
+export const STICK_DIRS = { up: 'up', down: 'down', enter: 'down', cloak: 'up', lookUp: 'up', left: 'left', right: 'right', move: 'move' };
+export const STICK_WORDS = 'the joystick (bottom left)';
+const stickLabel = (dir) => `${STICK_WORDS}, ${dir === 'move' ? 'left or right' : dir}`;
 
 // Standard-mapping gamepad buttons -> actions.
 export const PADMAP = {
@@ -189,6 +194,7 @@ export class Input {
       if (dir) return { kind: 'pad', text: dir };
       if (action === 'upJump') return this._padJump();
     }
+    if (last === 'touch' && STICK_DIRS[action]) return { kind: 'stick', dir: STICK_DIRS[action], text: stickLabel(STICK_DIRS[action]) }; // [issue 35] a picture of the joystick
     if (last === 'touch') return { kind: 'touch', text: TOUCH_NAMES[action] || 'Tap' }; // [polish-T] the touch control's own name, never an action id
     if (last === 'gamepad') return { kind: 'pad', text: { move: 'Stick', swap: 'L1 R1', mute: 'Mute' }[action] || 'Button' }; // [polish-T]
     return { kind: 'key', text: CAPS[this.layout][action] || '?' }; // [polish-T]
@@ -210,16 +216,19 @@ export function attachKeyboard(input, win) {
   win.addEventListener('blur', () => input.releaseAll());
 }
 
-// The touch overlay: floating stick (left third) and the right-thumb button cluster.
+// The touch overlay: the joystick (left third) and the right-thumb button cluster.
 // Sizes from the design: Jump 88 px in the corner, Use 72 directly left, Chirp 72 above Jump,
 // Kick 64 above Use, Ear 64 left of Use. Stick radius 70 px.
+// [issue 35] The joystick shows at rest, faint, in the bottom-left corner (.rest, style.css) whenever the
+// touch controls show; a thumb anywhere in the left third grabs it there (it follows the thumb, as before),
+// and when the thumb lifts it goes back to rest.
 export function attachTouch(input, root) {
   const el = (tag, cls, parent = root) => { const e = document.createElement(tag); e.className = cls; parent.appendChild(e); return e; };
   const layer = el('div', 'touch-layer');
   const stickZone = el('div', 'touch-stick-zone', layer);
-  const base = el('div', 'touch-stick-base', layer);
+  stickZone.setAttribute('aria-label', STICK_WORDS);
+  const base = el('div', 'touch-stick-base rest', layer);
   const knob = el('div', 'touch-stick-knob', base);
-  base.hidden = true;
   const R = 70;
   let stickId = null, sx = 0, sy = 0;
   stickZone.addEventListener('pointerdown', (e) => {
@@ -228,7 +237,7 @@ export function attachTouch(input, root) {
     stickId = e.pointerId; stickZone.setPointerCapture(e.pointerId);
     const r = layer.getBoundingClientRect();
     sx = e.clientX - r.left; sy = e.clientY - r.top;
-    base.style.left = sx + 'px'; base.style.top = sy + 'px'; base.hidden = false;
+    base.style.left = sx + 'px'; base.style.top = sy + 'px'; base.classList.remove('rest');
     knob.style.transform = 'translate(-50%,-50%)';
     input.setTouchStick(0, 0);
   });
@@ -241,7 +250,7 @@ export function attachTouch(input, root) {
     knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
     input.setTouchStick(dx / R, dy / R);
   };
-  const endStick = (e) => { if (e.pointerId !== stickId) return; stickId = null; base.hidden = true; input.setTouchStick(0, 0); };
+  const endStick = (e) => { if (e.pointerId !== stickId) return; stickId = null; base.classList.add('rest'); base.style.left = base.style.top = ''; knob.style.transform = 'translate(-50%,-50%)'; input.setTouchStick(0, 0); };
   stickZone.addEventListener('pointermove', moveStick);
   stickZone.addEventListener('pointerup', endStick);
   stickZone.addEventListener('pointercancel', endStick);

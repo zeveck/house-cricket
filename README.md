@@ -24,13 +24,13 @@ There are 11 crickets you can swap between, each a real species with its own rea
 
 | Action | Keyboard | Controller | Phone |
 |---|---|---|---|
-| Move | ← → or A D | left stick / d-pad | the stick, left thumb |
+| Move | ← → or A D | left stick / d-pad | the joystick (bottom left) |
 | Jump (hold for higher; press again in the air to flutter; hold while falling to glide) | Space / Z | ✕ (A) | Jump |
 | Chirp: call out, stun bugs, wake things up | C / K | △ (Y) | Chirp |
 | Kick | X / J | □ (X) | Kick |
 | Listen for the trapped cricket (hold) | B / L | ○ (B) | Ear |
 | Use an item (swing, super-jump, glow) | V / I | R2 | Use |
-| Hide (next to a crack or bottle cap) | ↑ / W | stick up | stick up |
+| Hide (next to a crack or bottle cap) | ↓ / S | stick down / d-pad down | the joystick, down |
 | Swap cricket | Q / E | L1 / R1 | tap a face |
 | Map · Pause · Mute | Tab · Esc · M | Create · Options | top-right icons |
 

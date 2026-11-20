@@ -162,13 +162,23 @@ for (const [lay, K] of Object.entries(LAYOUTS)) {
 
 // ---- labels: every prompt and tip names the right key per scheme ------------------------------------
 const WANT = { // action -> [arrows, wasd, touch, pad (xbox)]
-  jump: ['Z', 'Space', 'Jump', 'A'], upJump: ['↑', 'W', 'Jump', 'A'], enter: ['↓', 'S', 'Stick ↓', 'Down'], down: ['↓', 'S', 'Stick ↓', 'Down'],
-  cloak: ['Shift', 'Shift', 'Stick ↑', 'Up'], up: ['↑', 'W', 'Stick ↑', 'Up'], use: ['V', 'I', 'Use', 'RT'], chirp: ['C', 'K', 'Chirp', 'Y'],
-  kick: ['X', 'J', 'Kick', 'X'], listen: ['B', 'L', 'Ear', 'B'], left: ['←', 'A', 'Stick ←', 'Left'], right: ['→', 'D', 'Stick →', 'Right'],
+  jump: ['Z', 'Space', 'Jump', 'A'], upJump: ['↑', 'W', 'Jump', 'A'], enter: ['↓', 'S', 'the joystick (bottom left), down', 'Down'], down: ['↓', 'S', 'the joystick (bottom left), down', 'Down'],
+  cloak: ['Shift', 'Shift', 'the joystick (bottom left), up', 'Up'], up: ['↑', 'W', 'the joystick (bottom left), up', 'Up'], use: ['V', 'I', 'Use', 'RT'], chirp: ['C', 'K', 'Chirp', 'Y'],
+  kick: ['X', 'J', 'Kick', 'X'], listen: ['B', 'L', 'Ear', 'B'], left: ['←', 'A', 'the joystick (bottom left), left', 'Left'], right: ['→', 'D', 'the joystick (bottom left), right', 'Right'],
   swapPrev: ['Q', 'Q', 'Tap a face', 'LB'], swapNext: ['E', 'E', 'Tap a face', 'RB'], map: ['Tab', 'Tab', 'Map icon', 'View'], pause: ['Esc', 'Esc', 'Pause icon', 'Menu'],
 };
 const SCHEMES = [['keyboard', 'arrows'], ['keyboard', 'wasd'], ['touch'], ['gamepad']];
 const labelAs = (action, [scheme, layout]) => { const i = new Input(); i.forceScheme = scheme; i.last = scheme; if (layout) i.layout = layout; i.padFamily = 'xbox'; return i.label(action).text; };
+// [issue 35] on touch the joystick's actions are a picture of it (kind 'stick', pushed that way), never the word "Stick"
+{
+  const i = new Input(); i.forceScheme = 'touch'; i.last = 'touch';
+  for (const [a, dir] of [['enter', 'down'], ['down', 'down'], ['up', 'up'], ['cloak', 'up'], ['lookUp', 'up'], ['left', 'left'], ['right', 'right'], ['move', 'move']]) {
+    const l = i.label(a);
+    ok(l.kind === 'stick' && l.dir === dir, `touch: {${a}} is the joystick picture pushed ${dir} (${JSON.stringify(l)})`);
+  }
+  for (const a of ['jump', 'use', 'chirp', 'kick', 'listen']) ok(i.label(a).kind === 'touch', `touch: {${a}} is its button's name`);
+  ok(!/\bStick\b/.test(readFileSync(path.join(root, 'game', 'src', 'input.js'), 'utf8').match(/const TOUCH_NAMES = \{[^}]*\}/)[0]), 'touch: no control is named "Stick"');
+}
 for (const [a, want] of Object.entries(WANT)) SCHEMES.forEach((sc, i) => ok(labelAs(a, sc) === want[i], `label ${a} on ${sc.join(' ')}: "${labelAs(a, sc)}" (want "${want[i]}")`));
 // every {token} in every tip, sign, item line and room sign
 const texts = [];

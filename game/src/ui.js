@@ -23,6 +23,16 @@ const h = (tag, attrs = {}, ...kids) => {
 // [issue #8] arrow key caps: the font has no arrows (its fallback ↑ read as a "1"), so draw bold ones
 const ARROW = { '↑': ['up', 0], '→': ['right', 90], '↓': ['down', 180], '←': ['left', 270] };
 const arrowSvg = (ch) => `<svg class="cap-arrow" viewBox="0 0 20 20" role="img" aria-label="${ARROW[ch][0]} arrow"><path transform="rotate(${ARROW[ch][1]} 10 10)" d="M10 2.5 L17 10 H12.6 V17.5 H7.4 V10 H3 Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+// [issue 35] the on-screen joystick as a picture (style.css .touch-stick-base / -knob, drawn small): the base,
+// the knob pushed that way and an ink arrow on it; 'move': the knob centred, arrows both ways
+const STICK_PUSH = { up: [0, -1, 0], down: [0, 1, 180], left: [-1, 0, 270], right: [1, 0, 90] };
+export const stickSvg = (dir, label) => {
+  const push = STICK_PUSH[dir], [dx, dy, rot] = push || [0, 0, 0], kx = dx * 5.5, ky = dy * 5.5;
+  const arrow = (x, y, deg) => `<path transform="translate(${x} ${y}) rotate(${deg}) scale(1.25)" d="M0 -5 L4.4 0.2 H1.6 V4.4 H-1.6 V0.2 H-4.4 Z" fill="#2A201A" stroke="#2A201A" stroke-width="0.6" stroke-linejoin="round"/>`;
+  const tri = (x, deg) => `<path transform="translate(${x} 0) rotate(${deg})" d="M0 -3.8 L3.6 1.9 H-3.6 Z" fill="#F4EBDD" stroke="#F4EBDD" stroke-width="0.8" stroke-linejoin="round"/>`;
+  const knob = push ? `<circle cx="${kx}" cy="${ky}" r="7.6" fill="rgba(244,235,221,.92)"/>${arrow(kx, ky, rot)}` : `<circle r="5.4" fill="rgba(244,235,221,.92)"/>${tri(-10.6, 270)}${tri(10.6, 90)}`;
+  return `<svg class="cap-stick-svg" viewBox="-16 -16 32 32" role="img" aria-label="${label}"><circle r="14.6" fill="rgba(244,235,221,.2)" stroke="rgba(244,235,221,.9)" stroke-width="2"/>${knob}</svg>`;
+};
 const ICON = {
   heart: '<svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21C5 15 1 11.5 1 7a5.5 5.5 0 0 1 11-1 5.5 5.5 0 0 1 11 1c0 4.5-4 8-11 14z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>',
@@ -348,7 +358,7 @@ export class UI {
   }
   // A key cap or pad glyph for an action (never a bare letter).
   cap(action) {
-    // [polish-T] the pairs: one chip on touch ("Stick", "Tap a face"), two caps on keys (← →, Q E) / the pad (L1 R1)
+    // [polish-T] the pairs: one chip on touch (the joystick picture, "Tap a face"), two caps on keys (← →, Q E) / the pad (L1 R1)
     const sch = this.input.scheme ? this.input.scheme() : this.input.last;
     if ((action === 'move' && sch === 'keyboard') || (action === 'swap' && sch !== 'touch')) {
       const [a, b] = action === 'move' ? ['left', 'right'] : ['swapPrev', 'swapNext'];
@@ -357,6 +367,7 @@ export class UI {
     const l = this.input.label(action);
     const e = h('span', { class: `cap cap-${l.kind}` });
     if (l.kind === 'glyph') e.innerHTML = ICON[l.text];
+    else if (l.kind === 'stick') e.innerHTML = stickSvg(l.dir, l.text); // [issue 35] the joystick, as it looks on screen
     else if (/[←→↑↓]/.test(l.text)) { for (const part of l.text.split(/([←→↑↓])/)) { if (!part) continue; if (ARROW[part]) e.insertAdjacentHTML('beforeend', arrowSvg(part)); else e.append(part); } } // [issue #8]
     else e.textContent = l.text;
     return e;

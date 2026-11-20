@@ -106,7 +106,7 @@ const FALLBACK = {
     touch: 'Touch',
     pad: 'Controller',
     padNote: 'Plug in a PS5 or other controller and press any button. Works best in Chrome or Edge.',
-    touchNote: 'Turn your phone sideways. The stick appears where your left thumb lands.',
+    touchNote: 'Turn your phone sideways. The joystick (bottom left) follows your left thumb.',
     report: 'Ctrl+Shift+F: report a bug',
   },
   shop: {
