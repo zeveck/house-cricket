@@ -16,6 +16,9 @@ z = Zone('z08-sunroom', 8, 'Sunroom', header='Zone 8: the Sunroom (builder C). P
          palette=PAL, bg='z08-sunroom', music='z08-sunroom', temp=76,
          start={'room': 'sun-door'}, beaconVoice='mole',
          lair={'room': 'sun-glass', 'x': 15, 'y': 2},
+         # [issue 22] the bench floor and the Glass Corner lie past the sound hole (the long way back
+         # round by the canopy), so the hole phase's far side is 1.4x the way in from the French Doors
+         beaconSpan={'hole': 1.4},
          decoys=[{'voice': 'peeper', 'room': 'sun-pots', 'x': 31, 'y': 28, 'every': 1}],
          near=['fake-plant', 'leaf-glider', 'water-dish'], motes=True)
 

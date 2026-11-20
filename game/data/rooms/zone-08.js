@@ -9,6 +9,7 @@ export default {
   start: {"room": "sun-door"},
   beaconVoice: "mole",
   lair: {"room": "sun-glass", "x": 15, "y": 2},
+  beaconSpan: {"hole": 1.4},
   decoys: [{"voice": "peeper", "room": "sun-pots", "x": 31, "y": 28, "every": 1}],
   near: ["fake-plant", "leaf-glider", "water-dish"],
   motes: true,

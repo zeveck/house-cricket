@@ -9,12 +9,14 @@
 //   zones without an item (sandbox, attic) go straight to the lair; a rescued zone has no beacon.
 //   Voice: zone.beaconVoice = 'alarm' | ['alarm','knock'] | {hole: [...], lair: [...]};
 //          default: the zone cricket's species (chirps.js CRICKET_VOICE).
+//   Span: zone.beaconSpan = margin | {hole: margin, lair: margin} measures a phase's far side from where a
+//          player comes in, not the zone's farthest corner (see field()). Zone 8: {hole: 1.4}.
 //   Zone 5 (Laundry): soundHole = the dryer vent by the Glider, beaconVoice = {hole: ['alarm','knock'], lair: ['alarm']},
 //          lair = the alarm in Peridot's arena.
 // Distance: shortest path over room exits (portal midpoints, from world.exits) and doors (one way),
 // plus the straight distance inside the player's and the target's rooms; a room's `noWay` marks the
 // straight lines a cricket can't take (see noWay below). Gain: 0 dB at the target to
-// -24 dB at the zone's far side, never lower.
+// -24 dB at the zone's far side (its farthest room corner, or zone.beaconSpan's), never lower.
 import { TILE } from '../data/movement.js';
 import { ZONE_INFO } from '../data/zones.js';
 import { CRICKET_VOICE, individualPitch, pitchOf } from './chirps.js';
@@ -75,8 +77,16 @@ export function beaconSpec(game) {
       let voices = bv && !Array.isArray(bv) && typeof bv === 'object' ? asVoices(bv[phase]) : asVoices(bv);
       if (!voices.length) voices = [CRICKET_VOICE[cricket] || 'house'];
       const px = (t.x + 0.5) * TILE, py = (t.y + 0.5) * TILE;
+      // [issue 22] zone.beaconSpan = {hole: margin, lair: margin}: this phase's far side is measured from
+      // where a player comes in (see field()); the lair phase also comes from the item's spot.
+      const bs = zi.beaconSpan, span = bs && typeof bs === 'object' ? bs[phase] : bs;
+      let from = null;
+      if (span && phase === 'lair' && item) {
+        const h = zi.soundHole || findEnt(world, zone, (e) => e.type === 'beacon' && !e.after) || zi.beacon || findEnt(world, zone, (e) => e.type === 'item' && e.item === item);
+        if (h && world.rooms[h.room]) from = [{ room: h.room, x: (h.x + 0.5) * TILE, y: (h.y + 0.5) * TILE }];
+      }
       spec = {
-        zone: zone.id, phase, cricket, voices, voice: voices[0],
+        zone: zone.id, phase, cricket, voices, voice: voices[0], span: span || null, from,
         pitch: cricket ? individualPitch(cricket) : 1,
         target: { room: room.id, x: px, y: py, tx: t.x, ty: t.y, wx: room.wx + px, wy: room.wy + py },
         temp: tempAt(room, px),
@@ -150,7 +160,7 @@ function isTwin(a, b) {
 // Dijkstra from the target to every portal node (dist, and next: the node after it on the way to
 // the target, -1 straight to the target); plus the zone's far-side distance.
 function field(world, spec) {
-  const key = `${spec.target.room}@${spec.target.wx},${spec.target.wy}`;
+  const key = `${spec.target.room}@${spec.target.wx},${spec.target.wy}|${spec.span || ''}`;
   world._beaconFields ||= {};
   if (world._beaconFields[key]) return world._beaconFields[key];
   const { nodes, byRoom, adj } = graph(world);
@@ -173,6 +183,27 @@ function field(world, spec) {
       const d = pathFrom(world, f, spec, r, cx, cy).d;
       if (Number.isFinite(d)) f.maxDist = Math.max(f.maxDist, d);
     }
+  }
+  // [issue 22] A phase with a span margin (zone.beaconSpan): the far side is `margin` x the farthest place
+  // a player comes in from (an opening or door from another zone, the zone's start spot, spec.from: the
+  // item's spot in the lair phase), never past the zone's own far side. For a zone whose far rooms lie
+  // past the target (the Sunroom: the bench floor and the Glass Corner, the long way back round by the
+  // canopy), so the route itself isn't squeezed into the loud end of the span.
+  if (spec.span > 0) {
+    const { nodes } = graph(world), inZ = (r) => world.rooms[r]?.zone === tz;
+    let far = 0;
+    nodes.forEach((nd, i) => {
+      const entry = nd.door === 'dst' ? !inZ(nodes[nd.partner].rooms[0]) : nd.rooms.length === 2 && !inZ(nd.rooms[1]);
+      if (inZ(nd.rooms[0]) && entry && Number.isFinite(dist[i])) far = Math.max(far, dist[i]);
+    });
+    const zs = info(tz).start, sr = world.rooms[typeof zs === 'string' ? zs : zs?.room];
+    const spots = [...(spec.from || [])];
+    if (sr) {
+      const m = Number.isFinite(zs?.x) ? zs : sr.entities.find((e) => e.type === 'start') || sr.entities.find((e) => e.type === 'save') || { x: 2, y: sr.th - 3 }; // as game.startAt
+      spots.push({ room: sr.id, x: (m.x + 0.5) * TILE, y: (m.y + 0.5) * TILE });
+    }
+    for (const s of spots) { const d = pathFrom(world, f, spec, world.rooms[s.room], s.x, s.y).d; if (Number.isFinite(d)) far = Math.max(far, d); }
+    if (far > 0) f.maxDist = Math.min(f.maxDist, spec.span * far);
   }
   world._beaconFields[key] = f;
   return f;
