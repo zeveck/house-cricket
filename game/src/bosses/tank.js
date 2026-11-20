@@ -406,7 +406,8 @@ const Sand = {
         if (s.cool === 0 && gap <= (s.pounces === 0 ? SAND.first : SAND.later) && gap >= 0.5 * T) s.startCrouch();
         break;
       }
-      case 'crouch':                // the tell: stopped, crouched, the tail tip wiggling
+      case 'crouch':                // the tell: stopped, crouched, the tail tip shaking (a second rattle half-way)
+        if (s.t === Math.round(s.tellN / 2)) s.sfx('tell', { gain: 0.8 });
         if (s.t >= s.tellN) s.startSpring();
         break;
       case 'spring':                // the launch frame: the shadow is down where she'll land
@@ -506,13 +507,26 @@ const Sand = {
     }
     const rig = s.rig;
     if (s.wig) { rig.wiggle(s.wig); s.wig = 0; }
+    // [issue 32] the shake follows the sim's crouch (not render frames): it runs exactly the tell, then stops as she springs
+    if (s.mode === 'crouch') { rig.wiggleDur = s.tellN; rig.wiggleT = Math.max(1, s.tellN - s.t); } else rig.wiggleT = 0;
     if (s.twitch > 0) rig.twitchT = Math.max(rig.twitchT || 0, s.twitch);
     if (s.anim) { if (s.held != null) rig.hold(s.anim, s.held); else rig.play(s.anim, (g.frame - s.animAt) / FPS); }
     else rig.setPose(s.pose);
     rig.walkSpeed = s.mode === 'run' || s.mode === 'toLog' ? Math.max(0.6, s.speed / PIP_RUN) : 1;
-    const jig = s.mode === 'shake' && s.t < 40 ? Math.sin(s.t * 1.3) * 4 : 0;
+    // [issue 32] the crouch is the warning: a big fast tail shake, a bigger "!", her hips wiggling (like a cat
+    // about to pounce) and her brow coming down over narrowed eyes; the shadow drops as she springs
+    const crouch = s.mode === 'crouch';
+    rig.wigBoost = crouch ? 2.3 : 1; rig.markScale = crouch ? 1.45 : 1;
+    const jig = s.mode === 'shake' && s.t < 40 ? Math.sin(s.t * 1.3) * 4 : crouch ? Math.sin(s.t * 1.1) * 5 : 0;
     const sc = rig.scaleFor(LEN);
     rig.draw(c, s.x + jig, s.y, sc, s.facing);
+    if (crouch) { // narrowed eyes: a heavy brow slanting down over the eye
+      const e = rig.point('eye', s.x + jig, s.y, sc, s.facing), f = s.facing, k = Math.min(1, s.t / 8);
+      c.save(); c.strokeStyle = '#3A2414'; c.lineCap = 'round'; c.lineWidth = 5;
+      c.beginPath(); c.moveTo(e.x - f * 14, e.y - 16 * k + 2); c.lineTo(e.x + f * 12, e.y - 4 * k - 2); c.stroke();
+      c.fillStyle = 'rgba(150,100,45,0.85)'; c.beginPath(); c.moveTo(e.x - f * 15, e.y - 20); c.lineTo(e.x + f * 13, e.y - 20); c.lineTo(e.x + f * 12, e.y - 4 * k - 2); c.lineTo(e.x - f * 14, e.y - 16 * k + 2); c.closePath(); c.fill();
+      c.restore();
+    }
     // asleep: an eye flicker as he passes (her eye opens a crack, then shuts)
     if (s.flick > 0 && s.pose === 'sleep' && !s.anim) {
       const e = rig._xf(s.x, s.y, sc, s.facing)(156, 377), k = Math.sin(Math.PI * s.flick / 12);
@@ -564,15 +578,18 @@ const Sand = {
     }
     if (s.black > 0) { c.save(); c.fillStyle = `rgba(8,8,14,${s.black.toFixed(3)})`; c.fillRect(0, 0, W, H); c.restore(); }
     if (s.mode === 'gulp' && s.card >= 0) {
-      const a = Math.min(1, s.card / 8), cw = 760, ch = 92, cx = (W - cw) / 2, cy = H * 0.24;
+      const a = Math.min(1, s.card / 8), cw = 900, ch = 124, cx = (W - cw) / 2, cy = H * 0.22;
       c.save(); c.globalAlpha = a;
       c.fillStyle = 'rgba(42,32,26,0.35)'; c.fillRect(cx + 6, cy + 8, cw, ch);
       c.fillStyle = '#F4EBDD'; c.fillRect(cx, cy, cw, ch);
       c.strokeStyle = '#5A4632'; c.lineWidth = 3; c.strokeRect(cx + 1.5, cy + 1.5, cw - 3, ch - 3);
       c.fillStyle = '#2A201A'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      const [l1, l2] = TK.eaten.split('. ');
-      c.font = 'bold 34px "Patrick Hand", sans-serif'; c.fillText(`${l1}.`, W / 2, cy + 30);
-      c.font = '26px "Patrick Hand", sans-serif'; c.fillText(l2, W / 2, cy + 66);
+      const i = TK.eaten.indexOf('. '), l1 = TK.eaten.slice(0, i + 1), rest = TK.eaten.slice(i + 2);
+      c.font = 'bold 34px "Patrick Hand", sans-serif'; c.fillText(l1, W / 2, cy + 30);
+      c.font = '24px "Patrick Hand", sans-serif';
+      const words = rest.split(' '), lines = [''];  // the rest, wrapped to the card
+      for (const w of words) { const tl = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + w : w; if (c.measureText(tl).width > cw - 40 && lines[lines.length - 1]) lines.push(w); else lines[lines.length - 1] = tl; }
+      lines.slice(0, 2).forEach((l, k) => c.fillText(l, W / 2, cy + 66 + k * 30));
       c.restore();
     }
   },

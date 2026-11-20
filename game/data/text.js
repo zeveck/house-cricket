@@ -28,16 +28,16 @@ export const TEXT = {
     tank: {
       tongs: 'The tongs! {left} {right} to dodge.',
       rim: 'Hold {jump} for a full-height leap.',
-      tell: 'When her tail wiggles, get ready. When her shadow drops, HOP!', // [issue 25] the tail = get ready, the shadow = hop
+      tell: 'When she crouches and shakes her tail, get ready. When her shadow drops, HOP!', // [issue 32] what's on screen: the crouch and shake = get ready, the shadow = hop
       duchessWakes: ['Mm? Is it Saturday already?', '...Oh, hello, dinner.'],
       kick: '{kick} kicks. Loose pebbles make good steps.',
       squeeze: 'Jump into the gap with {jump} to squeeze through (or press {enter} under it).', // [issue #27]
       // [issue 7] [issue 25] the escape in the sand room (src/bosses/tank.js Sand): hide in the log to lose her
       hideLog: 'Hide in the log!',            // the note the script puts up as she wakes
-      eaten: 'Duchess got her dinner. When her shadow drops, hop! Then hide in the log →', // [issue 25] the card after a catch (not Gentle Mode)
+      eaten: 'Duchess got her dinner. She crouches and shakes her tail: get ready. Her shadow drops: HOP! Then hide in the log →', // [issue 25] the card after a catch (not Gentle Mode)
       gentleOffer: 'Duchess is quick! Try Gentle Mode? (Slower tells, and she only shoos you.)', // [issue 25] after three catches
       exitShut: "She'd follow you out! Lose her first: hide in the log.",
-      caughtFirst: 'Too close! When her shadow drops, hop!', // Gentle Mode's catch (a roar and a skitter)
+      caughtFirst: 'Too close! She crouches and shakes: get ready. Her shadow drops: HOP!', // Gentle Mode's catch (a roar and a skitter)
       caughtWalk: "Hey! She's not a pillow.",  // walking into her snout
       caughtLog: 'Run to the log! →',          // from the second catch (the log's outline pulses)
       caughtLogBack: '← Run back to the log!', // ... when the skitter lands him past the log
@@ -51,7 +51,7 @@ export const TEXT = {
   // Signs placed by zone builders: { type: 'sign', text: TEXT.signs.<key> } (or line('signs.<key>')).
   signs: {
     move: '{left} {right} to move. {jump} to jump.',
-    tell: 'When her tail wiggles, get ready. When her shadow drops, HOP!', // [issue 25] the tank's note (tile 14)
+    tell: 'When she crouches and shakes her tail, get ready. When her shadow drops, HOP!', // [issue 32] the tank's note (tile 14)
     berm: 'Tail wiggling? Get behind a sand berm. She bites the sand: run up her back!', // [final-G] [issue 9]
     squeeze: 'Jump into the gap with {jump} to squeeze through (or press {enter} under it).', // [issue #27]
     jumpHold: 'Hold {jump} to jump higher. Tap it for a little hop.',

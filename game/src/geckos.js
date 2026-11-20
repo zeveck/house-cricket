@@ -223,7 +223,7 @@ export class GeckoRig {
     // the tell: "!" ink splat over the head
     if (this.wiggleT > 0 && this.tellMark) {
       const k = 1 - this.wiggleT / this.wiggleDur;
-      const pop = Math.min(1, k * 6), s = (opts.touch ? 1.5 : 1) / scale * pop;
+      const pop = Math.min(1, k * 6), s = (opts.touch ? 1.5 : 1) * (this.markScale || 1) / scale * pop; // [issue 32] markScale: a bigger "!" (the tank's crouch)
       // [polish-V] above the head only (never over the eye): clear of the body's top by the splat's size
       const bbT = Math.min((S.bbox(`${this.dir}/body.webp`) || { y: 0 }).y, af && afImg ? af.at[1] : Infinity);
       const ey = af?.eye && afImg ? af.eye : m.eye; // [issue 26] over a frame's own head
@@ -262,8 +262,10 @@ export class GeckoRig {
     if (this.twitchT > 0) a += 0.32 * Math.sin(t * 16) * Math.min(1, this.twitchT / 12) * u * u; // [issue 24] a sleepy tail twitch (no tell)
     if (this.wiggleT > 0) {
       const env = Math.min(1, this.wiggleT / 10, (this.wiggleDur - this.wiggleT) / 6 + 0.2);
-      const tip = Math.max(0, (u - 0.55) / 0.45);
-      a += tn.wig * env * Math.sin(t * 28) * tip * tip;
+      // [issue 32] wigBoost (set by a script, the tank's crouch): a bigger, faster shake over more of the tail
+      const wb = this.wigBoost || 1, from = wb > 1 ? 0.35 : 0.55;
+      const tip = Math.max(0, (u - from) / (1 - from));
+      a += tn.wig * wb * env * Math.sin(t * (wb > 1 ? 36 : 28)) * tip * tip;
     }
     return a;
   }
