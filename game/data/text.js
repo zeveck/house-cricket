@@ -500,7 +500,7 @@ export const TEXT = {
     touchNote: 'Turn your phone sideways. The stick appears where your left thumb lands.',
     report: 'Ctrl+Shift+F: report a bug',
     ear: 'The ear beside the sound button comes out to point the way to go: while you listen, after the cricket answers your chirp, and when you seem lost. Tap it to keep it out. Settings > Ear guide.', // [issue 10]
-    crumbs: 'Crumbs (the counter at the top right) are for trading. Hang on to them: someone in this house keeps a shop.', // [issue 33]
+    crumbs: 'Crumbs (top right): for trading', // [issue 33] a How to Play row, beside Pause
   },
   shop: {
     heart: { name: 'Seed-heart', desc: '+1 heart' },

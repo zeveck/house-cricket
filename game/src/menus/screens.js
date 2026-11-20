@@ -163,9 +163,10 @@ export function howto(A, back, scheme) {
     r.append(keys, h('span', { class: 'howto-what', text: t }));
     grid.append(r);
   }
+  // [issue 33] what crumbs are for: the empty cell beside Pause (13 rows), so the card grows no taller
+  grid.append(h('div', { class: 'howto-row howto-crumbs' }, h('span', { class: 'howto-keys' }, h('span', { class: 'crumb-icon howto-crumb', 'aria-label': 'crumbs' })), h('span', { class: 'howto-what', text: line('howto.crumbs') })));
   body.append(grid);
   body.append(h('p', { class: 'howto-note', text: line('howto.ear') })); // [issue 10] the ear guide
-  body.append(h('p', { class: 'howto-note', text: line('howto.crumbs') })); // [issue 33] what crumbs are for
   const note = scheme === 'gamepad' ? line('howto.padNote') : scheme === 'touch' ? line('howto.touchNote') : 'Two layouts: arrows with Z X C V B, or WASD with Space and J K L I.';
   body.append(h('p', { class: 'howto-note', text: note }));
   if (A.showReport() && scheme === 'keyboard') body.append(h('p', { class: 'howto-note', text: line('howto.report') })); // [polish-T] a keyboard shortcut: the Keyboard tab only

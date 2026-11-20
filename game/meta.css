@@ -76,6 +76,7 @@ body:not(.title-ready) .menus:has(.panel-title) { opacity: 0; }
 /* ---- how to play ---- */
 .howto-card .howto { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px 22px; }
 .howto-row .or { opacity: .7; font-size: .85em; }
+.howto-row .howto-crumb { display: inline-block; width: 1.7em; height: 1.35em; } /* [issue 33] the crumb, as on the HUD counter, beside "for trading" */
 .howto-note { margin: 4px 0 12px; opacity: .9; text-wrap: balance; }
 
 /* ---- map ---- */

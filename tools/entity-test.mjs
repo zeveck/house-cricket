@@ -316,6 +316,11 @@ section('meta', () => {
     const { g: g3, step: s3 } = game(null, 'et-thermo'), run3 = mk(g3); at(g3.player, 11, 15);
     for (let i = 0; i < 10; i++) { s3({}); run3.step({ pressed: {} }); }
     ok(ensure(g3).crumbs >= 5 && tips(g3) === 1, '... and a new slot is told again');
+    const { g: g4, step: s4 } = game(null, 'et-thermo'), run4 = mk(g4); ensure(g4).crumbs = 200; at(g4.player, 11, 15); // a save from before the tip
+    for (let i = 0; i < 10; i++) { s4({}); run4.step({ pressed: {} }); }
+    ok(ensure(g4).crumbs >= 205 && tips(g4) === 0 && ensure(g4).flags.crumbTold, '... an old save that has crumbs already is not told (marked, silently)');
+    const { g: g5 } = game(null, 'et-thermo'), run5 = mk(g5); g5.recruits.add('rolo'); run5.event('crumbs', { n: 3 });
+    ok(tips(g5) === 0 && ensure(g5).flags.crumbTold, '... nor one that has met Rolo');
   }
   const mh = p.maxHealth; at(p, 13, 12); tick({}, 10); ok(p.maxHealth === mh + 1 && ensure(g).secrets.includes('heart:et-test'), 'seed-heart secret: +1 heart');
   run.event('secret', { id: 'song:et-test' }); tick({}, 2); ok(ensure(g).secrets.includes('song:et-test'), 'song-seed secret');
