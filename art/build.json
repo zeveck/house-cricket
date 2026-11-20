@@ -5112,14 +5112,14 @@
 ]
 },
 "sprites/geckos/duchess/sleep.webp": {
-"src": "b59caf6a8e3f9f796e114bfce6ebc69a068d192f",
+"src": "1ec6892c0e9baa92e32b310d5073c6ab680633e5",
 "set": {
 "q": 90,
 "m": 6,
 "max": null
 },
 "size": [
-999,
+848,
 246
 ]
 },

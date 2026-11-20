@@ -3,8 +3,12 @@
 // every frame in a meta.json "anims" exists as a built WebP (and its PNG source in art/), has its
 // placement (at, size), a tail pivot inside its picture's height and an eye; the rig's files() list
 // (what preload() loads) includes every one; the frame picker loops, holds and clamps; geckos
-// without anims are unchanged.                          node tools/gecko-anim-test.mjs
+// without anims are unchanged. [issue 30] Every Duchess frame's tail root (its pivot) lies on the body's
+// tail-root edge in its picture's alpha: opaque just inside the cut, clear just past it, on the back line's
+// drop (the idle's) below the frame's back top; no frame keeps a painted tail past its cut.
+//                                                        node tools/gecko-anim-test.mjs
 import { readFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { NAMES, files, ANIMS, GeckoRig } from '../game/src/geckos.js';
 import { ASSET_FILES } from '../game/data/assets.js';
 
@@ -62,6 +66,45 @@ for (const name of NAMES) {
   ok(pick({ pose: 'idle' }) === null && pick({ pose: 'strike' }) === null, `${name}: idle/strike aren't frame animations`);
 }
 ok(withAnims >= 1, 'Duchess has her animations');
+
+// [issue 30] the tail root on the alpha (Pillow reads the PNG sources: the pictures as built, in idle px)
+{
+  const py = `
+import json, sys
+from PIL import Image
+root = sys.argv[1]; name = 'duchess'
+meta = json.load(open(root + 'game/assets/sprites/geckos/' + name + '/meta.json'))
+art = root + 'art/sprites/geckos/' + name + '/'
+body = Image.open(art + 'body.png').getchannel('A')
+def top(a, x):
+    for y in range(a.size[1]):
+        if a.getpixel((x, y)) > 128: return y
+    return None
+px, ppy = meta['pivot']
+drop = ppy - top(body, px - 6)
+out = []
+items = [(n, f) for n, f in meta.get('frames', {}).items()] + [(f['file'], f) for l in meta.get('anims', {}).values() for f in l]
+for n, f in items:
+    a = Image.open(art + f['file'].replace('.webp', '.png')).getchannel('A')
+    if 'size' in f and list(a.size) != list(f['size']): a = a.resize(tuple(f['size']))
+    at = f['at']; x, y = f['pivot']; k = f.get('tail', 1)
+    def al(xx, yy):
+        xx -= at[0]; yy -= at[1]
+        return a.getpixel((xx, yy)) if 0 <= xx < a.size[0] and 0 <= yy < a.size[1] else 0
+    t = top(a, x - 6 - at[0])
+    past = sum(1 for yy in range(y - int(70 * k), y + int(30 * k)) if al(x + meta.get('overlap', 0) + 8, yy) > 128)  # past the body's overlap strip
+    # (the tail's band from its top to just below the root: a hind leg kicked back below it is fine)
+    out.append({'n': n, 'inside': al(x - 8, y), 'past': past, 'drop': (y - at[1] - t) if t is not None else None, 'want': round(k * drop)})
+print(json.dumps(out))
+`;
+  const res = JSON.parse(execFileSync('python3', ['-c', py, root], { encoding: 'utf8' }));
+  ok(res.length >= 17, `duchess: tail roots checked (${res.length} frames)`);
+  for (const r of res) {
+    ok(r.inside > 128, `duchess ${r.n}: the tail root is on the body (opaque just inside the cut)`);
+    ok(r.past <= 4, `duchess ${r.n}: nothing painted past the cut at the tail's height (a doubled tail: ${r.past} px)`);
+    ok(r.drop != null && Math.abs(r.drop - r.want) <= 3, `duchess ${r.n}: the root sits the idle's drop below the back line (${r.drop} vs ${r.want})`);
+  }
+}
 ok(['run', 'pounce', 'wake', 'tongue'].every((a) => JSON.parse(readFileSync(`${root}game/assets/sprites/geckos/duchess/meta.json`, 'utf8')).anims?.[a]), 'duchess: run, pounce, wake, tongue');
 
 console.log(`gecko-anim-test: ${pass} passed, ${fail} failed`);

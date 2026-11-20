@@ -13,6 +13,10 @@ Usage:
                                                     tailless, facing like the art): scaled by the eye, its tail cut put
                                                     on the idle pivot's x, its lowest point on the idle's floor; saved
                                                     as anim/<anim>/NN.png, recorded in meta.json "anims"
+  python3 tools/split-gecko.py --repivot <name>     [issue 30] recompute every frame's tail root and angle (the back line rule)
+  python3 tools/split-gecko.py --cut-tail <name> <strike|sleep> <x> <k>
+                                                    [issue 30] erase a painted tail from idle column x on; the code
+                                                    tail joins there, drawn at scale k (meta "cut", "tail")
 
 All coordinates in meta.json are pixels of idle.png (body.png has the same canvas).
 The pictures are the PNG sources in art/sprites/geckos/<name>/ (run tools/build-art.py afterwards);
@@ -30,7 +34,7 @@ meta.json is written to game/assets/sprites/geckos/<name>/.
             without the tail, drawn at "size" (idle px; the WebP may be stored smaller, art/max-size.json),
             the code tail attached at each frame's own pivot
 """
-import json, os, sys
+import json, math, os, sys
 from PIL import Image, ImageChops, ImageDraw, ImageStat
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -161,6 +165,87 @@ def _nearest_run(flags, target):
     return min(runs, key=lambda r: abs((r[0] + r[1]) / 2 - target)) if runs else None
 
 
+
+# [issue 30] Where the code tail joins a wide gecko's frame: on the cut column (just inside the tail cut), at
+# the frame's back line plus the idle's own drop from its back line to its pivot (times the frame's tail
+# scale). It used to be the middle of the opaque run on that column, which merges the hips with the hind
+# thigh and leg below them, so the tail grew out of the thigh, up to ~100 px low (tongue, wake, pounce).
+def _back_top(alpha, x):
+    """The first opaque row (alpha > 128) of column x, or None."""
+    w, h = alpha.size
+    x = min(w - 1, max(0, x))
+    for y in range(h):
+        if alpha.getpixel((x, y)) > 128:
+            return y
+    return None
+
+
+def tail_root(name, meta, piece_alpha, at, cut_x=None, k=1.0):
+    """[x, y] (idle px) of the tail root of a wide frame drawn at `at` (piece px == idle px)."""
+    px, py = meta['pivot']
+    cx = (cut_x if cut_x is not None else px)
+    body = Image.open(os.path.join(GECKOS, name, 'body.png')).getchannel('A')
+    drop = py - _back_top(body, px - 6)
+    top = _back_top(piece_alpha, cx - 6 - at[0])
+    if top is None:
+        return [cx, py]
+    return [cx, round(at[1] + top + k * drop)]
+
+
+def back_slope(alpha, x):
+    """The back line's slope (radians, y down) over the 64 px before column x."""
+    t1, t2 = _back_top(alpha, x - 6), _back_top(alpha, x - 70)
+    return math.atan2(t1 - t2, 64) if t1 is not None and t2 is not None else 0.0
+
+
+def tail_angle(name, meta, piece_alpha, at, cut_x=None):
+    """[issue 30] How much this frame's back slopes more (+, down) than the idle's at the tail cut: the code
+    tail's base turns with it, so it carries on the frame's back line (the launch's raised rump, the crouch)."""
+    px = meta['pivot'][0]
+    cx = cut_x if cut_x is not None else px
+    body = Image.open(os.path.join(GECKOS, name, 'body.png')).getchannel('A')
+    d = back_slope(piece_alpha, cx - at[0]) - back_slope(body, px)
+    return round(max(-0.35, min(0.35, d)), 3)  # (more and the tail kinks away from the rump)
+
+
+def repivot(name):
+    """[issue 30] Recompute every frame's tail root from its source picture (no new art)."""
+    meta = json.load(open(os.path.join(METAS, name, 'meta.json')))
+    d = os.path.join(GECKOS, name)
+    for fname, fr in (meta.get('frames') or {}).items():
+        a = Image.open(os.path.join(d, fr['file'].replace('.webp', '.png'))).getchannel('A')
+        fr['pivot'] = tail_root(name, meta, a, fr['at'], fr.get('cut'), fr.get('tail', 1.0))
+        fr['ang'] = tail_angle(name, meta, a, fr['at'], fr.get('cut'))
+        print(name, fname, 'pivot', fr['pivot'], 'angle', fr['ang'])
+    for anim, lst in (meta.get('anims') or {}).items():
+        for f in lst:
+            a = Image.open(os.path.join(d, f['file'].replace('.webp', '.png'))).getchannel('A')
+            if list(a.size) != list(f['size']):
+                a = a.resize(tuple(f['size']))
+            f['pivot'] = tail_root(name, meta, a, f['at'])
+            f['ang'] = tail_angle(name, meta, a, f['at'])
+            print(name, f['file'], 'pivot', f['pivot'], 'angle', f['ang'])
+    json.dump(meta, open(os.path.join(METAS, name, 'meta.json'), 'w'), indent=1)
+
+
+def cut_tail(name, fname, x, k):
+    """[issue 30] A strike/sleep picture painted with (part of) its tail: erase it from idle column x on, so
+    the code tail (drawn at scale k from the new root) is the only tail."""
+    meta = json.load(open(os.path.join(METAS, name, 'meta.json')))
+    fr = meta['frames'][fname]
+    path = os.path.join(GECKOS, name, fname + '.png')
+    im = Image.open(path).convert('RGBA')
+    cx = x - fr['at'][0]
+    im.paste((0, 0, 0, 0), (cx, 0, im.width, im.height))
+    nb = im.getchannel('A').getbbox()
+    im = im.crop(nb)
+    fr['at'] = [fr['at'][0] + nb[0], fr['at'][1] + nb[1]]
+    im.save(path)
+    fr['cut'] = x; fr['tail'] = k
+    json.dump(meta, open(os.path.join(METAS, name, 'meta.json'), 'w'), indent=1)
+    print(name, fname, 'cut at', x, 'tail scale', k, 'at', fr['at'], 'size', im.size)
+
+
 def _eye_scale(name, im, q=2, R=64):
     """(scale frame px -> idle px, eye centre in frame px) from the idle's eye as a template
     (normalised cross-correlation over the head: the left 45 %, top 75 % of a wide picture)."""
@@ -244,8 +329,7 @@ def anim_frame(name, fname, src):
     piece.save(os.path.join(d, 'anim', anim, f'{n:02d}.png'))
     pa = piece.getchannel('A')
     x = min(piece.width - 1, max(0, px - at[0] - 6))
-    r = _nearest_run([pa.getpixel((x, y)) > 128 for y in range(piece.height)], py - at[1])
-    fp = [px, at[1] + (r[0] + r[1]) // 2] if r else [px, py]
+    fp = tail_root(name, meta, pa, at)  # [issue 30] from the back line, not the middle of hips + thigh
     lst = meta.setdefault('anims', {}).setdefault(anim, [])
     while len(lst) <= n:
         lst.append(None)
@@ -346,9 +430,7 @@ def frame(name, fname, src):
     # where this frame's tail stub actually ends (the tail strip attaches there in this frame)
     pa = piece.getchannel('A')
     if wide:
-        x = min(piece.width - 1, max(0, px - at[0] - 6))
-        run = _nearest_run([pa.getpixel((x, y)) > 128 for y in range(piece.height)], py - at[1])
-        fp = [px, at[1] + (run[0] + run[1]) // 2] if run else [px, py]
+        fp = tail_root(name, meta, pa, at)  # [issue 30] from the back line, not the middle of hips + thigh
     else:
         y = min(piece.height - 1, max(0, py - at[1] - 6))
         run = _nearest_run([pa.getpixel((x, y)) > 128 for x in range(piece.width)], px - at[0])
@@ -362,6 +444,10 @@ if __name__ == '__main__':
     args = sys.argv[1:]
     if args and args[0] == '--frame':
         frame(args[1], args[2], args[3])
+    elif args and args[0] == '--repivot':
+        repivot(args[1])
+    elif args and args[0] == '--cut-tail':
+        cut_tail(args[1], args[2], int(args[3]), float(args[4]))
     else:
         for n in (args or list(CFG)):
             split(n)

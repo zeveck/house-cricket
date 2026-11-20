@@ -196,7 +196,7 @@ export class GeckoRig {
     if (af) {
       // [issue 26] a frame animation: the code tail at this frame's pivot, then the picture over its seam.
       // Until the frame's picture loads, the plain body stands in (tail at the idle pivot).
-      if (this.showTail !== false) this._tail(c, m, tail, afImg ? af.pivot : m.pivot, pose);
+      if (this.showTail !== false) this._tail(c, m, tail, afImg ? af.pivot : m.pivot, pose, afImg ? af.tail || 1 : 1, afImg ? af.ang || 0 : 0);
       if (afImg) {
         c.drawImage(afImg, af.at[0], af.at[1], af.size[0], af.size[1]);
         if (this.glint && af.eye) this._glint(c, { eye: af.eye });
@@ -210,7 +210,7 @@ export class GeckoRig {
       const fr = (pose === 'strike' || pose === 'sleep') && m.frames?.[pose] ? m.frames[pose] : null;
       const frImg = fr ? S.get(`${this.dir}/${fr.file}`) : null;
       const pivot = frImg ? (tn.pivots?.[pose] || fr.pivot) : m.pivot;
-      if (this.showTail !== false) this._tail(c, m, tail, pivot, pose); // [polish] Nana hides hers while it sweeps the arena
+      if (this.showTail !== false) this._tail(c, m, tail, pivot, pose, frImg ? fr.tail || 1 : 1, frImg && !tn.pivots?.[pose] ? fr.ang || 0 : 0); // [polish] Nana hides hers while it sweeps the arena
       if (frImg) {
         c.drawImage(frImg, fr.at[0], fr.at[1]);
       } else {
@@ -281,7 +281,10 @@ export class GeckoRig {
     this._tc = { k: step, img, cv };
     return this._tc;
   }
-  _tail(c, m, img, pivot, pose) {
+  // [issue 30] k0: the frame's tail scale (meta frames[f].tail: a sleep picture drawn smaller than the idle) and
+  // ang: how far the frame's back slopes past the idle's at the cut (meta "ang"), both about the tail root
+  _tail(c, m, img, pivot, pose, k0 = 1, ang = 0) {
+    if (k0 !== 1 || ang) { c.save(); c.translate(pivot[0], pivot[1]); c.rotate(ang); c.scale(k0, k0); c.translate(-pivot[0], -pivot[1]); this._tail(c, m, img, pivot, pose, 1, 0); c.restore(); return; }
     const tb = m.tailBox, ov = m.overlap || 0;
     const wide = m.tailAxis !== 'y';
     const tr = c.getTransform();
