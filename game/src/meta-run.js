@@ -23,6 +23,12 @@ const secretCrumbs = (id) => SECRETS.find((x) => x.id === id)?.crumbs || 0; // [
 import { line } from './lines.js';
 
 const CARD_DELAY = 75;   // frames from a rescue to the "is safe!" card (the cricket hops off first)
+// [issue 33] the first crumb a save slot picks up says what crumbs are for (once per slot: meta.flags is saved with it)
+export function firstCrumb(g, m) {
+  if (m.flags.crumbTold) return false;
+  m.flags.crumbTold = true; g.toast(line('ui.crumbFirst'), 300);
+  return true;
+}
 const ov = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 export class MetaRun {
@@ -60,7 +66,7 @@ export class MetaRun {
       const box = { x: e.px, y: e.type === 'trigger' ? e.py : e.py - (e.h ? (e.h - 1) * TILE : 0), w: (e.w || 1) * TILE, h: (e.h || 1) * TILE };
       switch (e.type) {
         case 'crumbs':
-          if (ov(pb, box)) { e.done = true; g.rs(g.room.id).taken.add(e.key); m.crumbs += e.n || 5; g.emit('crumb', { x: box.x + 20, y: box.y + 20, n: e.n || 5 }); A.sfx('crumb'); }
+          if (ov(pb, box)) { e.done = true; g.rs(g.room.id).taken.add(e.key); m.crumbs += e.n || 5; g.emit('crumb', { x: box.x + 20, y: box.y + 20, n: e.n || 5 }); A.sfx('crumb'); firstCrumb(g, m); }
           break;
         case 'secret':
           if (ov(pb, box)) { e.done = true; g.rs(g.room.id).taken.add(e.key); this.event('secret', { id: e.id || e.key }); }
@@ -166,7 +172,7 @@ export class MetaRun {
       case 'ready': if (!g.bossBeaten?.(d.boss)) A.lairReady({ boss: d.boss, to: d.to, at: d.at, room: g.room.id }); break; // [final-2] no Ready? card in a won arena
       case 'story': if (!(g.zone?.n >= 98) || m.flags.cardsInSandbox) A.storyEvent(d.name, d); break; // [mech] no modal cards in the test zones
       case 'heard': if (d.sound && !m.sounds.includes(d.sound)) m.sounds.push(d.sound); break;
-      case 'crumbs': m.crumbs += d.n || 1; break;
+      case 'crumbs': m.crumbs += d.n || 1; firstCrumb(g, m); break;
       case 'secret': {
         const id = d.id;
         if (!id || m.secrets.includes(id)) break;
@@ -174,9 +180,9 @@ export class MetaRun {
         const kind = secretKind(id);
         if (kind === 'heart') { g.player.maxHealth += 1; g.player.health = g.player.maxHealth; A.toast(line('ui.heart')); A.sfx('seed-heart'); }
         else if (kind === 'song') { A.toast(line('ui.songSeed')); A.sfx('seed-heart'); A.applyUpgrades(); }
-        else if (kind === 'crumbs') { const n = d.n || secretCrumbs(id) || 10; m.crumbs += n; A.toast(line('ui.crumbs', { n })); A.sfx('crumb'); }
+        else if (kind === 'crumbs') { const n = d.n || secretCrumbs(id) || 10; m.crumbs += n; A.toast(line('ui.crumbs', { n })); A.sfx('crumb'); firstCrumb(g, m); }
         else if (kind === 'duet') { // [fixer] Chip's duet music boxes: a crumb hoard and the Duet for the Stage
-          const n = d.n || secretCrumbs(id) || 100; m.crumbs += n; A.toast(line('ui.duet', { n })); A.sfx('crumb');
+          const n = d.n || secretCrumbs(id) || 100; m.crumbs += n; A.toast(line('ui.duet', { n })); A.sfx('crumb'); firstCrumb(g, m);
           if (!m.songs.includes('finale')) m.songs.push('finale');
         }
         else if (kind === 'shortcut') { A.toast(line('ui.shortcut')); A.sfx('unlock'); } // [fixer]

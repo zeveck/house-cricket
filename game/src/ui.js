@@ -58,8 +58,12 @@ export class UI {
     this.btnPause = h('button', { class: 'icon-btn', 'aria-label': 'pause', title: 'Pause (Esc)', onclick: () => this.handlers.pause?.() });
     this.btnMap.innerHTML = ICON.map; this.btnPause.innerHTML = ICON.pause;
     // meta HUD: crumbs counter (top-right), Frost's thermometer, the chirp indicator (screen edge)
-    this.crumbs = h('div', { class: 'crumbs', 'aria-label': 'crumbs' });
+    // [issue 33] hover (title) or tap it: what crumbs are for (main.js hands the line in updateMetaHUD's info.crumbHint)
+    this.crumbs = h('div', { class: 'crumbs', role: 'button', tabindex: '-1', 'aria-label': 'crumbs' });
     this.crumbs.append(h('span', { class: 'crumb-icon' }), h('span', { class: 'crumb-n', text: '0' }));
+    this.crumbs.addEventListener('pointerdown', (e) => e.stopPropagation());
+    this.crumbs.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus off it: Space / Enter stay with the game
+    this.crumbs.addEventListener('click', (e) => { e.stopPropagation(); this.handlers.crumbs?.(); });
     this.thermo = h('div', { class: 'thermo', hidden: '' }, h('span', { class: 'thermo-tube' }, h('span', { class: 'thermo-fill' })), h('span', { class: 'thermo-read', text: '70°F' }));
     // [final-S] the chirp indicator: an ear with sound waves that pulse with each beacon chirp and grow with loudness
     // [issue 10] the ear guide: it rests as a HUD button (this.earDock) and comes out to the screen edge
@@ -381,6 +385,8 @@ export class UI {
 UI.prototype.updateMetaHUD = function (info) {
   const ck = String(info.crumbs);
   if (this._crumbK !== ck) { this._crumbK = ck; this.crumbs.lastChild.textContent = ck; this.crumbs.classList.remove('bump'); void this.crumbs.offsetWidth; this.crumbs.classList.add('bump'); }
+  const hk = info.crumbHint || ''; // [issue 33] attributes only, and only on a change (never rebuild clickable nodes)
+  if (this._crumbHintK !== hk) { this._crumbHintK = hk; this.crumbs.title = hk; this.crumbs.setAttribute('aria-label', hk || 'crumbs'); }
   if (info.temp != null) {
     this.thermo.hidden = false;
     const tk = String(info.temp);

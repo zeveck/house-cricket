@@ -118,6 +118,10 @@ export const TEXT = {
     heart: 'Seed-heart! +1 heart.',
     songSeed: 'Song-seed! Your chirp grows stronger.',
     crumbs: '+{n} crumbs',
+    // [issue 33] what crumbs are for: the first one a save slot picks up, and the HUD counter's hover / tap
+    crumbFirst: 'A crumb! Hang on to these: someone in this house trades for them.',
+    crumbHint: 'Crumbs: hang on to them. Someone in this house trades for them.',
+    crumbHintShop: 'Crumbs: spend them at Rolo\'s Crumb Shop in the Carrier.',
     duet: 'Pip and Chip, together! The music box opens: +{n} crumbs, and the Duet for the Stage.', // [fixer]
     shortcut: 'A secret shortcut!', // [fixer]
     // [issue 10] the ear guide: the first time it ever comes out, and what a click on it did
@@ -496,6 +500,7 @@ export const TEXT = {
     touchNote: 'Turn your phone sideways. The stick appears where your left thumb lands.',
     report: 'Ctrl+Shift+F: report a bug',
     ear: 'The ear beside the sound button comes out to point the way to go: while you listen, after the cricket answers your chirp, and when you seem lost. Tap it to keep it out. Settings > Ear guide.', // [issue 10]
+    crumbs: 'Crumbs (the counter at the top right) are for trading. Hang on to them: someone in this house keeps a shop.', // [issue 33]
   },
   shop: {
     heart: { name: 'Seed-heart', desc: '+1 heart' },

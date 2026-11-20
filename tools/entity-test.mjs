@@ -13,6 +13,8 @@ import { TYPES } from '../game/src/enemies.js';
 import { songInterval } from '../game/src/chirps.js';
 import { MetaRun } from '../game/src/meta-run.js';
 import { ensure } from '../game/src/meta.js';
+import * as Save from '../game/src/save.js';
+import { line } from '../game/src/lines.js';
 import { ITEMS } from '../game/data/items.js';
 import { BOSSES } from '../game/src/bosses/index.js';
 import { ASSET_FILES as ASSETS } from '../game/data/assets.js';
@@ -304,6 +306,17 @@ section('meta', () => {
   at(p, 7, 15); tick({ right: true }, 30); tick({}, 50);
   ok(p.has('battery'), 'battery pickup');
   at(p, 11, 15); tick({}, 10); ok(ensure(g).crumbs >= 5, 'crumbs pickup');
+  { // [issue 33] the first crumb says what crumbs are for: once per save slot
+    const tip = line('ui.crumbFirst'), tips = (gg) => gg.toasts.filter((t) => t.text === tip).length;
+    ok(tips(g) === 1 && ensure(g).flags.crumbTold, 'first crumb: the what-are-crumbs tip shows');
+    run.event('secret', { id: 'cache:et-33', n: 7 }); run.event('crumbs', { n: 2 }); tick({}, 2);
+    ok(tips(g) === 1, '... and not on later crumbs');
+    const saved = Save.fromGame(g), { g: g2 } = game(null, 'et-thermo'); Save.intoGame(g2, saved);
+    ok(ensure(g2).flags.crumbTold, '... the slot keeps it (save and load)');
+    const { g: g3, step: s3 } = game(null, 'et-thermo'), run3 = mk(g3); at(g3.player, 11, 15);
+    for (let i = 0; i < 10; i++) { s3({}); run3.step({ pressed: {} }); }
+    ok(ensure(g3).crumbs >= 5 && tips(g3) === 1, '... and a new slot is told again');
+  }
   const mh = p.maxHealth; at(p, 13, 12); tick({}, 10); ok(p.maxHealth === mh + 1 && ensure(g).secrets.includes('heart:et-test'), 'seed-heart secret: +1 heart');
   run.event('secret', { id: 'song:et-test' }); tick({}, 2); ok(ensure(g).secrets.includes('song:et-test'), 'song-seed secret');
   at(p, 22, 15); tick({}, 20); tick({ enter: true }, 1); tick({}, 5);

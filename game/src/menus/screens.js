@@ -165,6 +165,7 @@ export function howto(A, back, scheme) {
   }
   body.append(grid);
   body.append(h('p', { class: 'howto-note', text: line('howto.ear') })); // [issue 10] the ear guide
+  body.append(h('p', { class: 'howto-note', text: line('howto.crumbs') })); // [issue 33] what crumbs are for
   const note = scheme === 'gamepad' ? line('howto.padNote') : scheme === 'touch' ? line('howto.touchNote') : 'Two layouts: arrows with Z X C V B, or WASD with Space and J K L I.';
   body.append(h('p', { class: 'howto-note', text: note }));
   if (A.showReport() && scheme === 'keyboard') body.append(h('p', { class: 'howto-note', text: line('howto.report') })); // [polish-T] a keyboard shortcut: the Keyboard tab only
