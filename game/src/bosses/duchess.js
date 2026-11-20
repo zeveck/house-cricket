@@ -88,7 +88,8 @@ export default makeBoss('duchess', { postLines: true, // [playtest] base.rescue(
         const dx = p.cx - b.x;
         b.facing = Math.sign(dx) || b.facing;
         if (Math.abs(dx) > 5.5 * T) b.x += b.facing * SPEED[b.phase] * T * DT;
-        else if (b.cool === 0) {
+        else if (b.cool > 0) b.pose = 'idle'; // [issue 26] waiting to strike: still (the run frames don't cycle in place)
+        else {
           b.pose = 'idle'; b.aimAt = p.cx; b.mt = b.tell(nose(b), b.y - 70); b.mode = 'tell';
           b.feint = b.phase === 2; b.double = b.phase === 3 ? 1 : 0;
         }

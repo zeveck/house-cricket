@@ -147,6 +147,37 @@ for (const gentle of [false, true]) {
     }
   });
 
+  // [review] the taught rule: the tail wiggles (get ready), the shadow drops as she springs (hop!). A hop at
+  // any frame from the spring to the landing always dodges; a still Pip is still caught. Hop timing swept from
+  // the crouch's start through the landing, for a still Pip and for one running flat out.
+  for (const runner of [false, true]) section(`hop timing from the crouch to the landing, ${runner ? 'running' : 'still'} (${M})`, () => {
+    const tellN = Math.round((gentle ? TELL.gentle : TELL.normal) * FPS), springF = 8, airF = 36;
+    const results = [];
+    for (let d = -1; d <= tellN + springF + airF; d += 2) {
+      const s = sandGame(gentle, runner ? 33 : 46);
+      s.step({}, 3); s.b().startWake('test'); s.b().pounces = 1; // past the near miss: a pounce that can catch
+      let c0 = null, hopT = 0, caught = false, sawSpring = false;
+      for (let i = 0; i < 900; i++) {
+        const b = s.b();
+        if (c0 == null && b.mode === 'crouch') c0 = s.g.frame;
+        if (b.mode === 'spring') sawSpring = true;
+        if (b.mode === 'gulp' || b.mode === 'shake') { caught = true; break; }
+        if (sawSpring && b.mode === 'run') break; // the pounce is over
+        const h = {};
+        if (runner && s.p.cx < 57 * T) h.right = true;
+        if (d >= 0 && c0 != null && s.g.frame === c0 + d) hopT = 20;
+        if (hopT > 0) { hopT--; h.jump = true; }
+        s.step(h);
+      }
+      results.push({ d, caught, after: d >= tellN });
+      if (d >= tellN) ok(!caught, `${M}: ${runner ? 'running' : 'standing'}, a hop ${d - tellN} frames after she springs (the shadow) is never caught`);
+      if (gentle) ok(!(s.g.duchessCatches > 0) && s.b().mode !== 'gulp', `${M}: Gentle Mode never eats him (hop at crouch +${d})`);
+    }
+    const still = results.find((r) => r.d === -1);
+    ok(still.caught, `${M}: ${runner ? 'running flat out' : 'standing still'} without a hop, the pounce catches him`);
+    console.log(`  ${M} ${runner ? 'run ' : 'still'} hop at crouch+d (| = the spring): ${results.map((r) => (r.d === tellN - 1 ? '|' : '') + (r.caught ? 'X' : '.')).join('')}`);
+  });
+
   section(`pounces (${M})`, () => {
     const s = sandGame(gentle, 33);
     const lands = [];

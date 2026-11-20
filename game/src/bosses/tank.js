@@ -175,7 +175,7 @@ function sand(g, e) {
     mode: lost ? 'nap' : 'asleep', t: 0, x: (e.x + 0.5) * T, y: (e.y + 1) * T, facing: 1,
     pose: 'sleep', anim: null, animAt: 0, held: null, rig: null, wig: 0, twitch: 0, flick: 0, stir: 0,
     quiet: lost, woke: false, pounces: 0, cool: 0, roarCool: 0, tellN: 0, speed: 0,
-    x0: 0, y0: 0, x1: 0, y1: 0, bite: 'sand', skit: 0, why: null, dark: 0, black: 0, card: -1, downBuf: 0, peekAt: -1,
+    x0: 0, y0: 0, x1: 0, y1: 0, bite: 'sand', skit: 0, why: null, hopped: false, dark: 0, black: 0, card: -1, downBuf: 0, peekAt: -1,
     pipGone: false, chase: false, loopName: null, loopRate: 1, signed: false, bermTold: false, heldBack: false, lastToast: null });
 }
 const Sand = {
@@ -228,7 +228,7 @@ const Sand = {
     const s = this, g = s.g, p = g.player, n = s.tellFrames();
     if (!p.hidden) s.facing = Math.sign(p.cx - s.x) || s.facing;
     s.mode = 'crouch'; s.t = 0; s.hold('pounce', 0); s.tellN = n; s.speed = 0;
-    s.wig = n + SAND.spring + SAND.air; // the tail tip wiggles from the crouch until she lands
+    s.wig = n; // the tail tip wiggles through the crouch ("get ready"); it stops as she springs and the shadow drops ("hop!")
     g.emit('tell', { x: s.nose(), y: s.y - 70, boss: 'duchess', frames: n });
   },
   // the leap's end is fixed as she springs (the shadow goes down there): where he'll be when she lands if he
@@ -253,6 +253,7 @@ const Sand = {
     target = Math.max(1.5 * T, Math.min(62.5 * T, target));
     s.x0 = s.x; s.y0 = s.y; s.x1 = Math.max(SAND.minX, Math.min(SAND.maxX, target - f * NOSE)); s.y1 = s.floorAt(s.x1); s.bite = bite;
     s.mode = 'spring'; s.t = 0; s.hold('pounce', 1);
+    s.hopped = !p.grounded; // [review] a hop at or after the shadow always dodges (see tryCatch)
     s.sfx('gecko-growl', { gain: 0.45, rate: 1.25 });
   },
   land() {
@@ -269,6 +270,7 @@ const Sand = {
   tryCatch() {
     const s = this, p = s.g.player;
     if (s.bite !== 'sand' || s.pounces <= 1 || p.hidden || s.roarCool > 0) return false; // pounce 1 is always a near miss
+    if (s.hopped) return false; // he left the ground at some point since she sprang (a hop on the shadow): safe
     if (!ov(s.snout(), s.pipBox())) return false;
     if (s.g.gentle) s.shove(); else s.eat();
     return true;
@@ -373,6 +375,7 @@ const Sand = {
     const hiddenNow = p.state === 'hide';
     const f = s.facing;
     if (s.mode !== 'air' && s.mode !== 'spring') s.y += (s.floorAt(s.x) - s.y) * 0.25;
+    if ((s.mode === 'spring' || s.mode === 'air' || s.mode === 'land') && !p.grounded) s.hopped = true; // off the ground since she sprang
     switch (s.mode) {
       case 'asleep': {
         if (lost) { s.mode = 'nap'; break; }
@@ -450,8 +453,8 @@ const Sand = {
       case 'roar':                  // seen: a roar, then a full tell before any pounce
         if (s.t >= SAND.roar) { if (hiddenNow) { s.mode = 'sniff'; s.t = 0; s.play('tongue'); } else s.startCrouch(); }
         break;
-      case 'curl':                  // a sleepy step back off the log, then asleep there; the light comes back over 1.5 s
-        if (s.t <= 20) { s.x -= s.facing * 1.6 * T / 20; if (s.t === 20) s.still('sleep'); }
+      case 'curl':                  // she turns her back on the log and curls up asleep (her body off the log, her tail off the berm); the light comes back over 1.5 s
+        if (s.t === 16) { const lf = s.logFace(), f = s.facing; s.facing = -f; s.x = Math.max(SAND.minX, Math.min(SAND.maxX, lf - f * 3.4 * T)); s.still('sleep'); }
         if (s.t >= SAND.lightOut) s.mode = 'nap';
         break;
       case 'nap':
