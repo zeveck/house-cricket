@@ -9,14 +9,14 @@
 //   zones without an item (sandbox, attic) go straight to the lair; a rescued zone has no beacon.
 //   Voice: zone.beaconVoice = 'alarm' | ['alarm','knock'] | {hole: [...], lair: [...]};
 //          default: the zone cricket's species (chirps.js CRICKET_VOICE).
-//   Span: zone.beaconSpan = margin | {hole: margin, lair: margin} measures a phase's far side from where a
-//          player comes in, not the zone's farthest corner (see field()). Zone 8: {hole: 1.4}.
+//   Span: zone.beaconSpan = margin | {hole: margin, lair: margin}: a phase's first -20 dB span is measured
+//          from where a player comes in, the rest down to -24 at the zone's far side (see field()).
 //   Zone 5 (Laundry): soundHole = the dryer vent by the Glider, beaconVoice = {hole: ['alarm','knock'], lair: ['alarm']},
 //          lair = the alarm in Peridot's arena.
 // Distance: shortest path over room exits (portal midpoints, from world.exits) and doors (one way),
 // plus the straight distance inside the player's and the target's rooms; a room's `noWay` marks the
 // straight lines a cricket can't take (see noWay below). Gain: 0 dB at the target to
-// -24 dB at the zone's far side (its farthest room corner, or zone.beaconSpan's), never lower.
+// -24 dB at the zone's far side (its farthest room corner; zone.beaconSpan adds a knee), never lower.
 import { TILE } from '../data/movement.js';
 import { ZONE_INFO } from '../data/zones.js';
 import { CRICKET_VOICE, individualPitch, pitchOf } from './chirps.js';
@@ -77,7 +77,7 @@ export function beaconSpec(game) {
       let voices = bv && !Array.isArray(bv) && typeof bv === 'object' ? asVoices(bv[phase]) : asVoices(bv);
       if (!voices.length) voices = [CRICKET_VOICE[cricket] || 'house'];
       const px = (t.x + 0.5) * TILE, py = (t.y + 0.5) * TILE;
-      // [issue 22] zone.beaconSpan = {hole: margin, lair: margin}: this phase's far side is measured from
+      // [issue 22] zone.beaconSpan = {hole: margin, lair: margin}: this phase's span is measured from
       // where a player comes in (see field()); the lair phase also comes from the item's spot.
       const bs = zi.beaconSpan, span = bs && typeof bs === 'object' ? bs[phase] : bs;
       let from = null;
@@ -184,11 +184,13 @@ function field(world, spec) {
       if (Number.isFinite(d)) f.maxDist = Math.max(f.maxDist, d);
     }
   }
-  // [issue 22] A phase with a span margin (zone.beaconSpan): the far side is `margin` x the farthest place
-  // a player comes in from (an opening or door from another zone, the zone's start spot, spec.from: the
-  // item's spot in the lair phase), never past the zone's own far side. For a zone whose far rooms lie
-  // past the target (the Sunroom: the bench floor and the Glass Corner, the long way back round by the
-  // canopy), so the route itself isn't squeezed into the loud end of the span.
+  // [issue 22] A phase with a span margin (zone.beaconSpan): f.span = `margin` x the farthest place a
+  // player comes in from (an opening or door from another zone, the zone's start spot, spec.from: the
+  // item's spot in the lair phase), if that's short of the zone's own far side. measure() then falls
+  // from 0 dB to SPAN_KNEE_DB over the span and on to the floor at the far side. For a zone whose far
+  // rooms lie past the target (the Sunroom: the bench floor and the Glass Corner, the long way back
+  // round by the canopy), so the route isn't squeezed into the loud end and the rooms past the span
+  // still get warmer and colder.
   if (spec.span > 0) {
     const { nodes } = graph(world), inZ = (r) => world.rooms[r]?.zone === tz;
     let far = 0;
@@ -203,7 +205,7 @@ function field(world, spec) {
       spots.push({ room: sr.id, x: (m.x + 0.5) * TILE, y: (m.y + 0.5) * TILE });
     }
     for (const s of spots) { const d = pathFrom(world, f, spec, world.rooms[s.room], s.x, s.y).d; if (Number.isFinite(d)) far = Math.max(far, d); }
-    if (far > 0) f.maxDist = Math.min(f.maxDist, spec.span * far);
+    if (far > 0 && spec.span * far < f.maxDist) f.span = spec.span * far;
   }
   world._beaconFields[key] = f;
   return f;
@@ -221,6 +223,15 @@ function pathFrom(world, f, spec, room, x, y) {
   return { d, via };
 }
 
+// [issue 22] The distance fraction (gain = FLOOR_DB x frac): straight to the far side, or with a span
+// (zone.beaconSpan) 0 -> SPAN_KNEE_DB over the span, then on down to the floor at the zone's far side.
+export const SPAN_KNEE_DB = -20;
+function fracOf(f, d) {
+  if (!f.span) return d / f.maxDist;
+  const k = SPAN_KNEE_DB / FLOOR_DB;
+  return d <= f.span ? k * d / f.span : k + (1 - k) * (d - f.span) / (f.maxDist - f.span);
+}
+
 /**
  * Measure the beacon from the player: path distance, gain (dB), and the next waypoint
  * (the exit on the path, or the target itself) in the current room's coordinates.
@@ -231,7 +242,7 @@ export function measure(game, spec = beaconSpec(game)) {
   const f = field(world, spec);
   const { d, via } = pathFrom(world, f, spec, room, p.cx, p.cy);
   const reach = Number.isFinite(d);
-  const frac = reach ? Math.max(0, Math.min(1, d / f.maxDist)) : 1;
+  const frac = reach ? Math.max(0, Math.min(1, fracOf(f, d))) : 1;
   const wp = via ? { x: via.wx - room.wx, y: via.wy - room.wy } : { x: spec.target.wx - room.wx, y: spec.target.wy - room.wy };
   return { pathDist: reach ? Math.round(d) : null, maxDist: Math.round(f.maxDist), frac, gainDb: FLOOR_DB * frac, waypoint: wp, sameRoom: !via && reach };
 }
