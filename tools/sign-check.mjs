@@ -20,7 +20,7 @@ import { Game } from '../game/src/game.js';
 import { ZONES } from '../game/data/rooms/index.js';
 import { TILE } from '../game/data/movement.js';
 import { K } from '../game/src/physics.js';
-import { STANDABLE, floorProps, markerSize, markerObstacles, markerHits } from '../game/src/notes.js';
+import { STANDABLE, floorProps, markerSize, markerObstacles, markerHits, NOTE, newArm, armStep, armAllows } from '../game/src/notes.js';
 import { TEXT } from '../game/data/text.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -167,6 +167,25 @@ if (stepped.length) { console.log('stepped clear of a floor prop:'); for (const 
 if (lowMarkers.length) { console.log('markers lower than head height:'); for (const s of lowMarkers) console.log('  ' + s); }
 console.log(`${markers} markers in open air`);
 console.log(`${n} signs (${notes} notes, ${cards} cards), ${script.length} script tips, ${tips.size} distinct tips`);
+
+// ---- [issue 29] showing a note again (notes.js newArm/armStep/armAllows, the rule ui.js updateTips runs) ----
+{
+  const s = { key: 'r:1,1' }, signs = [s];
+  let inStay = true;
+  const stay = () => inStay, arm = newArm();
+  ok(armAllows(arm, s, 0, false, false), 're-show: a note never shown may show');
+  armStep(arm, signs, stay, s.key); // its card is up
+  armStep(arm, signs, stay, null);  // the card went (a script card took over), he's still by it
+  ok(!armAllows(arm, s, 10, false, true), 're-show: not while he lingers beside it');
+  ok(!armAllows(arm, s, 11, true, false), 're-show: not under it while moving or in the air');
+  let f = 20, shown = -1;
+  for (; f < 80 && shown < 0; f++) if (armAllows(arm, s, f, true, true)) shown = f;
+  ok(shown - 20 === NOTE.restand, `re-show: standing still under its marker shows it after ${NOTE.restand} frames (${shown - 20})`);
+  armStep(arm, signs, stay, s.key); armStep(arm, signs, stay, null);
+  ok(!armAllows(arm, s, 200, true, true), '... once: not again on the next frame he stands there');
+  inStay = false; armStep(arm, signs, stay, null); inStay = true;
+  ok(armAllows(arm, s, 201, false, false), 're-show: he left (out of its stay range) and came back: it may show');
+}
 
 // ---- the 2-line check in the browser ----
 if (args.includes('--wrap')) {

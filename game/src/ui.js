@@ -6,7 +6,7 @@ import { CRICKETS } from '../data/crickets.js';
 import { ITEMS } from '../data/items.js';
 import * as S from './sprites.js';
 import { turn } from './ear.js';
-import { NOTE, noteLive } from './notes.js'; // [issue 9] tutorial notes on the path
+import { NOTE, noteLive, newArm, armStep, armAllows } from './notes.js'; // [issue 9] tutorial notes on the path
 import { TILE } from '../data/movement.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -545,8 +545,10 @@ UI.prototype.updateTips = function (game, prompt) {
     if (card) this.showTip(game, card);
     else {
       let best = null, bd = 1e9;
+      const still = p.grounded && Math.abs(p.vx) < 5 && !(p.invuln > 0);
       for (const sg of signs) {
         if (!noteLive(game, sg) || !appear(sg) || sg.key === this._tipQuiet || teaches(sg)) continue;
+        if (!armAllows(this._tipArm, sg, f, near(sg, NOTE.under, 1.5, 0.5), still)) continue; // [issue 29] shown already: he left and came back, or stands under it 0.5 s
         const d = Math.abs(p.cx - sg.nx);
         if (d < bd) { best = sg; bd = d; }
       }
@@ -555,12 +557,12 @@ UI.prototype.updateTips = function (game, prompt) {
       if (!best) this._tipCand = null;
       else {
         if (this._tipCand?.key !== best.key) this._tipCand = { key: best.key, f0: f };
-        const still = p.grounded && Math.abs(p.vx) < 5;
-        if (still || f - this._tipCand.f0 >= NOTE.dwell) this.showTip(game, best);
+        if ((p.grounded && Math.abs(p.vx) < 5) || f - this._tipCand.f0 >= NOTE.dwell) this.showTip(game, best);
       }
     }
   }
   st = this._tip;
+  armStep(this._tipArm, signs, stay, st && !st.fading && st.kind === 'note' ? st.key : null); // [issue 29]
   // after its fade-out the card goes (and the toasts take the column's usual place)
   if (st?.fading && performance.now() - st.hideAt > 330) { this.tipCard.hidden = true; this._tip = st = null; }
   const live = st && !st.fading;
@@ -587,7 +589,7 @@ UI.prototype.toastY = function () {
   return matchMedia('(max-height: 500px) and (pointer: coarse)').matches ? 80 / H : 0.3;
 };
 UI.prototype.resetTips = function () {
-  this._tip = null; this._tipCand = null; this._tipQuiet = null; this._tipRect = null; this._tipBorn = new Set();
+  this._tip = null; this._tipCand = null; this._tipQuiet = null; this._tipRect = null; this._tipBorn = new Set(); this._tipArm = newArm(); // [issue 29] a new room: every note fresh
   this.tipCard.classList.remove('on', 'under', 'squeeze'); this.tipCard.hidden = true;
 };
 UI.prototype.markTipRead = function (st) {
@@ -622,6 +624,7 @@ UI.prototype.showTip = function (game, sg) {
   const f = game.frame, cam = game.camera, p = game.player, el = this.tipCard;
   const wasHidden = el.hidden;
   const size = this.setTipText(sg.text);
+  el.hidden = false; // [issue 29] the same tip again: setTipText keeps its cached size and doesn't touch the card, which its last fade-out hid
   const cx = this._tipCx ?? 0.5, cw = size.w, ch = size.h;
   const rectAt = (y0) => ({ x0: cx - cw / 2 - 0.01, x1: cx + cw / 2 + 0.01, y0: y0 - 0.01, y1: y0 + ch + 0.01 });
   const top = this._tipTop ?? SLOT.top, up = Math.max(SLOT.up, top), low = SLOT.low - ch;

@@ -24,7 +24,27 @@ export const NOTE = Object.freeze({
   linger: 24,              // out of range this long (0.4 s), then it fades
   fadeIn: 9,               // 150 ms (CSS): "fully shown" starts after it
   read: 90,                // fully shown 1.5 s: read
+  restand: 30,             // [issue 29] standing still under a shown note's marker this long (0.5 s) shows it again
+  under: 1,                // [issue 29] ... "under" it: within a tile of its column (same floor)
 });
+
+// [issue 29] Showing a note again. Once its card has shown, a note shows again (read or not) when the cricket
+// comes back after leaving it (out of its `stay` range since the card was up), or when he stands still under
+// its marker for NOTE.restand; never while it's up, and (ui.js) a read note never in the air or stunned.
+// arm: {up: keys shown and not left since, still: {key, f0} | null}; pure, so tools can drive it.
+export const newArm = () => ({ up: new Set(), still: null });
+// every frame: the shown note stays "up"; a note he has left (out of its stay range) is armed again
+export function armStep(arm, signs, stay, shownKey = null) {
+  if (shownKey != null) { arm.up.add(shownKey); if (arm.still?.key === shownKey) arm.still = null; }
+  for (const k of [...arm.up]) { if (k === shownKey) continue; const s = signs.find((q) => q.key === k); if (!s || !stay(s)) arm.up.delete(k); }
+}
+// may note sg's card show now (he's in its appear range)? under: within NOTE.under of its marker, still: grounded and not moving
+export function armAllows(arm, sg, f, under, still) {
+  if (!arm.up.has(sg.key)) return true;
+  if (!(under && still)) { if (arm.still?.key === sg.key) arm.still = null; return false; }
+  if (arm.still?.key !== sg.key) arm.still = { key: sg.key, f0: f };
+  return f - arm.still.f0 >= NOTE.restand;
+}
 
 // Floor props a note keeps clear of: [{x0, x1, y0, y1}] in tiles (the rows they stand in).
 export function floorProps(entities) {
