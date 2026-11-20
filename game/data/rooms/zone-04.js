@@ -154,7 +154,6 @@ export default {
       fx: [{ kind: 'motes', x: 46, y: 1, w: 12, h: 8 }],
       decor: [
         { prop: 'jam-blob', x: 54, y: 10, h: 0.7, layer: 'mid' },
-        { prop: 'sound-hole', x: 56, y: 8, h: 1.2, layer: 'back' },
         { prop: 'spice-rack', x: 12, y: 15, h: 2.8, layer: 'back' },
         { prop: 'cork', x: 30, y: 14, h: 1.1, layer: 'mid' },
         { prop: 'jam-blob', x: 16, y: 27, h: 0.5, layer: 'mid' },
@@ -165,7 +164,7 @@ export default {
         { type: 'hook', x: 34, y: 11 },
         { type: 'antsoldier', x: 44, y: 14, range: [38, 45] },
         { type: 'item', item: 'band', x: 55, y: 10 },
-        { type: 'beacon', x: 56, y: 9 },
+        { type: 'beacon', x: 56, y: 10 }, // [issue 28] the knot hole, down on the shelf by the band (was a tile up, in the air)
         { type: 'sign', x: 46, y: 10, w: 5, text: 'Hold {use}, then let go: super-jump!' },
         { type: 'checkpoint', x: 23, y: 27 },
         { type: 'checkpoint', x: 28, y: 14 },

@@ -120,6 +120,8 @@ export const TEXT = {
     crumbs: '+{n} crumbs',
     // [issue 33] what crumbs are for: the first one a save slot picks up, and the HUD counter's hover / tap
     crumbFirst: 'A crumb! Hang on to these: someone in this house trades for them.',
+    // [issue 28] the first time a save slot has a sound hole on screen
+    holeFirst: 'A sound hole! Your friend\'s call comes through here. Get close and hold {listen}.',
     crumbHint: 'Crumbs: hang on to them. Someone in this house trades for them.',
     crumbHintShop: 'Crumbs: spend them at Rolo\'s Crumb Shop in the Carrier.',
     duet: 'Pip and Chip, together! The music box opens: +{n} crumbs, and the Duet for the Stage.', // [fixer]

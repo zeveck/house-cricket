@@ -322,6 +322,20 @@ section('meta', () => {
     const { g: g5 } = game(null, 'et-thermo'), run5 = mk(g5); g5.recruits.add('rolo'); run5.event('crumbs', { n: 3 });
     ok(tips(g5) === 0 && ensure(g5).flags.crumbTold, '... nor one that has met Rolo');
   }
+  { // [issue 28] the first sound hole on screen says what it is: once per save slot
+    const tip = line('ui.holeFirst'), tips = (gg) => gg.toasts.filter((t) => t.text === tip).length;
+    const { g: ga, step: sa } = game(null, 'bed-desk', { x: 3, y: 51 }), runa = mk(ga);
+    for (let i = 0; i < 20; i++) { sa({}); runa.step({ pressed: {} }); }
+    ok(tips(ga) === 0 && !ensure(ga).flags.holeTold, 'sound hole tip: not while the hole is off screen');
+    const { g: gb, step: sb } = game(null, 'bed-desk', { x: 20, y: 15 }), runb = mk(gb);
+    for (let i = 0; i < 20; i++) { sb({}); runb.step({ pressed: {} }); }
+    ok(tips(gb) === 1 && ensure(gb).flags.holeTold, 'sound hole tip: shows when the hole comes on screen');
+    for (let i = 0; i < 400; i++) { sb({}); runb.step({ pressed: {} }); }
+    ok(tips(gb) <= 1, '... once (not again while it stays on screen)');
+    const sv = Save.fromGame(gb), { g: gc, step: sc } = game(null, 'bed-desk', { x: 20, y: 15 }), runc = mk(gc); Save.intoGame(gc, sv);
+    for (let i = 0; i < 20; i++) { sc({}); runc.step({ pressed: {} }); }
+    ok(ensure(gc).flags.holeTold && tips(gc) === 0, '... the slot keeps it (save and load): not told again');
+  }
   const mh = p.maxHealth; at(p, 13, 12); tick({}, 10); ok(p.maxHealth === mh + 1 && ensure(g).secrets.includes('heart:et-test'), 'seed-heart secret: +1 heart');
   run.event('secret', { id: 'song:et-test' }); tick({}, 2); ok(ensure(g).secrets.includes('song:et-test'), 'song-seed secret');
   at(p, 22, 15); tick({}, 20); tick({ enter: true }, 1); tick({}, 5);

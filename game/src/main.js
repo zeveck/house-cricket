@@ -589,6 +589,7 @@ function earGlint() {
 function updateMetaHUD() {
   const p = game.player, m = game.meta || {};
   const d = !game.inCarrier ? A.indicator() : null; // [final-S] also feeds the ripples and the rhythm strip
+  game.callPulse = d?.show ? d.pulse || 0 : 0; // [issue 28] the sound hole swells with each chirp (render.js)
   const a = earShow ? earAngle() : null;
   const earInfo = a != null ? {
     out: ear.out, reason: ear.reason, angle: a, mode: Ear.earMode(settings), snap: earSnap, pulseN: earPulse, room: game.room.id,

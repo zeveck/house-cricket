@@ -76,7 +76,7 @@ function sink() {
   g.row(14, 14, 4, '=').row(17, 12, 4, '=').row(19, 10, 4, '=');  // soap dish, toothbrush cup, towel ring
   g.box(22, 34, 10, 2, '#');                   // the tub-side ledge (save 2, the lair door)
   g.put(25, 33, 'S');
-  g.put(13, 14, 'B');                          // the overflow hole, right beside the floss
+  g.put(13, 15, 'B');                          // the overflow hole, right beside the floss, at the counter ([issue 28] was a tile up, in the air)
   g.put(3, 51, 'k').put(10, 15, 'k').put(24, 51, 'k');
   return g.rows();
 }
@@ -127,7 +127,7 @@ export default {
   palette: ['#8CC9C4', '#E9F1EE', '#A9B8C2', '#4F7F86'],
   bg: 'z02-bathroom',
   start: { room: 'bath-door' },
-  beacon: { room: 'bath-sink', x: 13, y: 14 },
+  beacon: { room: 'bath-sink', x: 13, y: 15 },
   lair: { room: 'bath-lair', x: 58, y: 8 },
   decoys: [{ voice: 'chikchak', room: 'bath-lair', x: 7, y: 5, every: 9 }],
   near: ['soap-dish', 'sponge', 'steam-puff'],
@@ -204,7 +204,6 @@ export default {
       grid: sink(),
       bg: { v: 'a', mirror: true, x: 0.7, y: 0.5 },
       decor: [
-        { prop: 'sound-hole', x: 13.5, y: 14.3, h: 1.4, layer: 'back' },
         { prop: 'faucet-handle', x: 9, y: 15, h: 1.3 },
         { prop: 'soap-dish', x: 16, y: 13.8, h: 0.9 },
         { prop: 'save-crack', x: 25, y: 33, h: 1.2, layer: 'back' },

@@ -153,14 +153,13 @@ export default {
       fx: [{ kind: 'dust', x: 52, y: 6, w: 10, h: 26 }, { kind: 'motes', x: 2, y: 2, w: 26, h: 10 }],
       decor: [
         { prop: 'dryer-vent', x: 50, y: 8, h: 1.6, layer: 'back' },
-        { prop: 'sound-hole', x: 49, y: 6, h: 1.0, layer: 'back' },
         { prop: 'sock', x: 8, y: 11, h: 1.0, layer: 'mid' },
         { prop: 'sock', x: 20, y: 33, h: 1.2, layer: 'mid', flip: true },
         { prop: 'spool', x: 4, y: 33, h: 1.3, layer: 'back' },
       ],
       entities: [
         { type: 'item', item: 'glider', x: 44, y: 8 },
-        { type: 'beacon', x: 49, y: 7 },
+        { type: 'beacon', x: 49, y: 8 }, // [issue 28] at the vent hose's mouth, on the dryer (was a tile up, in the air)
         { type: 'lift', kind: 'updraft', x: 59, y: 2, w: 3, h: 31, vy: 6 },
         { type: 'loud', x: 30, y: 21, w: 18, h: 10 },
         { type: 'secret', id: 'laun-songseed-drum', x: 41, y: 30 },

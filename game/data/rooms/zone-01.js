@@ -60,7 +60,6 @@ function desk() {
   L(34, 11, 13, '#'); L(32, 6, 10);           // a ruler leaning on the cup
   L(30, 11, 13, '#'); L(28, 5, 10); L(26, 11, 13, '#'); L(24, 5, 10); L(22, 11, 13, '#'); L(20, 5, 10); L(18, 6, 9);
   g.put(5, 51, 'k').put(4, 35, 'k').put(12, 15, 'k');
-  g.put(24, 14, 'B');                         // the heating-vent grille, right beside the tape
   return g.rows();
 }
 // ---------------------------------------------------------------- bed-closet (2,3) 3x2
@@ -143,7 +142,7 @@ export default {
   palette: ['#3B4A7A', '#F2C46D', '#C8564B', '#7C98C4'],
   bg: 'z01-bedroom',
   start: { room: 'bed-carrier' },
-  beacon: { room: 'bed-desk', x: 24, y: 14 },
+  beacon: { room: 'bed-desk', x: 29, y: 15 },
   lair: { room: 'bed-lair', x: 32, y: 10 },
   near: ['sock', 'throw-pillow', 'book-spine', 'dice'],
   rooms: [
@@ -220,12 +219,12 @@ export default {
         { prop: 'pin', x: 4.5, y: 31.6, h: 1.6, rot: 0.3 },
         { prop: 'spool', x: 7, y: 27.2, h: 1.0 },
         { prop: 'spool', x: 21, y: 15, h: 1.5 },
-        { prop: 'sound-hole', x: 24.5, y: 14.2, h: 1.6, layer: 'back' },
         { prop: 'book-spine', x: 4, y: 13.4, h: 1.6, layer: 'back' },
       ],
       entities: [
         { type: 'sign', x: 2, y: 51, w: 6, text: S.jumpHold },
         { type: 'item', item: 'booties', x: 21, y: 15 },
+        { type: 'beacon', x: 29, y: 15 }, // [issue 28] the heating-vent grille in the shaft's wall, at Pip's height (was on the curtain)
         { type: 'sign', x: 26, y: 51, w: 4, text: S.wallJump },
         { type: 'sign', x: 18, y: 15, w: 5, text: 'The Tape Booties! The shaft behind the desk is good for practice.' },
         { type: 'crumbs', x: 4, y: 19, n: 5 }, // [fixer] no mites on the desk climb (gentler early game)

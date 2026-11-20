@@ -182,12 +182,11 @@ export default {
       decor: [
         { prop: 'spool', x: 16, y: 13, h: 1.6, layer: 'back' },
         { prop: 'pin', x: 10, y: 13, h: 1.6, layer: 'back', rot: 0.3 },
-        { prop: 'sound-hole', x: 11, y: 11, h: 1.2, layer: 'back' },
         { prop: 'spool', x: 22, y: 19, h: 1.2, layer: 'mid' },
       ],
       entities: [
         { type: 'item', item: 'thimble', x: 13, y: 13 },
-        { type: 'beacon', x: 11, y: 12 },
+        { type: 'beacon', x: 11, y: 13 }, // [issue 28] the register, down on the basket rim (was a tile up, in the air)
         { type: 'stinkbug', x: 26, y: 15, range: [22, 29] },
         { type: 'gate', id: 'liv-shadow', x: 25, y: 17, w: 1, h: 3, opens: { item: 'glow' }, msg: 'Too dark to go in without a light. (Glow Bead)', tile: 'G' },
         { type: 'secret', id: 'liv-crumbs-dark', x: 27, y: 19 },

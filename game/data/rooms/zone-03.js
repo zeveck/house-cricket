@@ -88,7 +88,7 @@ function undersink() {
   g.row(10, 15, 30, '~');                      // the leak puddle
   g.box(9, 14, 1, 2, '#');                     // the pipe foot behind it (song-seed)
   g.box(50, 14, 4, 2, '%').clear(51, 15, 2, 1); // a crack in the back panel (Mote)
-  g.put(44, 14, 'B');
+  g.put(44, 15, 'B');                          // the drain pipe's crack, at the floor ([issue 28] was a tile up, in the air)
   g.put(56, 15, 'k').put(4, 15, 'k');
   return g.rows();
 }
@@ -143,7 +143,7 @@ export default {
   palette: ['#F1D27A', '#C27A45', '#D0614A', '#8EA67A'],
   bg: 'z03-kitchen',
   start: { room: 'kit-fridge' },
-  beacon: { room: 'kit-undersink', x: 44, y: 14 },
+  beacon: { room: 'kit-undersink', x: 44, y: 15 },
   lair: { room: 'kit-sink', x: 6, y: 9 },
   decoys: [{ voice: 'hinge-creak', room: 'kit-fridge', x: 30, y: 20, every: 14 }],
   near: ['wooden-spoon', 'cork', 'sponge', 'spice-rack'],
@@ -229,7 +229,6 @@ export default {
       bg: { v: 'b', x: 0.15, y: 0.75 },
       decor: [
         { prop: 'sponge', x: 58, y: 15, h: 1.0 },
-        { prop: 'sound-hole', x: 44.5, y: 14.3, h: 1.4, layer: 'back' },
         { prop: 'sponge', x: 30, y: 4, h: 1.0, rot: 0.3 },
       ],
       entities: [

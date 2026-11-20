@@ -272,7 +272,6 @@ export default {
         {"prop": "fake-plant", "x": 6, "y": 23, "h": 2.0, "layer": "mid"},
         {"prop": "fake-plant", "x": 22, "y": 23, "h": 2.4, "layer": "back", "flip": true},
         {"prop": "fake-plant", "x": 38, "y": 23, "h": 1.8, "layer": "mid"},
-        {"prop": "sound-hole", "x": 15, "y": 23, "h": 0.9, "layer": "back"},
         {"prop": "sponge", "x": 9, "y": 23, "h": 0.7, "layer": "mid"},
         {"prop": "fake-plant", "x": 12, "y": 31, "h": 2.6, "layer": "back"},
         {"prop": "fake-plant", "x": 50, "y": 31, "h": 3.0, "layer": "back", "flip": true},

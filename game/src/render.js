@@ -18,6 +18,7 @@ import * as Geckos from './geckos.js'; // [builder B] dozing-gecko decor
 import { paintObject, OBJ_EDGE } from './objpaint.js'; // [polish] object painters
 import { LOOK } from '../data/look/index.js';
 import { noteLive, notePhase, markerSize, MARKER } from './notes.js'; // [issue 9] tutorial notes on the path
+import { beaconSpec } from './beacon.js'; // [issue 28] the hole the call comes through pulses
 import { rescueCount, shellStage } from './meta.js'; // [final-G] the Carrier's outside grows with its stages      // [polish] render-only per-room look overlay
 
 const VW = 1280, VH = 720;
@@ -938,10 +939,16 @@ export class Renderer {
       c.fillStyle = 'rgba(200,86,75,0.08)'; c.fillRect(z.x, z.y, z.w, z.h);
     }
     this.drawDecor(c, game, 'mid');
+    // [issue 28] one sound hole per B marker (the rooms' decor no longer draws a second one beside it); the
+    // hole the call is coming through right now swells and glows with each chirp (game.callPulse, main.js)
+    const live = game.beacons?.length ? beaconSpec(game)?.target : null;
     for (const b of game.beacons || []) {
+      const on = live && live.room === game.room.id && Math.abs(live.x - b.x) < 1 && Math.abs(live.y - b.y) < 1;
+      const pu = on ? game.callPulse || 0 : 0;
       for (let i = 0; i < 3; i++) { const r = ((t * 0.6 + i * 12) % 36) + 4; c.strokeStyle = `rgba(244,235,221,${0.6 - r / 70})`; c.lineWidth = 2; c.beginPath(); c.arc(b.x, b.y, r, 0, 7); c.stroke(); }
-      const img = S.get('props/sound-hole.webp');
-      if (img) c.drawImage(img, b.x - 16, b.y - 16, 32, 32 * img.height / img.width);
+      if (pu > 0.02) { c.fillStyle = `rgba(242,196,109,${0.35 * pu})`; c.beginPath(); c.arc(b.x, b.y, 16 + 10 * pu, 0, 7); c.fill(); }
+      const img = S.get('props/sound-hole.webp'), w = 36 * (1 + 0.14 * pu);
+      if (img) { const h = w * img.height / img.width; c.drawImage(img, b.x - w / 2, b.y - h / 2, w, h); }
       else { c.fillStyle = '#26303D'; c.beginPath(); c.ellipse(b.x, b.y, 7, 5, 0, 0, 7); c.fill(); }
     }
     for (const s of game.saves || []) {

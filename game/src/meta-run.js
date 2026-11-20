@@ -15,7 +15,7 @@
 //             game.emit('heard', {sound:'alarm'})     Sound Book entries
 //             game.emit('crumbs', {n}), game.emit('secret', {id})
 //             game.emit('rescue', ...) is the engine's own (cages): the zone-complete card follows.
-import { TILE } from '../data/movement.js';
+import { TILE, SCREEN_W, SCREEN_H } from '../data/movement.js';
 import { CRICKETS } from '../data/crickets.js';
 import { ensure, RECRUITS, NOT_CRICKETS, canChirp, secretKind, lairCrack } from './meta.js';
 import { SECRETS } from '../data/house.js';
@@ -31,6 +31,16 @@ export function firstCrumb(g, m, n) {
   m.flags.crumbTold = true;
   if (m.crumbs - n > 0 || g.recruits?.has('rolo')) return false;
   g.toast(line('ui.crumbFirst'), 300);
+  return true;
+}
+// [issue 28] the first time a save slot has a sound hole (a beacon marker) on screen, a tip says what it is
+// (once per slot: meta.flags.holeTold is saved with it). Returns true when it told.
+export function firstHole(g, m) {
+  if (m.flags.holeTold || g.inCarrier || !g.beacons?.length || !g.camera) return false;
+  const C = g.camera, k = 24, vw = C.vw || SCREEN_W * TILE, vh = C.vh || SCREEN_H * TILE;
+  if (!g.beacons.some((b) => b.x > C.x + k && b.x < C.x + vw - k && b.y > C.y + k && b.y < C.y + vh - k)) return false;
+  m.flags.holeTold = true;
+  g.toast(line('ui.holeFirst'), 360);
   return true;
 }
 const ov = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -61,6 +71,7 @@ export class MetaRun {
     this.lastFx = g.frame;
     if (this.pendingCard && g.frame >= this.pendingCard.at) { const c = this.pendingCard; this.pendingCard = null; A.zoneComplete(c.id); return; }
     if (A.ui.screen || A.dialog.active) return;
+    firstHole(g, m); // [issue 28]
     // ---- meta entities ----
     const pb = { x: p.x, y: p.y, w: p.w, h: p.h };
     let prompt = null;
