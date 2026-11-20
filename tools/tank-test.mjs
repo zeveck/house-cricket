@@ -322,7 +322,7 @@ section('a retry is a fresh entry at the checkpoint', () => {
   const f = sandGame(false, 33); f.g.hold = s.g.hold; f.g.trans = s.g.trans && { ...s.g.trans };
   const pick = (g) => {
     const b = g.boss, out = {};
-    for (const [k, v] of Object.entries(b)) if (!['g', 'e', 'rig', 'ghost'].includes(k)) out[k] = v;
+    for (const [k, v] of Object.entries(b)) if (!['g', 'e', 'rig'].includes(k)) out[k] = v;
     return JSON.stringify({ b: out, p: [g.player.x, g.player.y, g.player.state, g.player.vx, g.player.vy, g.player.health], signs: g.signs.map((x) => x.key), toasts: g.toasts.map((t) => t.text), room: g.room.id, slept: g.rs('tank-sand').taken.has(SLEPT) });
   };
   const a = pick(s.g), c = pick(f.g);

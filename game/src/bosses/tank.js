@@ -147,12 +147,33 @@ const SAND = constant({
   gulp: { puff: 14, black: 30, fade: 20, card: 90, skip: 30 }, // frames: the puff, black (~0.5 s), the fade back, the card (<= 1.5 s, skippable after 0.5 s)
   head: [71, 131, 52],                         // asleep: her head from the middle (px, near and far) and its height
 });
+// [issue 25] her silhouette on the glass: the airborne frame (with its code tail) drawn once into a small
+// canvas, filled dark and softened, then scaled up each frame (a canvas filter every frame was far too slow)
+const SIL_K = 0.5; // the cached picture's size: SIL_K canvas px per room px at her drawn length
+let silCache = null;
+function silhouette() {
+  if (silCache) return silCache;
+  if (typeof document === 'undefined' || !Geckos.ready('duchess')) return null;
+  const rig = Geckos.create('duchess', { autoTick: false });
+  if (!rig.meta?.anims?.pounce) return null;
+  rig.hold('pounce', 2); rig.breathe = false; rig.glint = false; rig.tellMark = false;
+  const sc = rig.scaleFor(LEN) * SIL_K, W = Math.ceil(LEN * 1.25 * SIL_K), H = Math.ceil(LEN * 0.6 * SIL_K), pad = 8;
+  const a = document.createElement('canvas'); a.width = W + 2 * pad; a.height = H + 2 * pad;
+  const g = a.getContext('2d');
+  rig.draw(g, a.width / 2, a.height - pad, sc, -1);
+  g.globalCompositeOperation = 'source-in'; g.fillStyle = '#141626'; g.fillRect(0, 0, a.width, a.height);
+  const b = document.createElement('canvas'); b.width = a.width; b.height = a.height;
+  const g2 = b.getContext('2d'); g2.filter = 'blur(2px)'; g2.drawImage(a, 0, 0);
+  b.ax = 0.5;
+  silCache = b;
+  return b;
+}
 const HUNT = new Set(['wake', 'run', 'crouch', 'spring', 'air', 'land', 'toLog', 'snap', 'sniff', 'roar', 'shake']);
 function sand(g, e) {
   const lost = g.rs(g.room.id).taken.has(SLEPT);
   return Object.assign(Object.create(Sand), { g, e, phase: null, music: 'title', musicNow: null, warmMusic: 'chase',
     mode: lost ? 'nap' : 'asleep', t: 0, x: (e.x + 0.5) * T, y: (e.y + 1) * T, facing: 1,
-    pose: 'sleep', anim: null, animAt: 0, held: null, rig: null, ghost: null, wig: 0, twitch: 0, flick: 0, stir: 0,
+    pose: 'sleep', anim: null, animAt: 0, held: null, rig: null, wig: 0, twitch: 0, flick: 0, stir: 0,
     quiet: lost, woke: false, pounces: 0, cool: 0, roarCool: 0, tellN: 0, speed: 0,
     x0: 0, y0: 0, x1: 0, y1: 0, bite: 'sand', skit: 0, why: null, dark: 0, black: 0, card: -1, downBuf: 0, peekAt: -1,
     pipGone: false, chase: false, loopName: null, loopRate: 1, signed: false, bermTold: false, heldBack: false, lastToast: null });
@@ -453,12 +474,12 @@ const Sand = {
   drawBack(c, r) { // her silhouette looming on the glass while she's in the air
     const s = this;
     if (s.mode !== 'air' && s.mode !== 'spring') return;
-    if (!s.ghost) s.ghost = Geckos.create('duchess', { autoTick: false });
-    if (!Geckos.ready('duchess')) return;
-    const k = s.mode === 'air' ? Math.sin(Math.PI * Math.min(1, s.t / SAND.air)) : 0.2;
-    s.ghost.hold('pounce', 2); s.ghost.breathe = false; s.ghost.glint = false; s.ghost.tellMark = false;
-    c.save(); c.globalAlpha = 0.16 + 0.14 * k; c.filter = 'brightness(0) blur(3px)';
-    s.ghost.draw(c, s.x - s.facing * 30, s.y - 1.2 * T - 1.4 * T * k, s.ghost.scaleFor(LEN * (1.7 + 0.4 * k)), s.facing);
+    const sil = silhouette();
+    if (!sil) return;
+    const k = s.mode === 'air' ? Math.sin(Math.PI * Math.min(1, s.t / SAND.air)) : 0.2, sc = 1.7 + 0.4 * k;
+    const w = sil.width * sc / SIL_K, h = sil.height * sc / SIL_K, cx = s.x - s.facing * 30, by = s.y - 1.2 * T - 1.4 * T * k;
+    c.save(); c.globalAlpha = 0.16 + 0.14 * k; c.translate(cx, by); if (s.facing > 0) c.scale(-1, 1);
+    c.drawImage(sil, -w * sil.ax, -h, w, h);
     c.restore();
     void r;
   },

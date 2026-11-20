@@ -136,7 +136,13 @@ export class BossBase {
       if (!this.rig) { this.rig = Geckos.create(this.rigName); Geckos.preload(this.rigName); }
       if (this._wiggle) { this.rig.wiggle(this._wiggle); this._wiggle = 0; }
       if (Geckos.ready(this.rigName)) {
-        this.rig.setPose(this.pose);
+        // [issue 26] Duchess's frame animations in her Bedroom fight too: her stalk is the run (slower), her
+        // tell the pounce's crouch; the lunge stays strike.webp, the doze sleep.webp
+        if (this.rigName === 'duchess' && this.rig.meta?.anims?.run) {
+          if (this.pose === 'walk') { this.rig.play('run'); this.rig.walkSpeed = 0.55; }
+          else if (this.mode === 'tell' || this.mode === 'tell2') this.rig.hold('pounce', 0);
+          else this.rig.setPose(this.pose);
+        } else this.rig.setPose(this.pose);
         this.rig.draw(c, this.x, this.y, this.rig.scaleFor(this.len), this.facing);
         return;
       }
