@@ -328,7 +328,7 @@ const Sand = {
     const s = this, g = s.g;
     g.rs(g.room.id).taken.add(SLEPT);
     g.retireNote('opening.tank.hideLog');
-    s.mode = 'curl'; s.t = 0; s.still('sleep'); s.musicNow = null; s.chase = false; s.loopName = null; s.speed = 0;
+    s.mode = 'curl'; s.t = 0; s.play('run'); s.musicNow = null; s.chase = false; s.loopName = null; s.speed = 0;
     s.sfx('relief-sting', { gain: 1 });
     s.peekAt = g.frame + 40;
     g.toast(TK.shrug, 150); g.toast(TK.lost, 180);
@@ -450,7 +450,8 @@ const Sand = {
       case 'roar':                  // seen: a roar, then a full tell before any pounce
         if (s.t >= SAND.roar) { if (hiddenNow) { s.mode = 'sniff'; s.t = 0; s.play('tongue'); } else s.startCrouch(); }
         break;
-      case 'curl':                  // asleep where she is; the light comes back over 1.5 s
+      case 'curl':                  // a sleepy step back off the log, then asleep there; the light comes back over 1.5 s
+        if (s.t <= 20) { s.x -= s.facing * 1.6 * T / 20; if (s.t === 20) s.still('sleep'); }
         if (s.t >= SAND.lightOut) s.mode = 'nap';
         break;
       case 'nap':

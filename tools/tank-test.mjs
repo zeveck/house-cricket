@@ -228,9 +228,11 @@ for (const gentle of [false, true]) {
     ok(s.p.state === 'hide', `${M}: Right doesn't leave the log while she's at it`);
     ok(s.until(() => s.b().mode === 'sniff', 60) && s.b().anim === 'tongue', `${M}: she sniffs (the tongue)`);
     ok(s.until(() => s.lost(), 400), `${M}: she loses him: the room's flag`);
-    ok(s.b().mode === 'curl' && s.b().pose === 'sleep' && s.b().musicNow === null, `${M}: she curls up asleep where she is; the chase music stops`);
+    ok(s.b().mode === 'curl' && s.b().musicNow === null, `${M}: she gives up; the chase music stops`);
+    s.step({}, 22);
+    ok(s.b().pose === 'sleep' && !s.b().anim, `${M}: a step back off the log, and she curls up asleep there`);
     ok(count(s.ev, 'sfx', f0, (d) => d.name === 'relief-sting') === 1, `${M}: the relief sting`);
-    s.step({}, 95);
+    s.step({}, 73);
     ok(s.b().dark === 0 && s.b().mode === 'nap', `${M}: the light is back after 1.5 s`);
     ok(s.p.state === 'hide', `${M}: still hidden`);
     s.step({ right: true }, 2);
