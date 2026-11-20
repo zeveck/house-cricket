@@ -37,7 +37,7 @@ const metaOf = () => a.g.meta || {};
 const a = new RunAuthor({ room: 'bed-carrier', items: [], party: ['pip'] });
 // [fullrun] the browser's game frame when the Bedroom starts (after the opening and the tank): some bosses read the
 // absolute game.frame (gargy.js phase 1 sways with sin(frame / 90)), so the model starts on the same frame
-const G0 = +opt('--g0', 2841); // [issue 25] was 3123 (#7's hunt): the chase and the log escape made the tank shorter
+const G0 = +opt('--g0', 2921); // [issue 31] was 2841 (#25): her look-about before she gives up made the tank longer
 a.g.frame = G0; if (a.sim.meta) a.sim.meta.lastFx = G0;
 a.verbose = true;
 const chapters = [];
