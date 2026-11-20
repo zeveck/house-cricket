@@ -56,7 +56,7 @@ function sandGame(gentle, x = 1) {
 }
 const count = (ev, t, since = -1, pred = () => true) => ev.filter((e) => e.t === t && e.f > since && pred(e.d)).length;
 const roar = (d) => d.name === 'gecko-growl' && d.rate === 0.7;
-const HUNTING = ['wake', 'run', 'crouch', 'spring', 'air', 'land', 'toLog', 'snap', 'sniff', 'roar', 'shake'];
+const HUNTING = ['wake', 'run', 'crouch', 'spring', 'air', 'land', 'toLog', 'snap', 'sniff', 'look', 'roar', 'shake'];
 // past her asleep without touching her head: onto her rock behind her, then a full jump over her head
 function creepPast(s) {
   s.runTo(21);
@@ -261,7 +261,15 @@ for (const gentle of [false, true]) {
     // [issue 31] she sniffs, looks about (a "?"), gives up: the way on opens as she turns away; she walks home
     ok(s.until(() => s.b().mode === 'look', 300) && !s.lost(), `${M}: after the sniff she looks about for him (the way still shut)`);
     const look0 = s.g.frame, faces = new Set();
-    s.until(() => s.b().mode !== 'look', 200, () => { s.step({}); if (s.b().mode === 'look') faces.add(s.b().facing); });
+    let minDark = 1, hidAll = true, focusAll = true;
+    s.until(() => s.b().mode !== 'look', 200, () => {
+      const lt = s.g.frame - look0; // Right, then Left, held through the look: neither leaves the log
+      s.step(lt < 30 ? { right: true } : lt < 60 ? { left: true } : {});
+      if (s.b().mode === 'look') { faces.add(s.b().facing); minDark = Math.min(minDark, s.b().dark); hidAll = hidAll && s.p.state === 'hide'; focusAll = focusAll && !!s.b().focus(); }
+    });
+    ok(hidAll && s.p.hideHold !== undefined, `${M}: during the look, Right and Left don't leave the log (only Jump does)`);
+    ok(minDark > 0.95, `${M}: the room stays dark through the look, up to the turn-away (wash ${minDark.toFixed(2)})`);
+    ok(focusAll, `${M}: the camera keeps framing her through the look`);
     ok(faces.size === 2 && s.g.frame - look0 >= 60, `${M}: she looks one way, then the other (${s.g.frame - look0} frames)`);
     ok(s.b().mode === 'home' && s.lost(), `${M}: she gives up and turns for home: the room's flag is set right then`);
     ok(s.b().facing < 0 && s.b().musicNow === null && count(s.ev, 'sfx', f0, (d) => d.name === 'relief-sting') === 1, `${M}: she turns away; the chase music stops, the relief sting`);

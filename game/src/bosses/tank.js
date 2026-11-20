@@ -21,6 +21,7 @@ import { K } from '../physics.js';
 import * as Geckos from '../geckos.js';
 import { TELL } from './base.js';
 import { constant } from '../world.js';
+import { blob, tellMarks } from '../fx.js';
 
 const T = TILE;
 const ov = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -168,7 +169,7 @@ function silhouette() {
   silCache = b;
   return b;
 }
-const HUNT = new Set(['wake', 'run', 'crouch', 'spring', 'air', 'land', 'toLog', 'snap', 'sniff', 'roar', 'shake']);
+const HUNT = new Set(['wake', 'run', 'crouch', 'spring', 'air', 'land', 'toLog', 'snap', 'sniff', 'look', 'roar', 'shake']); // (look: she's still hunting until she gives up)
 function sand(g, e) {
   const lost = g.rs(g.room.id).taken.has(SLEPT);
   return Object.assign(Object.create(Sand), { g, e, phase: null, music: 'title', musicNow: null, warmMusic: 'chase',
@@ -530,7 +531,7 @@ const Sand = {
     // [issue 32] the crouch is the warning: a big fast tail shake, a bigger "!", her hips wiggling (like a cat
     // about to pounce) and her brow coming down over narrowed eyes; the shadow drops as she springs
     const crouch = s.mode === 'crouch';
-    rig.wigBoost = crouch ? 2.3 : 1; rig.markScale = crouch ? 1.45 : 1;
+    rig.wigBoost = crouch ? 2.3 : 1; rig.tellMark = false; // the "!" is drawn over the darkening (drawOver), so it reads in the dark
     const jig = s.mode === 'shake' && s.t < 40 ? Math.sin(s.t * 1.3) * 4 : crouch ? Math.sin(s.t * 1.1) * 5 : 0;
     const sc = rig.scaleFor(LEN);
     rig.draw(c, s.x + jig, s.y, sc, s.facing);
@@ -610,6 +611,14 @@ const Sand = {
         c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = gr; c.beginPath(); c.arc(ex, ey, 34, 0, 7); c.fill();
         c.fillStyle = `rgba(40,20,10,${(0.8 * k).toFixed(2)})`; c.fillRect(ex - 1.5, ey - 7, 3, 14); c.restore();
       }
+    }
+    if (s.mode === 'crouch') { // [issue 32] the tell's "!": a warm splat with a light rim and a dark "!", over the wash
+      const h = S2(s.nose() - s.facing * 0.7 * T, s.y - 3.1 * T), pop = Math.min(1, s.t / 6), sc = (1.3 + 0.08 * Math.sin(s.t * 0.9)) * pop * z;
+      tellMarks.at = performance.now(); // (fx skips the tell event's own charcoal splat)
+      c.save(); c.translate(h.x, h.y); c.scale(sc, sc);
+      c.fillStyle = '#F2B441'; blob(c, 0, 0, 22, 1.7); c.fill(); c.strokeStyle = '#FFF4D6'; c.lineWidth = 4; c.stroke();
+      c.fillStyle = '#2A1E14'; c.beginPath(); c.moveTo(-4, -14); c.lineTo(4, -14); c.lineTo(2, 4); c.lineTo(-2, 4); c.closePath(); c.fill();
+      c.beginPath(); c.arc(0, 10, 3.2, 0, 7); c.fill(); c.restore();
     }
     if (s.black > 0) { c.save(); c.fillStyle = `rgba(8,8,14,${s.black.toFixed(3)})`; c.fillRect(0, 0, W, H); c.restore(); }
     if (s.mode === 'gulp' && s.card >= 0) {
