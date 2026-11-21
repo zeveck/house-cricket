@@ -1,4 +1,4 @@
-{"name":"zone-00-path","start":{"room":"tank-cup","items":[],"party":["pip"]},"frames":2871,"events":[[91,"ArrowRight","down"],
+{"name":"zone-00-path","start":{"room":"tank-cup","items":[],"party":["pip"]},"frames":2902,"events":[[91,"ArrowRight","down"],
 [106,"ArrowRight","up"],
 [215,"ArrowLeft","down"],
 [238,"ArrowLeft","up"],
@@ -287,4 +287,6 @@
 [2736,"KeyZ","down"],
 [2778,"KeyZ","up"],
 [2778,"ArrowRight","down"],
-[2841,"ArrowRight","up"]],"expect":{"room":"tank-lid","levelComplete":false,"items":[]},"endState":{"room":"tank-lid","x":1129.3,"y":202.6,"state":"air","health":5,"items":[],"rescued":[],"levelComplete":false,"frame":2849}}
+[2817,"ArrowRight","up"],
+[2854,"KeyX","down"],
+[2857,"KeyX","up"]],"expect":{"room":"tank-lid","levelComplete":false,"items":[]},"endState":{"room":"tank-lid","x":1076.9,"y":216,"state":"ground","health":5,"items":[],"rescued":[],"levelComplete":false,"frame":2880}}

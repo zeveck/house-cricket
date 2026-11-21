@@ -170,7 +170,15 @@ if (want('zone-00')) {
   climb(a, [[14, 16], [13.5, 14], [17.5, 12, { from: 15.3, delay: 2 }], [14, 10, { from: 16.4, delay: 2 }], [18, 8, { from: 15.3, delay: 2 }]]).log('under the gap');
   walkTo(a, 20.4);
   a.down(J).until((g) => g.boss.mode === 'out', 120, 'squeeze').up(J).log('through!'); // [issue #27] jump up into the gap
-  a.down(R).until((g) => g.boss.mode === 'leap', 300, 'the leap').up(R).log('the leap (the cup tips; then story panel 4)');
+  // [issue #38] the store cup stands at the rim in his way: walk into it (the "Kick the cup off!" toast), stand,
+  // kick it off; he leaps after it. The kick lands on game frame KICK_AT, so the story's hand-over (panel 4) and the
+  // Bedroom's start stay on the frames they had (full-run.mjs's G0) when his walk past the rim leapt by itself.
+  const KICK_AT = 2855;
+  a.down(R).until((g) => g.boss.blocked, 300, 'the cup in the way').up(R).log('at the cup');
+  a.until((g) => g.frame >= KICK_AT - 1, 200, 'the kick frame').tap(KICK, 3);
+  a.until((g) => g.boss.mode === 'leap', 20, 'the cup knocked off').log(`the kick (game frame ${a.g.frame}; the cup tips, he leaps after it)`);
+  a.wait(15).log('off the rim after it (story panel 4 follows on game frame 2916)');
+  // (the recording ends before the hand-over: in the full run the story stops the game frames there)
   a.end();
   a.save('zone-00-path', {});
 }

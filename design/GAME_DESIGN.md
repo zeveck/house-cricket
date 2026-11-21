@@ -409,7 +409,7 @@ None of them involves hurting the gecko. Each is a single arena with 3 phases. T
 
     4. **Climb the decor:** hide log, fake plant, water-dish rim. Kick a loose pebble off a ledge to make a step (teaches kick).
     5. **The lid gap:** the kid left the mesh lid ajar. Squeeze through: jump up into the gap (or press ↓ under it), issue #27.
-    6. **The cup tips:** Pip's leap knocks the cup off the tank rim. Panel 4 shows the crickets scattering into the dark.
+    6. **The cup tips** (issue #38): on the lid the pet-store cup stands at the rim in Pip's way. Walking or jumping into it stops him, with a toast, "Kick the cup off! {kick}". Kick knocks it off the tank rim (a bonk, the cup tumbles, a splat and Duchess's bellow), and a moment later (10 frames) Pip leaps off the rim after it. A second later panel 4 shows the crickets scattering into the dark (on a New Game; anywhere else a "Free!" toast). The hand-over stays on the same game frame as before #38, so the full run's Bedroom start (G0) is unchanged.
   - Right after, the first **Chirp** prompt: Stripe answers from the dark, the ripples point the way, and the Bedroom begins beside an empty cricket keeper on the floor ("Home, for now.").
 - **How to play:** a one-screen card per control scheme (keys, touch, controller), shown first in the tutorial and available from pause.
 - **HUD** (a DOM overlay at screen resolution; text at least 14 CSS px):

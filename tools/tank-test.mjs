@@ -20,9 +20,9 @@ const section = (name, fn) => { if (only && !name.includes(only)) return; try { 
 
 const KEYS = ['left', 'right', 'up', 'down', 'jump', 'use', 'chirp', 'kick', 'listen', 'swapPrev', 'swapNext', 'enter', 'cloak', 'upJump', 'lookUp', 'confirm']; // [issue #27]
 // a game in the sand room (Pip at tile x, default its left edge), every event logged, and a key driver
-function sandGame(gentle, x = 1) {
+function sandGame(gentle, x = 1, room = 'tank-sand', y = 15) { // [issue #38] room, y: the lid too
   const g = new Game(ZONES);
-  g.startAt('tank-sand', x, 15);
+  g.startAt(room, x, y);
   g.gentle = gentle;
   const ev = [];
   const emit = g.emit.bind(g);
@@ -455,6 +455,52 @@ section('gentle tell', () => {
   const n = tellOf(false), gm = tellOf(true);
   ok(n.frames === Math.round(TELL.normal * FPS) && gm.frames === Math.round(TELL.gentle * FPS), `the tell event's frames (normal ${n.frames}, gentle ${gm.frames})`);
   ok(gm.held > n.held, `Gentle Mode's crouch is longer (${gm.held} vs ${n.held} frames)`);
+});
+
+// ---------------------------------------------------------------- [issue #38] the lid: kick the store cup off
+// Through the gap, the cup stands at the rim in his way: walking (or jumping) into it stops him, with the "Kick the
+// cup off!" toast; a kick knocks it off (the bonk, the tumble, the splat and bellow) and he leaps after it; then
+// the story hand-over (tankEscaped, panel 4) on a real New Game, the "Free!" toast otherwise.
+const throughGap = (inTank) => {
+  const s = sandGame(false, 20, 'tank-lid', 7);
+  if (inTank) s.g.meta = { flags: { inTank: true } };
+  const p = s.p; s.step({}, 10); p.x = 20.4 * T - p.w / 2; s.step({}, 5);
+  s.step({ jump: true }, 3); s.until(() => s.b().mode === 'out', 120, () => s.step({}));
+  s.until(() => p.grounded, 60);
+  return s;
+};
+section('lid', () => {
+  for (const inTank of [true, false]) {
+    const s = throughGap(inTank), p = s.p, b = s.b, tag = inTank ? 'New Game' : 'no story';
+    ok(b().mode === 'out', `${tag}: through the gap (${b().mode})`);
+    const cupX = b().cupX;
+    s.until(() => false, 90, () => s.step({ right: true }));
+    const stopX = p.x + p.w;
+    ok(b().mode === 'out' && stopX <= cupX - 0.5 * T && stopX > cupX - 1.5 * T, `${tag}: walking into the cup stops him beside it (his right edge ${(stopX / T).toFixed(2)}, the cup ${(cupX / T).toFixed(2)})`);
+    ok(s.toasts.filter((t) => t.text === TK.kickCup).length === 1 && /\{kick\}/.test(TK.kickCup), `${tag}: the "${TK.kickCup}" toast, once`);
+    for (let i = 0; i < 3; i++) { s.step({ right: true, jump: true }, 25); s.step({ right: true }, 40); }
+    ok(b().mode === 'out' && p.x + p.w <= cupX - 0.5 * T + 1 && !s.ev.some((e) => e.t === 'bonk'), `${tag}: jumping into it doesn't get past or tip it (${b().mode}, ${((p.x + p.w) / T).toFixed(2)})`);
+    s.step({ left: true }, 30); s.step({ right: true }, 40);
+    ok(s.toasts.filter((t) => t.text === TK.kickCup).length === 2, `${tag}: backing off and walking in again shows the toast again`);
+    const f0 = s.g.frame; const cy0 = b().cupY;
+    s.step({ kick: true }, 3); s.step({}, 2);
+    ok(b().mode === 'leap' && count(s.ev, 'bonk', f0) === 1, `${tag}: Kick knocks the cup off (${b().mode}, bonk ${count(s.ev, 'bonk', f0)})`);
+    s.until(() => p.state === 'air' && p.vy < 0, 20);
+    ok(p.state === 'air' && p.vy < 0 && p.vx > 0, `${tag}: he leaps off the rim after it`);
+    const xLeap = p.cx;
+    s.until(() => b().mode === 'done', 120);
+    ok(b().cupX > cupX + 2 * T && b().cupY > cy0 + 2 * T && b().cupRot > 0, `${tag}: the cup tumbles off the rim (x ${(b().cupX / T).toFixed(1)}, y ${(b().cupY / T).toFixed(1)})`);
+    ok(p.cx > xLeap + T, `${tag}: he goes after it (${(xLeap / T).toFixed(1)} -> ${(p.cx / T).toFixed(1)})`);
+    ok(count(s.ev, 'bellow', f0) === 1 && count(s.ev, 'sfx', f0, (d) => d.name === 'splat') === 1, `${tag}: the splat and the bellow`);
+    const story = s.ev.filter((e) => e.t === 'story' && e.d.name === 'tankEscaped').length;
+    if (inTank) ok(story === 1, `New Game: the story hand-over (tankEscaped, panel 4): ${story}`);
+    else ok(story === 0 && s.toasts.some((t) => /^Free!/.test(t.text)), 'no story: the "Free!" toast, no hand-over');
+  }
+  {
+    const s = throughGap(false), b = s.b; let past = false;
+    for (let i = 0; i < 240; i++) { s.step({ right: true, jump: i % 30 < 20 }); if (s.p.x > b().cupX) past = true; }
+    ok(!past && b().mode === 'out', `never past the cup without a kick (${b().mode})`);
+  }
 });
 
 console.log(`tank-test: ${pass} passed, ${fail} failed`);

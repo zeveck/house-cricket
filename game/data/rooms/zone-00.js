@@ -133,7 +133,7 @@ export default {
       decor: [
       ],
       entities: [
-        { type: 'boss', boss: 'tank', beat: 'lid', x: 20, y: 7, gap: [20, 6], cup: [25, 5], edge: 27 },
+        { type: 'boss', boss: 'tank', beat: 'lid', x: 20, y: 7, gap: [20, 6], cup: [25, 5] }, // [issue #38] the store cup stands in his way: kick it off
         { type: 'sign', x: 15, y: 7, w: 9, text: TK.squeeze },
       ],
     },

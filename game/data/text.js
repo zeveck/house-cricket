@@ -33,6 +33,7 @@ export const TEXT = {
       duchessWakes: ['Mm? Is it Saturday already?', '...Oh, hello, dinner.'],
       kick: '{kick} kicks. Loose pebbles make good steps.',
       squeeze: 'Jump into the gap with {jump} to squeeze through (or press {enter} under it).', // [issue #27]
+      kickCup: 'Kick the cup off! {kick}', // [issue #38] the store cup stands at the rim in his way
       // [issue 7] [issue 25] the escape in the sand room (src/bosses/tank.js Sand): hide in the log to lose her
       hideLog: 'Hide in the log!',            // the note the script puts up as she wakes
       eaten: 'Duchess got her dinner. She crouches and shakes her tail: get ready. Her shadow drops: HOP! Then hide in the log →', // [issue 25] the card after a catch (not Gentle Mode)
