@@ -118,7 +118,7 @@ r.ent('npc', who='glim', x=45, y=12, talk='npcs.glim.meet', recruit='glim')
 r.ent('cellarspider', x=24, y=21)
 r.ent('cellarspider', x=74, y=21)
 r.ent('centipede', x=20, y=17, path=[[20, 17], [40, 17], [40, 17], [20, 17]], speed=240)
-r.ent('sign', x=24, y=33, w=6, nx=25, text='{use} near a hook to grab it. {jump} to fling.')  # [issue 9] the note clear of the glass block
+r.ent('sign', x=24, y=33, w=6, nx=25, text='{use} near a hook to grab it. {lineOff} to jump off.')  # [issue 9] the note clear of the glass block
 r.put(80, 33, 'k')
 r.deco('pull-chain', 47, 22, 2.6, layer='back')
 r.deco('spool', 60, 17, 2.0, layer='mid')

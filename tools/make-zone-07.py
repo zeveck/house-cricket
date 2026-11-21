@@ -10,7 +10,7 @@ T_SIGN = {
     'listen': 'Stand still and hold {listen}. Crickets hear through their front legs.',
     'maze': 'Four sounds. Only one is a cricket. Listen to the rhythm.',
     'strip': 'The strip under the arrow shows the rhythm. Crickets chirp in short, steady groups.',
-    'floss': '{use} near a shelf pin to grab it. {left} {right} to swing. {jump} to fling.',
+    'floss': '{use} near a shelf pin to grab it. {left} {right} to swing. {lineOff} to jump off.',
     'hinge': 'Creeeak. (A door hinge. Very convincing. Not a cricket.)',
     'radio': 'Bip-bip. (A clock radio. Not even trying.)',
     'frog': 'Peep... (from down the vent. Someone downstairs.)',

@@ -49,7 +49,7 @@ r.put(18, 10, 'H'); r.put(23, 12, 'H')
 rooms.append(dict(id='sb-shaft', name='Sandbox: Shaft', x=101, y=99, grid=r.rows(), entities=[
     dict(type='sign', x=5, y=33, w=6, text='Tape Booties: press toward a wall in the air to cling, then {jump} to kick off.'),
     dict(type='item', item='floss', x=7, y=13),
-    dict(type='sign', x=1, y=13, w=9, text='{use} near a hook grabs it. {left} {right} pump the swing; {jump} flings; {use} lets go.'),
+    dict(type='sign', x=1, y=13, w=9, text='{use} near a hook grabs it. {left} {right} pump the swing; {lineOff} jumps off; {use} lets go.'),
 ]))
 
 # ---- R3 pond (2x1): raft and current, rubber band 7-tile cliff, glider gap ----
