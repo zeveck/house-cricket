@@ -16,13 +16,21 @@ button { font: inherit; }
 .hud-row { display: flex; gap: 3px; }
 .heart svg { width: calc(22px * var(--ui)); height: calc(20px * var(--ui)); fill: #C8564B; stroke: #3E2A20; stroke-width: 1.5; filter: drop-shadow(0 1px 0 rgba(0,0,0,.35)); }
 .heart.empty svg { fill: rgba(244,235,221,.25); }
-.chirp-meter { display: flex; gap: 4px; align-items: center; }
-.chirp-meter .pip { width: calc(16px * var(--ui)); height: calc(10px * var(--ui)); border-radius: 50%; border: 1.5px solid #3E2A20; background: rgba(244,235,221,.25); }
-.chirp-meter .pip.full { background: var(--gold); }
+/* [issue 39] the chirp meter: three eighth notes, gold when ready, hollow when spent; hover / tap says what they are */
+.chirp-meter { display: flex; gap: 1px; align-items: center; padding: 6px 8px 6px 0; margin: -6px -8px -6px 0; /* a bigger tap target, same look */ pointer-events: auto; cursor: help; touch-action: manipulation; -webkit-tap-highlight-color: transparent; outline: none; }
+.chirp-meter .pip { display: block; width: calc(17px * var(--ui)); height: calc(21px * var(--ui)); }
+.chirp-meter .pip svg { width: 100%; height: 100%; display: block; overflow: visible; filter: drop-shadow(0 1px 0 rgba(0,0,0,.35)); }
+.chirp-meter .pip .stem { fill: none; stroke: #3E2A20; stroke-width: 4.4; stroke-linecap: round; }
+.chirp-meter .pip .stem-in { fill: none; stroke: rgba(244,235,221,.22); stroke-width: 1.4; stroke-linecap: round; }
+.chirp-meter .pip.full .stem-in { stroke: var(--gold); }
+.chirp-meter .pip .flag, .chirp-meter .pip ellipse { fill: rgba(244,235,221,.22); stroke: #3E2A20; stroke-width: 1.5; stroke-linejoin: round; }
+.chirp-meter .pip.full .flag, .chirp-meter .pip.full ellipse { fill: var(--gold); }
 .chirp-meter.silent .pip { opacity: .3; }
 .trio { display: flex; gap: 6px; margin-top: 4px; }
 .portrait { width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid rgba(244,235,221,.55); background: rgba(42,32,26,.55); padding: 0; overflow: hidden; display: grid; place-items: center; cursor: pointer; color: var(--night); font-size: 14px; font-weight: 700; }
-.portrait img { width: 130%; height: 130%; object-fit: contain; }
+.portrait { position: relative; }
+/* [issue 39] the whole cricket in the badge: ui.js BADGE places each picture (its body inside the circle, only antenna tips cut) */
+.portrait img { position: absolute; max-width: none; height: auto; }
 .portrait.active { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(232,184,90,.4); }
 .portrait.queued { animation: blink .5s steps(2) infinite; }
 @keyframes blink { 50% { border-color: transparent; } }

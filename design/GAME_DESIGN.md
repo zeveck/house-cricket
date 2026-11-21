@@ -414,6 +414,8 @@ None of them involves hurting the gecko. Each is a single arena with 3 phases. T
 - **How to play:** a one-screen card per control scheme (keys, touch, controller), shown first in the tutorial and available from pause.
 - **HUD** (a DOM overlay at screen resolution; text at least 14 CSS px):
   - top-left: seed-hearts, the chirp meter, and the three trio portraits (tap to swap);
+    - the chirp meter is three eighth notes, gold when ready, hollow when spent. Hovering or tapping it says what it is, and a save slot's first chirp shows a one-time tip about it (meta.flags.meterTold);
+    - each portrait badge shows the whole cricket, fitted by `tools/badge-fit.py` (only antenna tips are cut);
   - top-right: crumbs, speaker, map and pause icons;
   - bottom-center, while listening: the beacon arrow and rhythm strip;
   - beacon ripples on the screen edge while listening and for 4 s after a Chirp-call (always, with the accessibility option);

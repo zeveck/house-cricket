@@ -8,6 +8,7 @@ import * as S from './sprites.js';
 import { turn } from './ear.js';
 import { NOTE, noteLive, newArm, armStep, armAllows } from './notes.js'; // [issue 9] tutorial notes on the path
 import { TILE } from '../data/movement.js';
+import { line } from './lines.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const h = (tag, attrs = {}, ...kids) => {
@@ -34,6 +35,8 @@ export const stickSvg = (dir, label) => {
   return `<svg class="cap-stick-svg" viewBox="-16 -16 32 32" role="img" aria-label="${label}"><circle r="14.6" fill="rgba(244,235,221,.2)" stroke="rgba(244,235,221,.9)" stroke-width="2"/>${knob}</svg>`;
 };
 const ICON = {
+  // [issue 39] a chirp-meter pip: an eighth note (head, stem, flag), so the meter reads as chirps, not ovals
+  note: '<svg viewBox="0 0 16 20" aria-hidden="true"><path class="stem" d="M9.6 2.2v11.4"/><path class="stem-in" d="M9.6 2.2v11.4"/><path class="flag" d="M9.6 2.2c3.2 1 5.4 3.4 4.4 7.2-.6-2.4-2.1-3.4-4.4-3.8z"/><ellipse cx="6" cy="14.6" rx="4.4" ry="3.3" transform="rotate(-22 6 14.6)"/></svg>',
   heart: '<svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21C5 15 1 11.5 1 7a5.5 5.5 0 0 1 11-1 5.5 5.5 0 0 1 11 1c0 4.5-4 8-11 14z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>',
   map: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="currentColor" stroke-width="2"/></svg>',
@@ -43,6 +46,14 @@ const ICON = {
   circle: '<svg viewBox="0 0 20 20" aria-label="circle"><circle cx="10" cy="10" r="5.5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>',
   square: '<svg viewBox="0 0 20 20" aria-label="square"><rect x="4.5" y="4.5" width="11" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>',
   triangle: '<svg viewBox="0 0 20 20" aria-label="triangle"><path d="M10 4l6.5 11h-13z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>',
+};
+
+// [issue 39] each cricket's picture in its round HUD badge, the whole body inside the circle (only antenna tips cut):
+// [width, left, top] in % of the badge. Made by tools/badge-fit.py from the portraits; rerun it when one changes
+const BADGE = {
+  chip: [124.5, -6.1, -6.0], digby: [104.8, -3.5, 21.2], duo: [118.1, -7.8, -0.3], frost: [99.2, -1.6, 4.3],
+  hump: [97.2, 2.2, -2.0], jam: [121.8, -10.3, -2.2], katy: [101.1, -4.4, 10.1], mote: [160.0, -3.9, -25.2],
+  pip: [98.1, -1.6, 15.7], rin: [113.5, 7.6, 2.1], stripe: [100.5, -1.7, 12.9],
 };
 
 // the ear of the chirp indicator (the floating one and the docked HUD button share it)
@@ -60,7 +71,12 @@ export class UI {
     const r = this.root;
     this.hud = h('div', { class: 'hud', hidden: '' });
     this.hearts = h('div', { class: 'hearts', 'aria-label': 'health' });
-    this.meter = h('div', { class: 'chirp-meter', 'aria-label': 'chirp meter' });
+    // [issue 39] hover (title) or tap it: what the notes are (updateHUD sets the line; main.js toasts it on a tap).
+    // Listeners attach once, here; updateHUD only rebuilds the pips inside
+    this.meter = h('div', { class: 'chirp-meter', role: 'button', tabindex: '-1', 'aria-label': 'chirp meter' });
+    this.meter.addEventListener('pointerdown', (e) => e.stopPropagation());
+    this.meter.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus off it: Space / Enter stay with the game
+    this.meter.addEventListener('click', (e) => { e.stopPropagation(); this.handlers.chirpMeter?.(this.meter.title); });
     this.trio = h('div', { class: 'trio' });
     const left = h('div', { class: 'hud-left' }, h('div', { class: 'hud-row' }, this.hearts), h('div', { class: 'hud-row' }, this.meter), this.trio);
     this.btnMute = h('button', { class: 'icon-btn', 'aria-label': 'mute', title: 'Mute (M)', onclick: () => this.handlers.mute?.() });
@@ -295,8 +311,10 @@ export class UI {
     if (this._mk !== mk) {
       this._mk = mk; this.meter.innerHTML = '';
       this.meter.classList.toggle('silent', p.stats.chp === 0);
-      for (let i = 0; i < 3; i++) this.meter.append(h('span', { class: 'pip' + (i < p.chirpMeter ? ' full' : '') }));
+      for (let i = 0; i < 3; i++) { const n = h('span', { class: 'pip' + (i < p.chirpMeter ? ' full' : '') }); n.innerHTML = ICON.note; this.meter.append(n); }
     }
+    const mh = p.stats.chp === 0 ? line('ui.meterSilent', { name: p.stats.name }) : line('ui.meterHint'); // [issue 39] attributes only, on a change
+    if (this._meterHintK !== mh) { this._meterHintK = mh; this.meter.title = mh; this.meter.setAttribute('aria-label', mh); }
     const tk = `${p.trio.join(',')}:${p.active}:${p.queuedSwap}:${game.portraitGlow ? JSON.stringify(game.portraitGlow) : ''}`; // [builder D] portraitGlow
     if (this._tk !== tk) {
       this._tk = tk; this.trio.innerHTML = '';
@@ -304,6 +322,8 @@ export class UI {
         const c = CRICKETS[id];
         const b = h('button', { class: 'portrait' + (i === p.active ? ' active' : '') + (i === p.queuedSwap ? ' queued' : ''), 'aria-label': `swap to ${c.name}`, title: c.name });
         const img = S.exists(`sprites/crickets/${id}/portrait.webp`) ? h('img', { src: `assets/sprites/crickets/${id}/portrait.webp`, alt: '' }) : null;
+        const bf = BADGE[id] || [100, 0, 0]; // [issue 39]
+        if (img) { img.style.width = `${bf[0]}%`; img.style.left = `${bf[1]}%`; img.style.top = `${bf[2]}%`; }
         if (img) b.append(img); else { b.style.background = c.color; b.append(h('span', { text: c.name })); }
         const glow = game.portraitGlow?.[id]; // [builder D] a boss can make portraits glow: game.portraitGlow = {id: colour}
         if (glow) { b.style.borderColor = glow; b.style.boxShadow = `0 0 0 3px ${glow}, 0 0 18px 6px ${glow}`; }

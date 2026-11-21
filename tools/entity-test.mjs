@@ -336,6 +336,20 @@ section('meta', () => {
     for (let i = 0; i < 20; i++) { sc({}); runc.step({ pressed: {} }); }
     ok(ensure(gc).flags.holeTold && tips(gc) === 0, '... the slot keeps it (save and load): not told again');
   }
+  { // [issue 39] the first chirp says what the chirp meter's notes are: once per save slot
+    const tip = line('ui.meterFirst'), tips = (gg) => gg.toasts.filter((t) => t.text === tip).length;
+    const { g: ga, step: sa } = game(null, 'et-thermo'), runa = mk(ga);
+    for (let i = 0; i < 10; i++) { sa({}); runa.step({ pressed: {} }); }
+    ok(tips(ga) === 0 && !ensure(ga).flags.meterTold, 'chirp meter tip: not before a chirp');
+    const m0 = ga.player.chirpMeter; sa({ chirp: true }); runa.step({ pressed: {} });
+    ok(ga.player.chirpMeter === m0 - 1 && tips(ga) === 1 && ensure(ga).flags.meterTold, 'chirp meter tip: the first chirp drops the meter and says what it is');
+    for (let i = 0; i < 20; i++) { sa({}); runa.step({ pressed: {} }); } sa({ chirp: true }); runa.step({ pressed: {} });
+    ok(tips(ga) === 1, '... once (not on the next chirp)');
+    const sv = Save.fromGame(ga), { g: gb, step: sb } = game(null, 'et-thermo'), runb = mk(gb); Save.intoGame(gb, sv);
+    sb({ chirp: true }); runb.step({ pressed: {} });
+    ok(ensure(gb).flags.meterTold && tips(gb) === 0, '... the slot keeps it (save and load): not told again');
+    ok(line('ui.meterHint').includes('note') && line('ui.meterSilent', { name: 'Hump' }).startsWith('Hump'), 'chirp meter hover / tap lines');
+  }
   const mh = p.maxHealth; at(p, 13, 12); tick({}, 10); ok(p.maxHealth === mh + 1 && ensure(g).secrets.includes('heart:et-test'), 'seed-heart secret: +1 heart');
   run.event('secret', { id: 'song:et-test' }); tick({}, 2); ok(ensure(g).secrets.includes('song:et-test'), 'song-seed secret');
   at(p, 22, 15); tick({}, 20); tick({ enter: true }, 1); tick({}, 5);

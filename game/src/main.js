@@ -139,6 +139,7 @@ ui.handlers = {
   map: () => { if (screen === 'play' && !dialog.active && !story.active) { if (ui.screen === 'map') resume(); else if (ui.screen) { if (PAUSE_TABS.has(ui.screen)) Screens.pause(A, 'map'); } else pause(null, 'map'); } }, // [final-S] not from a card
   promptTap: () => { if (game?.inCarrier) hub.tapPrompt(); else if (game) { input._press(['enter'], 'touch'); input._release(['enter']); } },
   mute: () => toggleMute(),
+  chirpMeter: (hint) => { if (game && screen === 'play' && !ui.screen && hint) game.toast(hint, 240); }, // [issue 39] a tap on the chirp meter
   crumbs: () => { if (game && screen === 'play' && !ui.screen) game.toast(crumbHint(), 240); }, // [issue 33] a tap on the crumbs counter
   // [issue 10] the ear: a click does what the ear's state at the press says (Ear.clickAction): pin a
   // resting ear out, rest a pinned one, dismiss one that came out on its own; [issue 3] a double click

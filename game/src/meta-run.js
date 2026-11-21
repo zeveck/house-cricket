@@ -33,6 +33,14 @@ export function firstCrumb(g, m, n) {
   g.toast(line('ui.crumbFirst'), 300);
   return true;
 }
+// [issue 39] the first chirp a save slot makes drops the chirp meter (the notes under the hearts): a tip says
+// what they are (once per slot: meta.flags.meterTold is saved with it). Returns true when it told.
+export function firstMeter(g, m) {
+  if (m.flags.meterTold || g.inCarrier) return false;
+  m.flags.meterTold = true;
+  g.toast(line('ui.meterFirst'), 330);
+  return true;
+}
 // [issue 28] the first time a save slot has a sound hole (a beacon marker) on screen, a tip says what it is
 // (once per slot: meta.flags.holeTold is saved with it). Returns true when it told.
 export function firstHole(g, m) {
@@ -188,6 +196,7 @@ export class MetaRun {
       case 'story': if (!(g.zone?.n >= 98) || m.flags.cardsInSandbox) A.storyEvent(d.name, d); break; // [mech] no modal cards in the test zones
       case 'heard': if (d.sound && !m.sounds.includes(d.sound)) m.sounds.push(d.sound); break;
       case 'crumbs': m.crumbs += d.n || 1; firstCrumb(g, m, d.n || 1); break;
+      case 'chirp': if (d.id) firstMeter(g, m); break; // [issue 39] the player's own chirp (it carries the cricket's id)
       case 'secret': {
         const id = d.id;
         if (!id || m.secrets.includes(id)) break;
