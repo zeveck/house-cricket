@@ -348,6 +348,9 @@ section('meta', () => {
     const sv = Save.fromGame(ga), { g: gb, step: sb } = game(null, 'et-thermo'), runb = mk(gb); Save.intoGame(gb, sv);
     sb({ chirp: true }); runb.step({ pressed: {} });
     ok(ensure(gb).flags.meterTold && tips(gb) === 0, '... the slot keeps it (save and load): not told again');
+    const { g: gc, step: sc } = game(null, 'et-thermo', { rescued: ['stripe'] }), runc = mk(gc); // a save from before the tip
+    sc({ chirp: true }); runc.step({ pressed: {} });
+    ok(ensure(gc).flags.meterTold && tips(gc) === 0, '... an old save that has rescued someone is not told (marked, silently)');
     ok(line('ui.meterHint').includes('note') && line('ui.meterSilent', { name: 'Hump' }).startsWith('Hump'), 'chirp meter hover / tap lines');
   }
   const mh = p.maxHealth; at(p, 13, 12); tick({}, 10); ok(p.maxHealth === mh + 1 && ensure(g).secrets.includes('heart:et-test'), 'seed-heart secret: +1 heart');

@@ -17,7 +17,7 @@
 //             game.emit('rescue', ...) is the engine's own (cages): the zone-complete card follows.
 import { TILE, SCREEN_W, SCREEN_H } from '../data/movement.js';
 import { CRICKETS } from '../data/crickets.js';
-import { ensure, RECRUITS, NOT_CRICKETS, canChirp, secretKind, lairCrack } from './meta.js';
+import { ensure, RECRUITS, NOT_CRICKETS, canChirp, secretKind, lairCrack, rescueCount } from './meta.js';
 import { SECRETS } from '../data/house.js';
 const secretCrumbs = (id) => SECRETS.find((x) => x.id === id)?.crumbs || 0; // [fixer] house.js crumbs: n
 import { line } from './lines.js';
@@ -34,10 +34,13 @@ export function firstCrumb(g, m, n) {
   return true;
 }
 // [issue 39] the first chirp a save slot makes drops the chirp meter (the notes under the hearts): a tip says
-// what they are (once per slot: meta.flags.meterTold is saved with it). Returns true when it told.
+// what they are (once per slot: meta.flags.meterTold is saved with it). Returns true when it told. A slot that has
+// rescued anyone has chirped plenty (a save from before the tip): it is marked told, silently. (holeTold and
+// crumbTold don't tell an old save apart: a new one can set either before its first chirp.)
 export function firstMeter(g, m) {
   if (m.flags.meterTold || g.inCarrier) return false;
   m.flags.meterTold = true;
+  if (rescueCount(g) > 0) return false;
   g.toast(line('ui.meterFirst'), 330);
   return true;
 }
