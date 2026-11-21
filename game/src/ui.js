@@ -364,6 +364,7 @@ export class UI {
       const [a, b] = action === 'move' ? ['left', 'right'] : ['swapPrev', 'swapNext'];
       return h('span', { class: 'cap-pair' }, this.cap(a), this.cap(b));
     }
+    if (action === 'lineOff' && sch === 'keyboard') return h('span', { class: 'cap-pair' }, this.cap('left'), this.cap('right'), ' + ', this.cap('upJump')); // [issue #37] ← or → with ↑
     const l = this.input.label(action);
     const e = h('span', { class: `cap cap-${l.kind}` });
     if (l.kind === 'glyph') e.innerHTML = ICON[l.text];
@@ -380,7 +381,7 @@ export class UI {
     for (const s of game.saves || []) if (Math.abs(s.x + 20 - p.cx) < 40 && Math.abs(s.y + 40 - (p.y + p.h)) < 40 && p.grounded) prompt = ['enter', 'Save'];
     if (p.state === 'hide') prompt = p.hideHold ? ['jump', 'Jump to leave'] : ['right', 'Move to leave']; // [issue 7] the tank's sniff: only Jump leaves
     if (p.has('floss') && p.state !== 'swing') for (const k of game.hooks || []) if (Math.hypot(k.x - p.cx, k.y - p.cy) < 70) prompt = ['use', 'Grab'];
-    if (p.state === 'swing') prompt = ['jump', 'Fling'];
+    if (p.state === 'swing') prompt = (this.input.scheme ? this.input.scheme() : this.input.last) === 'keyboard' ? ['upJump', 'Climb   {lineOff} Jump off'] : ['jump', 'Fling']; // [issue #37] on the keyboard ↑ climbs a line; ← or → with it jumps off
     if (this.extraPrompt && !prompt) prompt = this.extraPrompt;   // meta: Carrier facilities, talkers, lair doors
     const pk = prompt ? prompt.join(':') + this.capKey() : ''; // [polish-T]
     if (pk !== this._pk) {

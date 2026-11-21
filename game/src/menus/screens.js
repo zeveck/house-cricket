@@ -145,7 +145,8 @@ export function howto(A, back, scheme) {
   // [issue #27] the keyboard's ↑ / W jump too (and climb a line); Enter (go in, use) is ↓ on every scheme;
   // look-up is the stick's (touch, pad); the Cloak is held: Shift on the keyboard, stick / D-pad up elsewhere
   const kb = scheme === 'keyboard';
-  const rows = [['move', 'Move'], ['jump', 'Jump (hold for higher)'], kb ? ['upJump', 'Jump too; climb a line'] : ['up', 'Look up; climb a line'], ['kick', 'Kick'], ['chirp', 'Chirp: call, stun bugs'], ['listen', 'Listen (hold, standing still)'], ['use', 'Use an item'], ['enter', 'Hide, save, talk, go in'], ['down', 'Drop through (+Jump)'], ['cloak', 'Cloak (hold; once found)'], ['swap', 'Swap cricket'], ['map', 'Map'], ['pause', 'Pause']];
+  // [issue #37] on the keyboard ↑ / W is THE jump (Z / Space only in the layout note below)
+  const rows = [['move', 'Move'], kb ? ['jump', 'Jump (hold for higher); climb a line'] : ['jump', 'Jump (hold for higher)'], ...(kb ? [] : [['up', 'Look up; climb a line']]), ['kick', 'Kick'], ['chirp', 'Chirp: call, stun bugs'], ['listen', 'Listen (hold, standing still)'], ['use', 'Use an item'], ['enter', 'Hide, save, talk, go in'], ['down', 'Drop through (+Jump)'], ['cloak', 'Cloak (hold; once found)'], ['swap', 'Swap cricket'], ['map', 'Map'], ['pause', 'Pause']];
   const grid = h('div', { class: 'howto' });
   for (const [a, t] of rows) {
     const r = h('div', { class: 'howto-row' });
@@ -167,7 +168,7 @@ export function howto(A, back, scheme) {
   grid.append(h('div', { class: 'howto-row howto-crumbs' }, h('span', { class: 'howto-keys' }, h('span', { class: 'crumb-icon howto-crumb', 'aria-label': 'crumbs' })), h('span', { class: 'howto-what', text: line('howto.crumbs') })));
   body.append(grid);
   body.append(h('p', { class: 'howto-note', text: line('howto.ear') })); // [issue 10] the ear guide
-  const note = scheme === 'gamepad' ? line('howto.padNote') : scheme === 'touch' ? line('howto.touchNote') : 'Two layouts: arrows with Z X C V B, or WASD with Space and J K L I.';
+  const note = scheme === 'gamepad' ? line('howto.padNote') : scheme === 'touch' ? line('howto.touchNote') : 'Two layouts: arrows with Z X C V B, or WASD with Space and J K L I (Z and Space jump too).';
   body.append(h('p', { class: 'howto-note', text: note }));
   if (A.showReport() && scheme === 'keyboard') body.append(h('p', { class: 'howto-note', text: line('howto.report') })); // [polish-T] a keyboard shortcut: the Keyboard tab only
   const go = (id) => howto(A, back, id);

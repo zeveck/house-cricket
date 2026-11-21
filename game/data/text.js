@@ -4,7 +4,8 @@
 // Conventions (read by src/lines.js `line('geckos.duchess.pre')` and src/dialog.js):
 // - {jump} {use} {chirp} {kick} {listen} {down} {left} {right} {swapPrev} {swapNext} {map}
 //   {enter} (go in / use: ↓ on every scheme) {cloak} (hold: Shift, stick up) [issue #27: never {up}, which
-//   jumps on the keyboard]
+//   jumps on the keyboard] {lineOff} (off a hanging line: ← or → with ↑ on the keys, Jump elsewhere; issue #37)
+//   [issue #37] {jump} is ↑ / W on the keyboard (Z / Space jump too but are never named)
 //   {pause} render as key caps / pad glyphs (never write a bare key letter).
 // - *word* is a dialog BEAT (italic, a short pause; for Lashes the portrait licks its eye on
 //   *slurp*). Never use asterisks for emphasis: use CAPITALS.
@@ -64,7 +65,7 @@ export const TEXT = {
     hide: 'Press {enter} near a cricket-sized gap to hide. Nothing big can see you in there.',
     drop: '{down} + {jump} drops through thin platforms.',
     wallJump: 'Jump at a wall to stick, {jump} again to kick off. Glass and porcelain are too slick.', // [issue 9]
-    floss: 'Press {use} near a hook to grab it. {left} {right} to swing. {jump} to let go with a fling.',
+    floss: 'Press {use} near a hook to grab it. {left} {right} to swing. {lineOff} to jump off.', // [issue #37] ← or → with ↑
     flossDrop: '{use} again lets go straight down.',
     raft: 'Walk onto water with the Raft. Currents carry you along.',
     band: 'Hold {use} to stretch the Rubber Band, then let go to fly.',

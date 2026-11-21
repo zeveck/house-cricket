@@ -90,7 +90,7 @@ export default {
       entities: [
         {"type": "sign", "x": 5, "y": 33, "w": 6, "text": "Tape Booties: press toward a wall in the air to cling, then {jump} to kick off."},
         {"type": "item", "item": "floss", "x": 7, "y": 13},
-        {"type": "sign", "x": 1, "y": 13, "w": 9, "text": "{use} near a hook grabs it. {left} {right} pump the swing; {jump} flings; {use} lets go."},
+        {"type": "sign", "x": 1, "y": 13, "w": 9, "text": "{use} near a hook grabs it. {left} {right} pump the swing; {lineOff} jumps off; {use} lets go."},
       ],
     },
     {

@@ -157,7 +157,7 @@ export const stairwell = {
         '############################...................................G',
       ],
       entities: [
-        {"type":"sign","x":2,"y":33,"w":5,"text":"Press {use} near a hook to grab it. {left} {right} to swing. {jump} to let go with a fling."},
+        {"type":"sign","x":2,"y":33,"w":5,"text":"Press {use} near a hook to grab it. {left} {right} to swing. {lineOff} to jump off."},
         {"type":"crumbs","x":41,"y":23,"n":5},
       ],
     },

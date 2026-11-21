@@ -229,7 +229,7 @@ export default {
         {"type": "cellarspider", "x": 24, "y": 21},
         {"type": "cellarspider", "x": 74, "y": 21},
         {"type": "centipede", "x": 20, "y": 17, "path": [[20, 17], [40, 17], [40, 17], [20, 17]], "speed": 240},
-        {"type": "sign", "x": 24, "y": 33, "w": 6, "nx": 25, "text": "{use} near a hook to grab it. {jump} to fling."},
+        {"type": "sign", "x": 24, "y": 33, "w": 6, "nx": 25, "text": "{use} near a hook to grab it. {lineOff} to jump off."},
       ],
     },
     {

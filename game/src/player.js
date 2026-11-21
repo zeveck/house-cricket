@@ -24,6 +24,10 @@ const F = {
 // [builder C] Cellophane Cloak (design: "The Dragon's Lair"): hold Shift / stick up in the open (no hiding spot
 // near) for up to 3 s of near-invisibility, then 6 s to recharge. Frames.
 export const CLOAK = { arm: 8, last: 180, recharge: 360 };
+// [issue #37] on a hanging line ↑ / W climbs; ← or → pressed together with it (each within LINE_CHORD frames
+// of the other, either first, both still held) jumps off that way. ↑ held while pumping, or ← / → held while
+// climbing, never lets go.
+export const LINE_CHORD = 6;
 const approach = (v, t, d) => (v < t ? Math.min(v + d, t) : Math.max(v - d, t));
 const deg = Math.PI / 180;
 
@@ -616,6 +620,7 @@ export class Player {
     const vt = this.vx * tx + this.vy * ty;
     this.swing = { hook: best, len, target: Math.max(MOVES.swing.startLen * TILE, len), ang, w: vt / Math.max(len, TILE) };
     this.state = 'swing'; this.canFlutter = true; this.vx = 0; this.vy = 0; this.jumpBuf = 0;
+    this.lineUpAge = this.lineSideAge = 99; this.lineSide = 0; // [issue #37]
     ctx.emit('grab', { x: best.x, y: best.y });
     return true;
   }
@@ -650,8 +655,17 @@ export class Player {
     // tangential velocity, for flinging
     const vt = s.w * s.len;
     this.vx = Math.cos(s.ang) * vt; this.vy = -Math.sin(s.ang) * vt;
-    if (inp.pressed.jump) { // fling in the swing's direction
-      const vx = this.vx * S.flingScale, vy = this.vy * S.flingScale - S.flingBoost * TILE;
+    // [issue #37] ← or → with ↑ / W, pressed together: jump off that way
+    const P = inp.pressed;
+    this.lineUpAge = P.upJump ? 0 : (this.lineUpAge ?? 99) + 1;
+    const side = P.right && !P.left ? 1 : P.left && !P.right ? -1 : 0;
+    if (side) { this.lineSide = side; this.lineSideAge = 0; } else this.lineSideAge = (this.lineSideAge ?? 99) + 1;
+    const chord = (P.upJump || side) && H.upJump && this.lineSide && (this.lineSide > 0 ? H.right : H.left)
+      && this.lineUpAge <= LINE_CHORD && this.lineSideAge <= LINE_CHORD;
+    if (inp.pressed.jump || chord) { // fling in the swing's direction (Z / Space), or the ←/→ + ↑ side
+      let vx = this.vx * S.flingScale;
+      const vy = this.vy * S.flingScale - S.flingBoost * TILE;
+      if (chord && !inp.pressed.jump) { vx = this.lineSide * Math.max(this.lineSide * vx, this.P.run); this.facing = this.lineSide; this.upLatch = true; } // ↑ still held is a held Jump
       this.state = 'air'; this.swing = null; this.vx = vx; this.vy = vy; this.cutDone = true; this.canFlutter = true;
       this.prof = { ...this.P.fall, airSpeed: Math.max(this.P.run, Math.abs(vx)), carry: true };
       this.jumpBuf = 0; this.coyote = 0;

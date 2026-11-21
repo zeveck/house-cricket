@@ -160,9 +160,9 @@ Landscape on phones. A small side-view game needs both thumbs, so a "turn your p
 | Action | Keyboard | Touch | Gamepad |
 |---|---|---|---|
 | Move / aim menus | ←→ or A/D | the joystick, bottom-left (radius 70 px; shown faintly at rest in the corner, and it jumps to wherever the thumb lands in the left third; issue #35) | Left stick / D-pad |
-| Up (issue #27): on the keyboard **↑ / W jump** (see Jump rules) and climb hanging lines; on touch and pad, stick up looks up and climbs | ↑ or W | stick up | stick up / D-pad up |
+| Up (issue #27): on the keyboard **↑ / W is the jump** (see Jump rules) and climbs hanging lines; on touch and pad, stick up looks up and climbs | ↑ or W | stick up | stick up / D-pad up |
 | Down: drop, ground-pound, Hump's crouch; and **Enter** (issue #27): a ↓ press next to something you can go into or use (a hiding spot, door, save crack, lair door, a talker, a switch or thermostat, a Carrier spot) does that, on every scheme | ↓ or S | stick down | stick down / D-pad down |
-| Jump (see Jump rules) | Space / Z, and ↑ / W (issue #27) | **Jump**, bottom-right corner (88 px) | ✕ (bottom) |
+| Jump (see Jump rules) | **↑ / W** (issue #37: the one every hint names); Z / Space jump too, unadvertised | **Jump**, bottom-right corner (88 px) | ✕ (bottom) |
 | Use item (floss grab, rubber-band charge, glow flash) | V / I | **Use**, directly left of Jump (72 px), shown once the Floss Line is found | R2 |
 | Chirp (stun ring, wake resonant objects, call: trapped crickets answer) | C / K | **Chirp**, directly above Jump (72 px) | △ (top) |
 | Kick (bonk bugs, hit switches) | X / J | **Kick**, above Use (64 px) | □ (left) |
@@ -184,7 +184,7 @@ The two keyboard layouts don't collide: arrows with Z X C V B under the left han
 - **Wall-jump** (Tape Booties): press toward a wall in the air to cling and slide slowly; press Jump to kick away. Walls are cling-only; Jam's wall-run is the only way up a wall face.
 - **Hump's Huge leap:** hold ↓ while standing; after 0.4 s he crouches and a ring fills; press Jump. A quicker ↓ + Jump is the normal drop-through.
 - **↓ + Jump:** drops through a one-way platform when standing; ground-pounds in the air (Thimble). Holding ↓ in the air turns that press into a pound, not a flutter.
-- **↑ / W as Jump** (issue #27, reviewed; keyboard only): ↑ and W are a second Jump key (jump, flutter, glide, wall-kick); Z / Space still jump. On a hanging line ↑ climbs (it never lets go); Z / Space let go. Look-up is on touch and pad only (stick up).
+- **↑ / W as Jump** (issues #27, #37; keyboard only): ↑ and W are **the** Jump key: every hint, prompt, note, card, toast and How to Play names ↑ (arrows) or W (WASD) for jump, and they do everything Jump does (jump, the held full-height jump, flutter, glide, wall-kick, ↓ + Jump, the story's next / hold-to-skip). Z / Space still jump everywhere as quiet extras: How to Play's layout note mentions them once, no hint does. On a hanging line ↑ climbs and never lets go: ← or → pressed **together** with ↑ (each within 6 frames, 0.1 s, of the other, either first, both still held) jumps off that way, at least at run speed; ↑ held while pumping with ← / →, or ← / → held while climbing, never lets go. ↓ lowers Pip down the line and Use lets go (as before); Z / Space still let go with a fling (unadvertised). The line tips and the swing prompt say "{use} to grab, ↑ climb, ← → + ↑ jump off" on the keys and "Jump" on touch and pad (the {lineOff} token). Look-up is on touch and pad only (stick up).
 - **Enter** (issue #27): one action, **↓ on every scheme** (keyboard ↓ / S, stick down, D-pad down): a ↓ press next to a hiding spot, door, save crack, lair door, talker, switch, thermostat or Carrier spot uses it. Where none is near, ↓ is as before (drop-through with Jump, the pound in the air, Hump's crouch). ↓ then Jump within 3 frames is always a drop-through, never Enter; Jump then ↓ is a plain jump (as before #27). Within reach of an Enter target, holding ↓ goes in, so Hump's crouch-leap and Digby's dig don't start beside a hiding spot, door or talker. Every prompt, tip and How to Play line names Enter's key for the scheme in use. The tank's lid gap: jump up into it (or press ↓ under it) and Pip wriggles through.
 - **Cloak** (issue #27): hold Shift on the keyboard; hold stick up / D-pad up on touch and pad (up is free there, since they have a Jump button).
 
@@ -201,7 +201,7 @@ The two keyboard layouts don't collide: arrows with Z X C V B under the left han
   - Nana phase 1: duck into rafter gaps from tail sweeps.
   - The Dragon's Lair is built around hiding.
 
-**Floss swing, on every input:** Use grabs (keys V/I, touch Use, pad R2). ←→ pumps the swing. Jump lets go with a fling in the swing's direction. Use again lets go and drops straight down.
+**Floss swing, on every input:** Use grabs (keys V/I, touch Use, pad R2). ←→ pumps the swing; up climbs the line and down lowers you (keyboard ↑ / ↓, the stick or D-pad). Jump lets go with a fling in the swing's direction (touch Jump, pad ✕; on the keyboard ← or → together with ↑ jumps off that way, and Z / Space fling as before: issue #37). Use again lets go and drops straight down.
 
 **Forgiveness** (all in `data/movement.js`): coyote time 100 ms; jump buffer 120 ms; corner nudge up to 8 px on head bumps and ledge lips; wall-jump grace 100 ms after leaving a wall; hook magnet 1 tile, with Use buffered 120 ms.
 

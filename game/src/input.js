@@ -9,7 +9,10 @@ export const ACTIONS = ['left', 'right', 'up', 'down', 'jump', 'use', 'chirp', '
   'upJump', 'enter', 'cloak', 'lookUp']; // [issue #27]
 // [issue #27] Up to jump, Down to go in:
 // - upJump: the keyboard's ↑ / W. The game treats it as Jump (game.js playerFrame) except on a hanging
-//   line, where it only climbs (it is also 'up'); Z / Space are 'jump' and let go with a fling.
+//   line, where it climbs (it is also 'up'); there ← or → with ↑ jumps off that way (player.js _swing).
+//   Z / Space are 'jump' too, quiet extras that also fling off a line.
+// [issue #37] ↑ / W is THE jump on the keyboard: {jump} shows ↑ (arrows) or W (WASD); Z / Space are never named
+//   in a hint (How to Play's layout note mentions them once).
 // - enter: a ↓ press on every scheme (↓ / S, stick down, D-pad down), resolved ENTER_WAIT samples later
 //   unless Jump came within that many samples either side (↓ + Jump is always a drop-through).
 //   Held, it is just 'down'. A direct press (the touch prompt tap) is immediate.
@@ -34,10 +37,11 @@ export const KEYMAP = {
 };
 const ARROW_LAYOUT = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB']);
 const WASD_LAYOUT = new Set(['KeyA', 'KeyD', 'KeyW', 'KeyS', 'Space', 'KeyJ', 'KeyK', 'KeyL', 'KeyI']);
-// Key caps shown in prompts, per layout.
+// Key caps shown in prompts, per layout. [issue #37] lineOff: jumping off a hanging line (← or → with ↑ on the
+// keyboard: ui.js cap() draws it as the two side caps + the jump cap; Jump on touch and pad)
 const CAPS = {
-  arrows: { left: '←', right: '→', up: '↑', down: '↓', upJump: '↑', enter: '↓', cloak: 'Shift', jump: 'Z', use: 'V', chirp: 'C', kick: 'X', listen: 'B', swapPrev: 'Q', swapNext: 'E', map: 'Tab', pause: 'Esc', mute: 'M', confirm: 'Enter', back: 'Esc' },
-  wasd:   { left: 'A', right: 'D', up: 'W', down: 'S', upJump: 'W', enter: 'S', cloak: 'Shift', jump: 'Space', use: 'I', chirp: 'K', kick: 'J', listen: 'L', swapPrev: 'Q', swapNext: 'E', map: 'Tab', pause: 'Esc', mute: 'M', confirm: 'Enter', back: 'Esc' },
+  arrows: { left: '←', right: '→', up: '↑', down: '↓', upJump: '↑', enter: '↓', cloak: 'Shift', jump: '↑', lineOff: '← → + ↑', use: 'V', chirp: 'C', kick: 'X', listen: 'B', swapPrev: 'Q', swapNext: 'E', map: 'Tab', pause: 'Esc', mute: 'M', confirm: 'Enter', back: 'Esc' },
+  wasd:   { left: 'A', right: 'D', up: 'W', down: 'S', upJump: 'W', enter: 'S', cloak: 'Shift', jump: 'W', lineOff: 'A D + W', use: 'I', chirp: 'K', kick: 'J', listen: 'L', swapPrev: 'Q', swapNext: 'E', map: 'Tab', pause: 'Esc', mute: 'M', confirm: 'Enter', back: 'Esc' },
 };
 // [polish-T] on touch every action is named by the control that does it (ui.js cap(); 'move' and 'swap' are
 // the {left} {right} and {swapPrev} {swapNext} pairs, drawn as one chip)
@@ -187,6 +191,7 @@ export class Input {
   // A prompt label for an action, for whatever the player touched last.
   label(action) {
     const last = this.scheme(); // [polish-T]
+    if (action === 'lineOff' && last !== 'keyboard') return this.label('jump'); // [issue #37] off a line: Jump on touch and pad
     if (last === 'gamepad') {
       const g = PAD_GLYPH[this.padFamily][action];
       if (g) return { kind: this.padFamily === 'ps' && ['cross', 'circle', 'square', 'triangle'].includes(g) ? 'glyph' : 'pad', text: g };

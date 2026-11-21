@@ -111,9 +111,9 @@ export class Story {
   step(f) {
     if (!this.active) return;
     this.f++;
-    const press = this.ptr || f.pressed.jump || f.pressed.confirm;
+    const press = this.ptr || f.pressed.jump || f.pressed.upJump || f.pressed.confirm; // [issue #37] ↑ / W is the jump: it skips too
     this.ptr = false;
-    const holding = f.held.jump || f.held.confirm || this.ptrDown;
+    const holding = f.held.jump || f.held.upJump || f.held.confirm || this.ptrDown;
     if (this.kind === 'thanks') { if (this.f > 30 && (press || f.pressed.back)) this.end(); return; }
     if (this.kind === 'credits') {
       this.pf++;

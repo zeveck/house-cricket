@@ -31,7 +31,11 @@ node tools/controls-test.mjs    # [issue #27] real key codes, both layouts: ↑/
 `src/input.js` turns keys, touch and the pad into actions. Besides the directions and buttons:
 - **upJump**: the keyboard's ↑ / W (also `up`). `game.js playerFrame()` makes it Jump for the player (press,
   and its hold for height and glide after a press that jumped), except while swinging, where it only climbs
-  (`up`) and never lets go. Z / Space (`jump`) fling off a line. Pad and touch have their Jump button.
+  (`up`) and never lets go; `player.js _swing` jumps off when ← or → is pressed together with it (each within
+  `LINE_CHORD`, 6 frames, of the other, both held; issue #37). Z / Space (`jump`) fling off a line too.
+  Pad and touch have their Jump button. Issue #37: the keyboard's `{jump}` cap is ↑ / W (`CAPS`), and
+  `{lineOff}` names the line's jump-off (← → + ↑ on the keys, Jump elsewhere; `ui.js cap()` draws the keys).
+  The story reads `upJump` as well as `jump` (next, hold to skip).
 - **enter**: a ↓ press on every scheme (↓ / S, stick down, D-pad down), resolved `ENTER_WAIT` (3) samples later
   unless Jump came within 3 samples either side (↓ + Jump is always a drop-through). Hide spots, doors, save
   cracks, lair doors, talkers, `by:'up'` switches, thermostats, Carrier spots and the tank's lid read it.

@@ -34,6 +34,8 @@ const ZONE = { id: 'zct', n: 96, name: 'controls test', palette: ['#000', '#111'
     { type: 'hook', x: 10, y: 6 },
   ]),
   room('ct-b', []),
+  { id: 'ct-c', name: 'ct-c', x: 302, y: 300, entities: [], // [issue #37] a wall to cling to
+    grid: rows.map((r, y) => (y >= 16 ? '#'.repeat(32) : y >= 2 ? '.'.repeat(20) + '##' + '.'.repeat(10) : '.'.repeat(32))) },
 ] };
 const LAYOUTS = {
   arrows: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', jump: 'KeyZ', use: 'KeyV' },
@@ -120,6 +122,32 @@ for (const [lay, K] of Object.entries(LAYOUTS)) {
     ok(p.state === 'swing', `${lay}: a fresh ${K.up} press on a line doesn't fling`);
     t.tap(K.jump, 2); ok(p.state === 'air', `${lay}: ${K.jump} lets go with a fling`);
   }
+  // [issue #37] on a line: ← or → pressed together with ↑ jumps off that way; ↑ held while pumping (or ← / →
+  // held while climbing) never lets go; Z / Space still fling
+  const onLine = () => {
+    const t = fresh({ items: ['floss'] }); const p = t.p();
+    t.place(10); p.x = 10 * T + 4; p.y = 7.2 * T; p.state = 'air'; p.vy = 0;
+    t.tap(K.use, 2); t.step(10); return [t, p];
+  };
+  for (const [side, code] of [[1, K.right], [-1, K.left]]) for (const [order, gap] of [['together', 0], [`${K.up} first`, -3], [`${side > 0 ? '→' : '←'} first`, 3]]) {
+    const [t, p] = onLine();
+    if (gap >= 0) { t.down(code); t.step(gap); t.down(K.up); } else { t.down(K.up); t.step(-gap); t.down(code); }
+    t.step(2); const off = p.state === 'air', vx = p.vx; t.up(K.up); t.up(code); t.step(4);
+    ok(off && Math.sign(vx) === side, `${lay}: on a line, ${code} + ${K.up} ${order} (${Math.abs(gap)} f) jumps off ${side > 0 ? 'right' : 'left'} (${p.state}, vx ${Math.round(vx)})`);
+  }
+  {
+    const [t, p] = onLine();
+    t.down(K.up); t.step(20); t.down(K.right); t.step(60); t.up(K.right); t.down(K.left); t.step(60);
+    ok(p.state === 'swing', `${lay}: ${K.up} held to climb, then ← / → to pump: never lets go`);
+    t.up(K.left); t.up(K.up); t.step(2);
+    t.down(K.right); t.step(30); t.down(K.up); t.step(60);
+    ok(p.state === 'swing', `${lay}: → held to pump, then ${K.up} held to climb: never lets go`);
+    for (let i = 0; i < 6; i++) { t.up(K.up); t.step(10); t.down(K.up); t.step(10); }
+    ok(p.state === 'swing', `${lay}: ${K.up} pressed again and again while pumping: still on the line`);
+    t.up(K.up); t.up(K.right); t.step(2);
+    t.tap('KeyZ', 2); ok(p.state === 'air', `${lay}: Z still lets go`);
+    const [t2, p2] = onLine(); t2.tap('Space', 2); ok(p2.state === 'air', `${lay}: Space still lets go`);
+  }
   // the Cloak: hold Shift; holding ↑ / W never cloaks
   {
     const t = fresh({ items: ['cloak'] }); t.place(2);
@@ -144,6 +172,51 @@ for (const [lay, K] of Object.entries(LAYOUTS)) {
   }
 }
 
+// [issue #37] ↑ / W is THE jump: held, it is the full-height jump Z gives (the tank's "Hold {jump} for a
+// full-height leap" out over the cup rim); it skips the story (a press: next, held: skip all)
+for (const [lay, K] of Object.entries(LAYOUTS)) {
+  const rise = (code) => { const t = fresh(); t.place(2); const y0 = t.p().y; t.down(code); let top = y0; for (let i = 0; i < 60; i++) { t.step(1); top = Math.min(top, t.p().y); } t.up(code); return y0 - top; };
+  const ru = rise(K.up), rz = rise('KeyZ');
+  ok(Math.abs(ru - rz) < 1 && ru > 2.5 * T, `${lay}: ${K.up} held rises as high as Z held (${(ru / T).toFixed(2)} vs ${(rz / T).toFixed(2)} tiles)`);
+  {
+    const t = fresh({ room: 'tank-cup', x: 14, y: 9 }); t.step(5); t.g.boss.finish(); t.step(5);
+    const p = t.p(); p.x = 15 * T; t.step(10);
+    t.down(K.up); t.step(14); t.down(K.right); let out = false;
+    for (let i = 0; i < 90; i++) { t.step(1); if (p.x > 17.2 * T || t.g.room.id !== 'tank-cup') out = true; }
+    t.up(K.up); t.up(K.right);
+    ok(out, `${lay}: the cup: ${K.up} held is a full-height leap out over the rim`);
+  }
+}
+// [issue #37] ↑ / W does the rest of Jump too: flutter (a fresh press in the air), glide (held falling), wall-kick
+for (const [lay, K] of Object.entries(LAYOUTS)) {
+  const evs = (t) => { const out = [], emit = t.g.emit.bind(t.g); t.g.emit = (ty, d = {}) => { out.push(ty); return emit(ty, d); }; return out; };
+  {
+    const t = fresh({ items: ['feather'] }); t.place(2); const ev = evs(t);
+    t.tap(K.up, 4); t.step(14); t.tap(K.up, 2); t.step(4);
+    ok(ev.includes('flutter'), `${lay}: ${K.up} again in the air flutters (${ev.filter((e) => /jump|flutter/.test(e)).join(' ')})`);
+  }
+  {
+    const t = fresh({ items: ['glider'] }); t.place(2); t.down(K.up); let glid = false; for (let i = 0; i < 80; i++) { t.step(1); if (t.p().gliding) glid = true; } t.up(K.up);
+    ok(glid, `${lay}: ${K.up} held while falling glides`);
+  }
+  {
+    const t = fresh({ room: 'ct-c', items: ['booties'] }); t.place(17); const ev = evs(t);
+    t.down(K.right); t.tap(K.up, 3); let clung = false; for (let i = 0; i < 40 && !clung; i++) { t.step(1); clung = t.p().state === 'cling'; }
+    t.up(K.right); t.step(2); t.tap(K.up, 2); t.step(2);
+    ok(clung && ev.includes('walljump'), `${lay}: ${K.up} kicks off a wall (clung ${clung}, ${ev.filter((e) => /cling|wall/.test(e)).join(' ')})`);
+  }
+}
+{
+  const { Story } = await import('../game/src/story.js');
+  for (const code of ['ArrowUp', 'KeyW', 'KeyZ', 'Space']) {
+    const st = { active: true, kind: 'story', panels: [1, 2, 3], i: 0, f: 20, held: 0, barFill: { style: {} }, next() { this.i++; this.f = 0; }, end() { this.ended = true; this.active = false; } };
+    const inp = new Input(); inp.keyDown(code); Story.prototype.step.call(st, inp.sample());
+    ok(st.i === 1, `story: a ${code} press goes to the next panel`);
+    for (let i = 0; i < 60 && st.active; i++) Story.prototype.step.call(st, inp.sample());
+    ok(st.ended && st.skippedAll, `story: ${code} held skips them all`);
+  }
+}
+
 // ---- touch and pad: stick up looks up and cloaks; ↓ is Enter; the Jump button jumps -----------------
 {
   const inp = new Input();
@@ -162,7 +235,7 @@ for (const [lay, K] of Object.entries(LAYOUTS)) {
 
 // ---- labels: every prompt and tip names the right key per scheme ------------------------------------
 const WANT = { // action -> [arrows, wasd, touch, pad (xbox)]
-  jump: ['Z', 'Space', 'Jump', 'A'], upJump: ['↑', 'W', 'Jump', 'A'], enter: ['↓', 'S', 'the joystick (bottom left), down', 'Down'], down: ['↓', 'S', 'the joystick (bottom left), down', 'Down'],
+  jump: ['↑', 'W', 'Jump', 'A'], lineOff: ['← → + ↑', 'A D + W', 'Jump', 'A'], upJump: ['↑', 'W', 'Jump', 'A'], enter: ['↓', 'S', 'the joystick (bottom left), down', 'Down'], down: ['↓', 'S', 'the joystick (bottom left), down', 'Down'],
   cloak: ['Shift', 'Shift', 'the joystick (bottom left), up', 'Up'], up: ['↑', 'W', 'the joystick (bottom left), up', 'Up'], use: ['V', 'I', 'Use', 'RT'], chirp: ['C', 'K', 'Chirp', 'Y'],
   kick: ['X', 'J', 'Kick', 'X'], listen: ['B', 'L', 'Ear', 'B'], left: ['←', 'A', 'the joystick (bottom left), left', 'Left'], right: ['→', 'D', 'the joystick (bottom left), right', 'Right'],
   swapPrev: ['Q', 'Q', 'Tap a face', 'LB'], swapNext: ['E', 'E', 'Tap a face', 'RB'], map: ['Tab', 'Tab', 'Map icon', 'View'], pause: ['Esc', 'Esc', 'Pause icon', 'Menu'],
@@ -208,7 +281,13 @@ ok(has(TEXT.signs.cloak, 'cloak') && has(TEXT.items.cloak.line, 'cloak'), 'the C
 ok(has(TEXT.signs.squeeze, 'jump') && has(TEXT.signs.squeeze, 'enter') && TEXT.opening.tank.squeeze === TEXT.signs.squeeze, 'the lid tip: Jump into the gap, or Enter under it');
 // How to Play lists Enter, the Cloak, ↑ as Jump (keyboard) and look-up (touch, pad)
 const howto = readFileSync(path.join(srcDir, 'menus', 'screens.js'), 'utf8');
-ok(/\['enter', 'Hide, save, talk, go in'\]/.test(howto) && /\['cloak', /.test(howto) && /\['upJump', /.test(howto) && /\['up', 'Look up/.test(howto), 'How to Play: Enter, Cloak, ↑ Jump (keyboard), look up (touch, pad)');
+ok(/\['enter', 'Hide, save, talk, go in'\]/.test(howto) && /\['cloak', /.test(howto) && /kb \? \['jump', 'Jump \(hold for higher\); climb a line'\]/.test(howto) && !/\['upJump', /.test(howto) && /\['up', 'Look up/.test(howto), 'How to Play: Enter, Cloak, ↑ / W Jump and climb (keyboard), look up (touch, pad)');
+// [issue #37] Z / Space are never named for jump in a hint: no tip writes a bare Z or Space, and the line tips name the ←/→ + ↑ jump-off
+bad = texts.filter(([, t]) => /\b(Z|Space)\b/.test(t)).map(([at]) => at);
+ok(!bad.length, `no tip names Z or Space${bad.length ? ': ' + bad.slice(0, 4).join('; ') : ''}`);
+const lineTips = texts.filter(([, t]) => /hook|shelf pin/.test(t) && /\{use\}/.test(t) && !/\{use\} near a hook to swing/.test(t));
+ok(lineTips.length >= 4 && lineTips.every(([, t]) => t.includes('{lineOff}') && !t.includes('{jump}')), `the line tips name {lineOff} for jumping off, never {jump} (${lineTips.length} tips)`);
+ok(/'upJump', 'Climb {3}\{lineOff\} Jump off'/.test(readFileSync(path.join(srcDir, 'ui.js'), 'utf8')), 'the line prompt (keyboard): ↑ Climb, ←/→ + ↑ Jump off');
 
 console.log(`controls-test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
