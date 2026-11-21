@@ -78,7 +78,7 @@ r.ent('secret', id='sun-mote', x=2, y=25)
 r.ent('mosquito', x=6, y=9, sight=5)
 r.ent('checkpoint', x=25, y=15)
 r.deco('fake-plant', 5, 25, 3.0, layer='back')
-r.deco('leaf-glider', 14, 25, 1.0, layer='mid', rot=0.2)
+r.deco('leaf-glider', 14, 27, 1.0, layer='mid')  # [issue 40] fallen on the plank, not hanging in the air
 r.deco('fake-plant', 27, 21, 2.4, layer='back', flip=True)
 r.deco('fake-plant', 23, 15, 2.2, layer='back')
 r.deco('mister-nozzle', 6, 3, 1.2, layer='back')
@@ -120,7 +120,7 @@ r.ent('checkpoint', x=4, y=15)
 r.ent('checkpoint', x=60, y=19)
 r.ent('sign', x=1, y=15, w=6, text='Hold {jump} while falling to glide.')
 for x, y in [(18, 16), (32, 17), (46, 18), (58, 20), (64, 20), (93, 23)]:     # hanging baskets on their chains
-    r.deco('leaf-glider', x, y, 1.4, layer='mid')
+    r.deco('leaf-glider', x, y - 0.7, 1.4, layer='mid')  # [issue 40] a fallen leaf in the basket (its foot a little into the basket's painted top, not over its face)
 for x, y, h in [(10, 33, 3.0), (30, 33, 4.0), (48, 33, 3.4), (110, 33, 3.6), (122, 33, 2.6), (99, 21, 1.6), (117, 21, 1.4)]:
     r.deco('fake-plant', x, y, h, layer='back', flip=x % 2 == 0)
 r.deco('mister-nozzle', 15, 33, 1.0, layer='mid')
@@ -261,8 +261,8 @@ r.ent('lift', kind='mister', x=61, y=14, w=2, h=20, vy=10, on=3, off=1.5, phase=
 for hx, hy in [(19, 20), (25, 21), (39, 21), (45, 20)]:
     r.put(hx, hy, 'H')
 r.ent('boss', boss='kite', x=33, y=25, cricket='digby', checkpoints=[[16, 34], [16, 34], [16, 34]])
-for x, y in [(10, 26), (52, 26), (5, 15), (58, 15), (33, 26)]:
-    r.deco('leaf-glider', x, y, 1.3, layer='mid')
+for x, y in [(10, 26), (52, 26), (5, 15), (58, 15), (33, 26)]:     # [issue 40] fallen leaves lying on the baskets and planks (y - 1: on top, not over the face)
+    r.deco('leaf-glider', x, y - 1, 1.3, layer='mid')
 for x, y, h in [(22, 33, 3.4), (44, 33, 3.0), (6, 33, 2.4), (58, 33, 2.6)]:
     r.deco('fake-plant', x, y, h, layer='back', flip=x > 32)
 r.deco('mister-nozzle', 2, 33, 1.0, layer='mid')

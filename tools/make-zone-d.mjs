@@ -108,7 +108,7 @@ function hallFloor() {
       deco('sprites/enemies/vacuum/0.webp', 9, 33, 1.1, { layer: 'mid' }),
       deco('sock', 4, 33, 0.8, { layer: 'mid' }),
       deco('spool', 13, 33, 0.9, { layer: 'mid' }),
-      deco('dice', 44, 31, 1.0, { layer: 'mid' }),
+      deco('bottle-cap', 44, 31, 0.6, { layer: 'mid' }), // [issue 40] was a die
       deco('throw-pillow', 56, 33, 1.2, { layer: 'mid' }),
     ],
     paint: [{ kind: 'plaster', x: 7, y: 30, w: 9, h: 2 }],
@@ -152,7 +152,7 @@ function stairLanding() {
     bg: { v: 'a', x: 0.3, y: 0.5 },
     decor: [
       deco('book-spine', 8, 31, 1.2, { layer: 'mid' }), deco('book-spine', 12, 29, 1.0, { layer: 'mid', flip: true }),
-      deco('book-spine', 8, 27, 1.1, { layer: 'mid' }), deco('dice', 12, 25, 0.9, { layer: 'mid' }),
+      deco('book-spine', 8, 27, 1.1, { layer: 'mid' }), deco('marble', 12, 25, 0.6, { layer: 'mid' }), // [issue 40] was a die
       deco('pin', 37, 23, 1.0, { layer: 'mid' }),
       deco('fake-plant', 3, 33, 2.2),
     ],
@@ -327,7 +327,7 @@ function attEntry() {
     decor: [
       bat(22, 11), bat(26, 11, 1.1, true), bat(31, 11), bat(35, 11, 0.8, true), bat(39, 11, 1.0), bat(43, 11, 0.9, true),
       deco('spool', 54, 33, 1.0, { layer: 'mid' }), deco('book-spine', 58, 33, 1.4), deco('marble', 40, 33, 0.6, { layer: 'mid' }),
-      deco('carrier/dice-stack.webp', 28, 33, 1.8),
+      deco('spool', 28, 33, 1.3), // [issue 40] was Duo's dice stack (it belongs in the Carrier)
     ],
     fx: [{ kind: 'motes', x: 46, y: 2, w: 16, h: 10 }, { kind: 'dust', x: 2, y: 18, w: 60, h: 14 }],
     grid: g,
@@ -471,11 +471,12 @@ function attBoxes() {
     id: 'att-boxes', name: 'The Box Mountain', x: 10, y: 1,
     bg: { v: 'a', x: 0.3, y: 0.4 },
     decor: [
-      deco('marble', 88, 34, 0.7, { layer: 'mid' }), deco('marble', 62, 34, 0.6, { layer: 'mid' }), deco('marble', 68, 34, 0.8, { layer: 'mid' }),
-      deco('spool', 79, 22, 1.2, { layer: 'mid' }), deco('pin', 99, 22, 1.1), deco('pin', 93, 23, 1.1),
-      deco('dice', 41, 21, 1.0, { layer: 'mid' }), deco('book-spine', 28, 17, 1.3, { layer: 'mid' }),
+      // [issue 40] the marbles were over the tacks and on the box's face, the spool in mid-air: all on the box top now
+      deco('marble', 88, 27, 0.7, { layer: 'mid' }), deco('marble', 84, 27, 0.6, { layer: 'mid' }), deco('marble', 86, 27, 0.8, { layer: 'mid' }),
+      deco('spool', 76, 27, 1.2, { layer: 'mid' }), deco('pin', 99, 22, 1.1), deco('pin', 93, 23, 1.1),
+      deco('marble', 40, 23, 0.6, { layer: 'mid' }), // [issue 40] was a die in mid-air deco('book-spine', 28, 17, 1.3, { layer: 'mid' }),
       deco('music-stone-bell', 22, 15, 1.2, { layer: 'mid', alpha: 0.8 }),
-      deco('carrier/dice-stack.webp', 112, 33, 1.6),
+      deco('book-spine', 112, 33, 1.4), // [issue 40] was Duo's dice stack
     ],
     fx: [{ kind: 'motes', x: 30, y: 2, w: 40, h: 14 }],
     grid: g,
@@ -500,8 +501,10 @@ function attHatch() {
   return {
     id: 'att-hatch', name: 'The Hatch', x: 8, y: 2,
     bg: { v: 'b', x: 0.7, y: 0.8 }, terrainKinds: { C: 'plaster' },
-    decor: [deco('pull-chain', 38, 15, 1.4, { layer: 'mid' }), deco('dice', 20, 15, 1.2, { layer: 'mid' }), deco('marble', 26, 15, 0.7, { layer: 'mid' }),
-      deco('spool', 12, 15, 1.3, { layer: 'mid' }), deco('carrier/dice-stack.webp', 6, 15, 2.2), deco('tv-remote', 54, 15, 1.0, { layer: 'mid' })],
+    decor: [deco('cork', 38, 15, 0.8, { layer: 'mid' }), deco('bottle-cap', 20, 15, 0.6, { layer: 'mid' }), // [issue 40] a cork (was a pull chain standing on the floor), a bottle cap (was a die)
+      deco('marble', 26, 15, 0.7, { layer: 'mid' }),
+      deco('spool', 12, 15, 1.3, { layer: 'mid' }), deco('book-spine', 6, 15, 1.6), // [issue 40] was Duo's dice stack
+      deco('tv-remote', 54, 15, 1.0, { layer: 'mid' })],
     grid: g,
     entities: [sign(32, 15, 12, TEXT.signs.hatch), { type: 'crumbs', x: 16, y: 15, n: 5 }],
   };

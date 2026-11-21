@@ -17,7 +17,7 @@ import { drawCricket, drawCricketShape } from './cricket-art.js';
 import * as Geckos from './geckos.js'; // [builder B] dozing-gecko decor
 import { paintObject, OBJ_EDGE } from './objpaint.js'; // [polish] object painters
 import { LOOK } from '../data/look/index.js';
-import { noteLive, notePhase, markerSize, MARKER } from './notes.js'; // [issue 9] tutorial notes on the path
+import { noteLive, notePhase, markerSize, MARKER, flagMount } from './notes.js'; // [issue 9] tutorial notes on the path
 import { beaconSpec } from './beacon.js'; // [issue 28] the hole the call comes through pulses
 import { rescueCount, shellStage } from './meta.js'; // [final-G] the Carrier's outside grows with its stages      // [polish] render-only per-room look overlay
 
@@ -37,8 +37,8 @@ export const itemArt = (id) => `items/${ITEM_ART[id] || id}.webp`;
 export const NEAR = {
   'z00-tank': ['hide-log', 'water-dish', 'pebble'], 'z01-bedroom': ['sock', 'throw-pillow', 'book-spine'],
   'z02-bathroom': ['sponge', 'soap-dish', 'faucet-handle'], 'z03-kitchen': ['wooden-spoon', 'tongs', 'grape'],
-  'z04-pantry': ['spice-rack', 'cork', 'dice'], 'z05-laundry': ['sock', 'spool', 'dryer-vent'],
-  'z06-living': ['cushion', 'fake-plant', 'tv-remote'], 'z07-study': ['book-spine', 'pin', 'dice'],
+  'z04-pantry': ['spice-rack', 'cork', 'bottle-cap'], 'z05-laundry': ['sock', 'spool', 'dryer-vent'], // [issue 40] no dice
+  'z06-living': ['cushion', 'fake-plant', 'tv-remote'], 'z07-study': ['book-spine', 'pin', 'spool'],
   'z08-sunroom': ['fake-plant', 'pebble', 'leaf-glider'], 'z09-basement': ['furnace-grate', 'pull-chain', 'marble'],
   'z10-attic': ['spool', 'book-spine', 'marble'], chimney: [],
 };
@@ -959,10 +959,20 @@ export class Renderer {
     }
     for (const ck of game.checkpoints || []) {
       const x = ck.x + TILE / 2, y = ck.y + 2 * TILE;
-      c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - 30); c.stroke();
-      const wv = Math.sin(t / 9) * 2;
+      // [issue 40] the pole stands on something: the floor under it, a floor a few rows down (a long pole), a wall
+      // beside it (a pole out of the wall) or the ceiling (a string); the pennant stays where it always was
+      const ckm = this._ckMount || (this._ckMount = new WeakMap()); // render-side only: never on the sim's checkpoint
+      if (!ckm.has(ck)) ckm.set(ck, flagMount((tx, ty) => game.grid.at(tx, ty), ck.tx, ck.ty));
+      const mt = ckm.get(ck);
+      c.strokeStyle = INK; c.lineWidth = 2; c.beginPath();
+      if (mt?.kind === 'pole') { c.moveTo(x, mt.y * TILE + 2); c.lineTo(x, y - 30); }
+      else if (mt?.kind === 'wall') { c.lineWidth = 2.6; c.moveTo(mt.x * TILE, y - 31); c.lineTo(x, y - 30); c.stroke(); c.lineWidth = 2; c.beginPath(); c.moveTo(x, y - 31); c.lineTo(x, y - 17); }
+      else if (mt?.kind === 'ceiling') { c.lineWidth = 1.5; c.moveTo(x, mt.y * TILE); c.lineTo(x, y - 18); }
+      else { c.moveTo(x, y); c.lineTo(x, y - 30); }
+      c.stroke();
+      const wv = Math.sin(t / 9) * 2, fd = mt?.kind === 'wall' ? -mt.side : 1; // off a wall, the pennant flies away from it
       c.fillStyle = ck.on ? '#F2C46D' : 'rgba(244,235,221,0.7)'; c.strokeStyle = 'rgba(90,70,50,0.6)'; c.lineWidth = 1;
-      c.beginPath(); c.moveTo(x, y - 30); c.quadraticCurveTo(x + 8, y - 28 + wv, x + 15, y - 25 + wv); c.lineTo(x, y - 20); c.closePath(); c.fill(); c.stroke();
+      c.beginPath(); c.moveTo(x, y - 30); c.quadraticCurveTo(x + 8 * fd, y - 28 + wv, x + 15 * fd, y - 25 + wv); c.lineTo(x, y - 20); c.closePath(); c.fill(); c.stroke();
     }
     if (!game.boss?.notesOver) for (const sg of game.signs || []) if (noteLive(game, sg)) this.drawNote(c, game, sg); // [issue 9] notes on the path (was a signpost)
     for (const h of game.hooks || []) {

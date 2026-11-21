@@ -130,7 +130,7 @@ EXTRA = {
     'sb-cellar': dict(paint=[dict(kind='plaster', x=0, y=10, w=14, h=3), dict(kind='crumbling-floor', x=18, y=10, w=14, h=3),
                              dict(kind='soil', x=0, y=34, w=32, h=2)],
                       fx=[dict(kind='steam', x=22, y=33), dict(kind='dust', x=2, y=12, w=12, h=10)],
-                      decor=[dict(prop='dice', x=29, y=33, h=1.2, layer='mid')]),
+                      decor=[dict(prop='spool', x=29, y=33, h=1.2, layer='mid')]),
 }
 for rm in rooms: rm.update(EXTRA.get(rm['id'], {}))
 

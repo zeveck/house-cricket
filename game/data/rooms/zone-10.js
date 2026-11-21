@@ -18,7 +18,7 @@ export const attic = {
       x: 22,
       y: 1,
       bg: {"v":"a","x":0.8,"y":0.3},
-      decor: [{"prop":"sprites/npcs/velvet.webp","x":22,"y":11,"h":0.9,"layer":"mid","rot":3.14,"flip":false,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":26,"y":11,"h":1.1,"layer":"mid","rot":3.14,"flip":true,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":31,"y":11,"h":0.9,"layer":"mid","rot":3.14,"flip":false,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":35,"y":11,"h":0.8,"layer":"mid","rot":3.14,"flip":true,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":39,"y":11,"h":1,"layer":"mid","rot":3.14,"flip":false,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":43,"y":11,"h":0.9,"layer":"mid","rot":3.14,"flip":true,"alpha":0.85},{"prop":"spool","x":54,"y":33,"h":1,"layer":"mid"},{"prop":"book-spine","x":58,"y":33,"h":1.4},{"prop":"marble","x":40,"y":33,"h":0.6,"layer":"mid"},{"prop":"carrier/dice-stack.webp","x":28,"y":33,"h":1.8}],
+      decor: [{"prop":"sprites/npcs/velvet.webp","x":22,"y":11,"h":0.9,"layer":"mid","rot":3.14,"flip":false,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":26,"y":11,"h":1.1,"layer":"mid","rot":3.14,"flip":true,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":31,"y":11,"h":0.9,"layer":"mid","rot":3.14,"flip":false,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":35,"y":11,"h":0.8,"layer":"mid","rot":3.14,"flip":true,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":39,"y":11,"h":1,"layer":"mid","rot":3.14,"flip":false,"alpha":0.85},{"prop":"sprites/npcs/velvet.webp","x":43,"y":11,"h":0.9,"layer":"mid","rot":3.14,"flip":true,"alpha":0.85},{"prop":"spool","x":54,"y":33,"h":1,"layer":"mid"},{"prop":"book-spine","x":58,"y":33,"h":1.4},{"prop":"marble","x":40,"y":33,"h":0.6,"layer":"mid"},{"prop":"spool","x":28,"y":33,"h":1.3}],
       fx: [{"kind":"motes","x":46,"y":2,"w":16,"h":10},{"kind":"dust","x":2,"y":18,"w":60,"h":14}],
       grid: [
         '################################################################',
@@ -232,7 +232,7 @@ export const attic = {
       x: 10,
       y: 1,
       bg: {"v":"a","x":0.3,"y":0.4},
-      decor: [{"prop":"marble","x":88,"y":34,"h":0.7,"layer":"mid"},{"prop":"marble","x":62,"y":34,"h":0.6,"layer":"mid"},{"prop":"marble","x":68,"y":34,"h":0.8,"layer":"mid"},{"prop":"spool","x":79,"y":22,"h":1.2,"layer":"mid"},{"prop":"pin","x":99,"y":22,"h":1.1},{"prop":"pin","x":93,"y":23,"h":1.1},{"prop":"dice","x":41,"y":21,"h":1,"layer":"mid"},{"prop":"book-spine","x":28,"y":17,"h":1.3,"layer":"mid"},{"prop":"music-stone-bell","x":22,"y":15,"h":1.2,"layer":"mid","alpha":0.8},{"prop":"carrier/dice-stack.webp","x":112,"y":33,"h":1.6}],
+      decor: [{"prop":"marble","x":88,"y":27,"h":0.7,"layer":"mid"},{"prop":"marble","x":84,"y":27,"h":0.6,"layer":"mid"},{"prop":"marble","x":86,"y":27,"h":0.8,"layer":"mid"},{"prop":"spool","x":76,"y":27,"h":1.2,"layer":"mid"},{"prop":"pin","x":99,"y":22,"h":1.1},{"prop":"pin","x":93,"y":23,"h":1.1},{"prop":"marble","x":40,"y":23,"h":0.6,"layer":"mid"},{"prop":"music-stone-bell","x":22,"y":15,"h":1.2,"layer":"mid","alpha":0.8},{"prop":"book-spine","x":112,"y":33,"h":1.4}],
       fx: [{"kind":"motes","x":30,"y":2,"w":40,"h":14}],
       grid: [
         '################################################################################################################################',
@@ -289,7 +289,7 @@ export const attic = {
       y: 2,
       bg: {"v":"b","x":0.7,"y":0.8},
       terrainKinds: {"C":"plaster"},
-      decor: [{"prop":"pull-chain","x":38,"y":15,"h":1.4,"layer":"mid"},{"prop":"dice","x":20,"y":15,"h":1.2,"layer":"mid"},{"prop":"marble","x":26,"y":15,"h":0.7,"layer":"mid"},{"prop":"spool","x":12,"y":15,"h":1.3,"layer":"mid"},{"prop":"carrier/dice-stack.webp","x":6,"y":15,"h":2.2},{"prop":"tv-remote","x":54,"y":15,"h":1,"layer":"mid"}],
+      decor: [{"prop":"cork","x":38,"y":15,"h":0.8,"layer":"mid"},{"prop":"bottle-cap","x":20,"y":15,"h":0.6,"layer":"mid"},{"prop":"marble","x":26,"y":15,"h":0.7,"layer":"mid"},{"prop":"spool","x":12,"y":15,"h":1.3,"layer":"mid"},{"prop":"book-spine","x":6,"y":15,"h":1.6},{"prop":"tv-remote","x":54,"y":15,"h":1,"layer":"mid"}],
       grid: [
         '################################################################',
         '#..............................................................#',

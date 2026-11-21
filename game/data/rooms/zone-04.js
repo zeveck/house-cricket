@@ -111,7 +111,7 @@ export default {
       decor: [
         { prop: 'spice-rack', x: 13, y: 16, h: 3, layer: 'back' },
         { prop: 'cork', x: 24, y: 16, h: 1.1, layer: 'mid' },
-        { prop: 'dice', x: 17, y: 16, h: 0.9, layer: 'mid' },
+        { prop: 'cork', x: 17, y: 16, h: 0.8, layer: 'mid' }, // [issue 40] a cork, not a die
       ],
       entities: [
         { type: 'npc', who: 'crumb', x: 20, y: 16, recruit: 'crumb' },
@@ -181,7 +181,7 @@ export default {
       paint: [{ kind: 'syrup', x: 24, y: 34, w: 13, h: 1 }],
       decor: [
         { prop: 'jam-blob', x: 16, y: 27, h: 0.8, layer: 'mid' },
-        { prop: 'cork', x: 34, y: 33, h: 1.0, layer: 'mid' },
+        { prop: 'cork', x: 34, y: 34, h: 1.0, layer: 'mid' }, // [issue 40] stuck in the syrup on the floor, not over it
         { gecko: 'lashes', x: 57, y: 31, len: 300, layer: 'mid', after: 'frost' },
       ],
       entities: [
@@ -190,7 +190,7 @@ export default {
         { type: 'ant', x: 10, y: 33, range: [8, 13] },
         { type: 'secret', id: 'pan-songseed-jars', x: 49, y: 18 },
         { type: 'secret', id: 'pan-hump', x: 5, y: 28 },
-        { type: 'secret', id: 'pan-mote', x: 20, y: 33 },
+        { type: 'secret', id: 'pan-mote', x: 20, y: 34 }, // [issue 40] on the nook's floor
         { type: 'crumbs', x: 42, y: 26, n: 5 },
       ],
     },
@@ -201,7 +201,7 @@ export default {
       bg: { v: 'b', mirror: true, x: 0.5, y: 0.3 },
       decor: [
         { prop: 'spice-rack', x: 22, y: 15, h: 3, layer: 'back' },
-        { prop: 'cork', x: 44, y: 15, h: 1.1, layer: 'mid' },
+        { prop: 'cork', x: 44, y: 16, h: 1.1, layer: 'mid' }, // [issue 40] on the floor
       ],
       entities: [
         { type: 'hide', x: 52, y: 10, w: 2, art: 'bottle-cap' },

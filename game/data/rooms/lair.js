@@ -24,7 +24,7 @@ export default {
         {"prop": "marble", "x": 22, "y": 15, "h": 0.8, "layer": "mid"},
         {"prop": "candy-wrapper", "x": 25, "y": 15, "h": 0.7, "layer": "mid", "rot": -0.2},
         {"prop": "hoard-coins", "x": 30, "y": 15, "h": 1.4, "layer": "back", "alpha": 0.85},
-        {"prop": "pull-chain", "x": 20, "y": 8, "h": 3.5, "layer": "back", "alpha": 0.7},
+        {"prop": "pull-chain", "x": 20, "y": 8, "h": 6.0, "layer": "back", "alpha": 0.7},
       ],
       grid: [
         '################################',
@@ -74,7 +74,7 @@ export default {
         {"prop": "marble", "x": 11, "y": 33, "h": 0.9, "layer": "mid"},
         {"prop": "candy-wrapper", "x": 21, "y": 33, "h": 0.8, "layer": "mid", "rot": -0.15},
         {"prop": "hoard-coins", "x": 28, "y": 33, "h": 1.0, "layer": "mid"},
-        {"prop": "pebble-chip", "x": 34, "y": 33, "h": 0.5, "layer": "mid"},
+        {"prop": "pebble-chip", "x": 25.5, "y": 33, "h": 0.5, "layer": "mid"},
         {"prop": "hoard-pile", "x": 40, "y": 33, "h": 3.4, "layer": "back", "alpha": 0.8},
         {"prop": "hoard-pile", "x": 62, "y": 33, "h": 4.0, "layer": "back", "alpha": 0.8},
         {"prop": "hoard-coins", "x": 80, "y": 33, "h": 3.5, "layer": "back", "alpha": 0.8},

@@ -155,7 +155,7 @@ export default {
       grid: rg.rows(),
       bg: { v: 'b', x: 0.5, y: 0.7 },
       decor: [
-        { prop: 'dice', x: 31, y: 9, h: 0.9, layer: 'mid' },
+        { prop: 'bottle-cap', x: 31, y: 9, h: 0.6, layer: 'mid' }, // [issue 40] a bottle cap, not a die
         { prop: 'cushion', x: 58, y: 15, h: 1.0, layer: 'back' },
       ],
       entities: [

@@ -144,7 +144,7 @@ export default {
   start: { room: 'bed-carrier' },
   beacon: { room: 'bed-desk', x: 29, y: 15 },
   lair: { room: 'bed-lair', x: 32, y: 10 },
-  near: ['sock', 'throw-pillow', 'book-spine', 'dice'],
+  near: ['sock', 'throw-pillow', 'book-spine', 'spool'], // [issue 40] no dice: they read as a game of chance
   rooms: [
     {
       id: 'bed-carrier', name: 'Beside the Carrier', x: 2, y: 5,
@@ -153,7 +153,7 @@ export default {
       decor: [
         { prop: 'carrier-keeper', x: 17.5, y: 14, h: 4.2, layer: 'back' },
         { prop: 'save-crack', x: 8, y: 14, h: 1.2, layer: 'back' },
-        { prop: 'dice', x: 27, y: 14, h: 1.3, rot: 0.2 },
+        { prop: 'bottle-cap', x: 29, y: 15, h: 0.6 }, // [issue 40] was a die hanging over the step's edge
         { prop: 'marble', x: 3, y: 15, h: 0.8 },
       ],
       fx: [{ kind: 'dust', x: 2, y: 2, w: 28, h: 10 }],
@@ -173,7 +173,7 @@ export default {
         { prop: 'sock', x: 31, y: 15, h: 1.4, layer: 'back' },
         { prop: 'marble', x: 37, y: 15, h: 0.9 },
         { prop: 'book-spine', x: 22.5, y: 15, h: 2, rot: 1.57 },
-        { prop: 'dice', x: 41, y: 15, h: 2.1 },
+        { prop: 'spool', x: 43, y: 15, h: 1.5 }, // [issue 40] was a die hidden behind the block
         { prop: 'throw-pillow', x: 6, y: 12, h: 1.4, layer: 'back' },
         { prop: 'spool', x: 48.5, y: 11, h: 1.2 },
       ],
@@ -191,11 +191,11 @@ export default {
       grid: rug(),
       bg: { v: 'a', mirror: true, x: 0.4, y: 0.72 },
       decor: [
-        { prop: 'dice', x: 31.5, y: 13, h: 1.4 },
-        { prop: 'dice', x: 37.5, y: 13, h: 1.4, rot: 0.15 },
+        { prop: 'marble', x: 31.5, y: 13, h: 0.7 }, // [issue 40] a marble on the toy block, not a die
+        { prop: 'spool', x: 37.5, y: 13, h: 1.2 }, // [issue 40]
         { prop: 'bottle-cap', x: 46.5, y: 15, h: 1.0 },
         { prop: 'spool', x: 56, y: 15, h: 1.6, layer: 'back' },
-        { prop: 'sock', x: 15.5, y: -0.3, h: 1.2, layer: 'back' },
+        { prop: 'sock', x: 15.5, y: 1, h: 1.2, layer: 'back' }, // [issue 40] on the plank, not hung on the room's top edge
         { prop: 'marble', x: 26, y: 15, h: 0.8 },
       ],
       entities: [
@@ -215,7 +215,7 @@ export default {
         { prop: 'drawer-pull', x: 12, y: 37.6, h: 0.9 }, { prop: 'drawer-pull', x: 12, y: 33.6, h: 0.9 },
         { prop: 'drawer-pull', x: 12, y: 29.6, h: 0.9 }, { prop: 'drawer-pull', x: 12, y: 25.6, h: 0.9 },
         { prop: 'drawer-pull', x: 12, y: 21.6, h: 0.9 },
-        { prop: 'book-spine', x: 6.5, y: 36, h: 1.2, rot: 1.57, layer: 'mid' },
+        { prop: 'book-spine', x: 5.5, y: 34.7, h: 1.2, rot: 1.57, layer: 'mid' }, // [issue 40] lying on the block (turned about its foot), not under it
         { prop: 'pin', x: 4.5, y: 31.6, h: 1.6, rot: 0.3 },
         { prop: 'spool', x: 7, y: 27.2, h: 1.0 },
         { prop: 'spool', x: 21, y: 15, h: 1.5 },
@@ -227,7 +227,7 @@ export default {
         { type: 'beacon', x: 29, y: 15 }, // [issue 28] the heating-vent grille in the shaft's wall, at Pip's height (was on the curtain)
         { type: 'sign', x: 26, y: 51, w: 4, text: S.wallJump },
         { type: 'sign', x: 18, y: 15, w: 5, text: 'The Tape Booties! The shaft behind the desk is good for practice.' },
-        { type: 'crumbs', x: 4, y: 19, n: 5 }, // [fixer] no mites on the desk climb (gentler early game)
+        { type: 'crumbs', x: 5, y: 19, n: 5 }, // [issue 40] on the plank, not beside it. [fixer] no mites on the desk climb (gentler early game)
       ],
     },
     {
@@ -237,14 +237,14 @@ export default {
       decor: [
         { prop: 'sock', x: 58.5, y: 33, h: 1.4, layer: 'back' },
         { prop: 'throw-pillow', x: 74, y: 1.2, h: 1.2 },
-        { prop: 'dice', x: 28, y: 27, h: 1.1 },
+        { prop: 'sock', x: 29.5, y: 29, h: 1 }, // [issue 40] was a die in mid-air beside the box: a sock on the box
         { prop: 'book-spine', x: 6, y: 10.2, h: 1.0, rot: 1.57 },
       ],
       entities: [
         { type: 'npc', who: 'weft', x: 43, y: 9, recruit: 'weft' },
         { type: 'secret', id: 'bed-crumbs-shelf', x: 74, y: 1 },
         { type: 'secret', id: 'bed-hump', x: 5, y: 10 },
-        { type: 'crumbs', x: 72, y: 31, n: 5 },
+        { type: 'crumbs', x: 72, y: 29, n: 5 }, // [issue 40] on the plank, not under it
         { type: 'ant', x: 60, y: 33, range: [56, 68] },
       ],
     },

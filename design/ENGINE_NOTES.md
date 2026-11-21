@@ -476,6 +476,11 @@ decor: [{ prop: 'spool', x: 7, y: 15, h: 2.2, layer: 'back', flip: false, rot: 0
         // x = centre column, y = the row it stands in, h = height in tiles (width from the art).
         // layer: 'back' (behind platforms) | 'mid' (in front of platforms, behind actors) | 'front'
         // (over the cricket). prop: a props/ name or any assets path ('carrier/lamp.png').
+        // [issue 40] It must rest on something: its foot (y + 1, after rot about the foot) on a solid tile or a
+        // one-way top under its middle or half its width (sign-check fails a floater). Wall things (a drawer
+        // pull, a pin, a vent, a spice rack...) and hanging things (a pull chain, a ceiling grate) are allowed by
+        // name in sign-check's lists, each with its reason. A checkpoint's flag is drawn on what holds it
+        // (notes.js flagMount: the floor, a long pole to a floor below, a pole out of a wall, a string from above).
 paint: [{ kind: 'plaster', x: 0, y: 10, w: 14, h: 3 }],
         // solid tiles in the box are painted as a terrain kind: cereal plaster crumbling-floor soil sand syrup
 terrainKinds: { C: 'plaster', s: 'sand' },      // what C and s tiles look like in this room (default cereal, soil)

@@ -172,7 +172,7 @@ export default {
       grid: toilet(),
       bg: { v: 'b', mirror: true, x: 0.5, y: 0.5 },
       decor: [
-        { prop: 'spool', x: 46, y: 17.4, h: 1.6, layer: 'mid' },
+        { prop: 'spool', x: 48, y: 13, h: 1.4, layer: 'mid' }, // [issue 40] on the ledge, not under it
         { prop: 'steam-puff', x: 34, y: 12.5, h: 1.2, alpha: 0.5, layer: 'back' },
       ],
       paint: [],
@@ -182,7 +182,7 @@ export default {
         { type: 'silverfish', x: 8, y: 33, range: [2, 17] },
         { type: 'hide', x: 6, y: 33, w: 1, art: 'none' },
         { type: 'crumbs', x: 39, y: 33, n: 25 },
-        { type: 'crumbs', x: 32, y: 12, n: 5 },
+        { type: 'crumbs', x: 34, y: 13, n: 5 }, // [issue 40] on the floor, not over the checkpoint's flag
       ],
     },
     {
@@ -190,12 +190,12 @@ export default {
       grid: cabinet(),
       bg: { v: 'a', x: 0.35, y: 0.3 },
       decor: [
-        { prop: 'soap-dish', x: 54, y: 13, h: 0.9 },
+        { prop: 'soap-dish', x: 54, y: 14, h: 0.9 }, // [issue 40] on the shelf
         { gecko: 'chikchak', pose: 'sleep', x: 56, y: 14, len: 240, after: 'katy', layer: 'mid' },
       ],
       entities: [
         { type: 'sign', x: 14, y: 14, w: 6, text: S.floss }, // [issue 9] a row lower: the note stands on the counter
-        { type: 'secret', id: 'bath-songseed-cabinet', x: 11, y: 5 },
+        { type: 'secret', id: 'bath-songseed-cabinet', x: 11, y: 6 }, // [issue 40] on the cabinet's top
         { type: 'mosquito', x: 34, y: 6 },
       ],
     },
@@ -205,7 +205,7 @@ export default {
       bg: { v: 'a', mirror: true, x: 0.7, y: 0.5 },
       decor: [
         { prop: 'faucet-handle', x: 9, y: 15, h: 1.3 },
-        { prop: 'soap-dish', x: 16, y: 13.8, h: 0.9 },
+        { prop: 'soap-dish', x: 16, y: 13, h: 0.9 }, // [issue 40] on the plank, not under it
         { prop: 'save-crack', x: 25, y: 33, h: 1.2, layer: 'back' },
         { prop: 'drawer-pull', x: 13, y: 30, h: 1.0 },
         { prop: 'sponge', x: 27, y: 51, h: 1.0 },

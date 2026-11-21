@@ -82,9 +82,9 @@ export default {
         {"prop": "drawer-pull", "x": 45, "y": 27, "h": 0.8, "layer": "mid"},
         {"prop": "drawer-pull", "x": 45, "y": 29, "h": 0.8, "layer": "mid"},
         {"prop": "pin", "x": 11, "y": 23, "h": 0.6, "layer": "mid"},
-        {"prop": "dice", "x": 26, "y": 23, "h": 1.0, "layer": "mid"},
-        {"prop": "book-spine", "x": 20, "y": 6, "h": 1.6, "layer": "back"},
-        {"prop": "book-spine", "x": 26, "y": 12, "h": 1.6, "layer": "back", "rot": 0.1},
+        {"prop": "bottle-cap", "x": 26, "y": 23, "h": 0.6, "layer": "mid"},
+        {"prop": "book-spine", "x": 19, "y": 4, "h": 1.6, "layer": "back"},
+        {"prop": "book-spine", "x": 26, "y": 10, "h": 1.6, "layer": "back", "rot": 0.1},
         {"prop": "marble", "x": 6, "y": 33, "h": 0.7, "layer": "mid"},
         {"gecko": "mossy", "x": 25, "y": 23, "len": 220, "pose": "sleep", "layer": "mid", "after": "rin"},
       ],
@@ -184,8 +184,8 @@ export default {
       needsMsg: "Too dark to go in without a light. (Glow Bead)",
       bg: {"v": "b", "x": 0.1, "y": 0.3},
       decor: [
-        {"prop": "book-spine", "x": 3, "y": 11, "h": 2.2, "layer": "back"},
-        {"prop": "book-spine", "x": 13, "y": 11, "h": 2.0, "layer": "back", "rot": -0.1},
+        {"prop": "book-spine", "x": 5, "y": 11, "h": 2.2, "layer": "back"},
+        {"prop": "book-spine", "x": 12, "y": 11, "h": 2.0, "layer": "back", "rot": -0.1},
         {"prop": "book-spine", "x": 27, "y": 15, "h": 2.4, "layer": "back"},
       ],
       grid: [

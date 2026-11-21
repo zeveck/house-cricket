@@ -16,7 +16,7 @@ z = Zone('z09-basement', 9, 'Basement',
          beaconVoice='ground',
          start={'room': 'bas-stairs'},
          decoys=[{'voice': 'swift-chitter', 'room': 'bas-chimney', 'x': 16, 'y': 3, 'every': 7}],
-         near=['spool', 'dice', 'pebble'])
+         near=['spool', 'marble', 'pebble'])  # [issue 40] no dice
 
 
 def dark(**o):
@@ -50,7 +50,7 @@ r.ent('cellarspider', x=24, y=28, drop=10)
 r.ent('cellarspider', x=45, y=37, drop=8)
 r.deco('pull-chain', 20, 3, 3.5, layer='back')
 r.deco('spool', 4, 3, 2.2, layer='back')
-r.deco('dice', 58, 15, 1.6, layer='back', rot=0.2)
+r.deco('pebble', 58, 15, 0.9, layer='back')  # [issue 40] was a tilted die
 r.deco('sock', 6, 34, 1.4, layer='back')
 r.deco('bottle-cap', 30, 51, 1.0, layer='mid')
 r.deco('pebble', 50, 51, 0.9, layer='mid')
@@ -85,9 +85,9 @@ r.ent('secret', id='bas-cloak', x=10, y=15)
 r.ent('sign', x=4, y=33, w=8, text='That one can\'t be kicked. Hide and let it pass. ({enter} near a gap)')
 r.ent('sign', x=82, y=15, w=6, text='No hiding spots at all. You\'d have to be invisible.')
 r.put(48, 33, 'k')
-r.deco('dice', 16, 31, 1.8, layer='mid')
+r.deco('spool', 16, 31, 1.4, layer='mid')  # [issue 40] was a die
 r.deco('spool', 38, 31, 2.0, layer='mid')
-r.deco('dice', 62, 31, 1.7, layer='mid', rot=-0.15)
+r.deco('cork', 62, 31, 0.9, layer='mid')  # [issue 40] was a tilted die
 r.deco('sock', 77, 31, 1.3, layer='mid')
 r.deco('cork', 27, 33, 0.9, layer='back')
 r.deco('pull-chain', 52, 17, 3.0, layer='back')
@@ -122,7 +122,7 @@ r.ent('sign', x=24, y=33, w=6, nx=25, text='{use} near a hook to grab it. {lineO
 r.put(80, 33, 'k')
 r.deco('pull-chain', 47, 22, 2.6, layer='back')
 r.deco('spool', 60, 17, 2.0, layer='mid')
-r.deco('dice', 72, 17, 1.6, layer='mid')
+r.deco('bottle-cap', 72, 17, 0.7, layer='mid')  # [issue 40] was a die
 r.deco('cork', 24, 17, 1.0, layer='mid')
 r.deco('bottle-cap', 10, 33, 1.0, layer='mid')
 r.deco('marble', 90, 33, 0.8, layer='mid')
@@ -178,10 +178,10 @@ r.ent('sign', x=58, y=33, w=6, text='The coal chute. Slick with soot all the way
 r.ent('centipede', x=54, y=18, path=[[54, 18], [93, 18], [93, 28], [93, 18]], speed=300)
 r.put(20, 33, 'k')
 r.deco('furnace-grate', 48, 26, 2.2, layer='back', alpha=0.6)
-r.deco('pebble', 20, 29, 1.0, layer='mid')
+r.deco('pebble', 18.5, 27, 0.8, layer='mid')  # [issue 40] on the coal step, not hanging beside it
 r.deco('pebble', 36, 17, 1.2, layer='mid', flip=True)
-r.deco('pebble-chip', 24, 25, 0.8, layer='mid')
-r.deco('dice', 70, 33, 1.6, layer='back')
+r.deco('pebble-chip', 24.5, 21, 0.7, layer='mid')  # [issue 40] on the coal step
+r.deco('pebble', 70, 33, 1.0, layer='back')  # [issue 40] a lump by the coal, was a die
 r.deco('spool', 85, 33, 2.0, layer='back')
 r.o['fx'] = [{'kind': 'dust', 'x': 44, 'y': 1, 'w': 7, 'h': 30}]
 

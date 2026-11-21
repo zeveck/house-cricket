@@ -116,7 +116,7 @@ export default {
       decor: [
         { prop: 'hide-log', x: 9.5, y: 33.3, h: 2.2 },
         { prop: 'water-dish', x: 19.5, y: 33.4, h: 2.0 },
-        { prop: 'fake-plant', x: 24, y: 29, h: 9, layer: 'back' },
+        { prop: 'fake-plant', x: 26.5, y: 31, h: 9, layer: 'back' }, // [issue 40] its rock on the sand step, not above it
         { prop: 'fake-plant', x: 21, y: 16, h: 11, layer: 'back', flip: true },
         { prop: 'pebble-chip', x: 27, y: 17, h: 0.8 },
       ],

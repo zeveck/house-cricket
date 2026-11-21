@@ -50,7 +50,7 @@ export const hall = {
       y: 4,
       bg: {"v":"b","x":0.4,"y":0.6},
       loops: ["vacuum"],
-      decor: [{"prop":"drawer-pull","x":4,"y":20,"h":1.2},{"prop":"hook","x":16,"y":12,"h":1.4,"layer":"mid"},{"prop":"sock","x":17,"y":12,"h":1,"layer":"mid","rot":0.3},{"prop":"sprites/enemies/vacuum/0.webp","x":9,"y":33,"h":1.1,"layer":"mid"},{"prop":"sock","x":4,"y":33,"h":0.8,"layer":"mid"},{"prop":"spool","x":13,"y":33,"h":0.9,"layer":"mid"},{"prop":"dice","x":44,"y":31,"h":1,"layer":"mid"},{"prop":"throw-pillow","x":56,"y":33,"h":1.2,"layer":"mid"}],
+      decor: [{"prop":"drawer-pull","x":4,"y":20,"h":1.2},{"prop":"hook","x":16,"y":12,"h":1.4,"layer":"mid"},{"prop":"sock","x":17,"y":12,"h":1,"layer":"mid","rot":0.3},{"prop":"sprites/enemies/vacuum/0.webp","x":9,"y":33,"h":1.1,"layer":"mid"},{"prop":"sock","x":4,"y":33,"h":0.8,"layer":"mid"},{"prop":"spool","x":13,"y":33,"h":0.9,"layer":"mid"},{"prop":"bottle-cap","x":44,"y":31,"h":0.6,"layer":"mid"},{"prop":"throw-pillow","x":56,"y":33,"h":1.2,"layer":"mid"}],
       paint: [{"kind":"plaster","x":7,"y":30,"w":9,"h":2}],
       grid: [
         '#######...##...................................................#',
@@ -116,7 +116,7 @@ export const stairwell = {
       x: 16,
       y: 3,
       bg: {"v":"a","x":0.3,"y":0.5},
-      decor: [{"prop":"book-spine","x":8,"y":31,"h":1.2,"layer":"mid"},{"prop":"book-spine","x":12,"y":29,"h":1,"layer":"mid","flip":true},{"prop":"book-spine","x":8,"y":27,"h":1.1,"layer":"mid"},{"prop":"dice","x":12,"y":25,"h":0.9,"layer":"mid"},{"prop":"pin","x":37,"y":23,"h":1,"layer":"mid"},{"prop":"fake-plant","x":3,"y":33,"h":2.2}],
+      decor: [{"prop":"book-spine","x":8,"y":31,"h":1.2,"layer":"mid"},{"prop":"book-spine","x":12,"y":29,"h":1,"layer":"mid","flip":true},{"prop":"book-spine","x":8,"y":27,"h":1.1,"layer":"mid"},{"prop":"marble","x":12,"y":25,"h":0.6,"layer":"mid"},{"prop":"pin","x":37,"y":23,"h":1,"layer":"mid"},{"prop":"fake-plant","x":3,"y":33,"h":2.2}],
       fx: [{"kind":"motes","x":30,"y":4,"w":30,"h":18}],
       grid: [
         '###############################################################G',

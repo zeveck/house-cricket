@@ -79,8 +79,8 @@ r.deco('furnace-grate', 30, 34, 0.7, layer='back')    # the floor register: Peep
 r.deco('book-spine', 30, 23, 2.6, layer='back'); r.deco('book-spine', 31, 23, 2.3, layer='back', rot=0.1)
 r.deco('drawer-pull', 45, 27, 0.8, layer='mid'); r.deco('drawer-pull', 45, 29, 0.8, layer='mid')
 r.deco('pin', 11, 23, 0.6, layer='mid')
-r.deco('dice', 26, 23, 1.0, layer='mid')
-r.deco('book-spine', 20, 6, 1.6, layer='back'); r.deco('book-spine', 26, 12, 1.6, layer='back', rot=0.1)
+r.deco('bottle-cap', 26, 23, 0.6, layer='mid')  # [issue 40] a bottle cap, not a die
+r.deco('book-spine', 19, 4, 1.6, layer='back'); r.deco('book-spine', 26, 10, 1.6, layer='back', rot=0.1)  # [issue 40] on the shelves, not under them
 r.deco('marble', 6, 33, 0.7, layer='mid')
 
 r.decor.append({'gecko': 'mossy', 'x': 25, 'y': 23, 'len': 220, 'pose': 'sleep', 'layer': 'mid', 'after': 'rin'})  # dozing after his game
@@ -113,7 +113,7 @@ r.fill(4, 12, 9, 4)                                    # the big dictionary
 r.plat(14, 14, 4); r.plat(19, 12, 4); r.plat(24, 10, 4)
 r.ent('npc', who='page', x=8, y=11, recruit='page')
 r.ent('crumbs', x=25, y=9, n=10)
-r.deco('book-spine', 3, 11, 2.2, layer='back'); r.deco('book-spine', 13, 11, 2.0, layer='back', rot=-0.1)
+r.deco('book-spine', 5, 11, 2.2, layer='back'); r.deco('book-spine', 12, 11, 2.0, layer='back', rot=-0.1)  # [issue 40] on the stack, not over the gaps
 r.deco('book-spine', 27, 15, 2.4, layer='back')
 
 # ---------------------------------------------------------------- stu-shelves (21,3) 2x3

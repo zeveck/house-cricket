@@ -11,7 +11,7 @@ export default {
   beaconVoice: "ground",
   start: {"room": "bas-stairs"},
   decoys: [{"voice": "swift-chitter", "room": "bas-chimney", "x": 16, "y": 3, "every": 7}],
-  near: ["spool", "dice", "pebble"],
+  near: ["spool", "marble", "pebble"],
   rooms: [
     {
       id: "bas-stairs", name: "The Basement Stairs",
@@ -24,7 +24,7 @@ export default {
       decor: [
         {"prop": "pull-chain", "x": 20, "y": 3, "h": 3.5, "layer": "back"},
         {"prop": "spool", "x": 4, "y": 3, "h": 2.2, "layer": "back"},
-        {"prop": "dice", "x": 58, "y": 15, "h": 1.6, "layer": "back", "rot": 0.2},
+        {"prop": "pebble", "x": 58, "y": 15, "h": 0.9, "layer": "back"},
         {"prop": "sock", "x": 6, "y": 34, "h": 1.4, "layer": "back"},
         {"prop": "bottle-cap", "x": 30, "y": 51, "h": 1.0, "layer": "mid"},
         {"prop": "pebble", "x": 50, "y": 51, "h": 0.9, "layer": "mid"},
@@ -104,9 +104,9 @@ export default {
       bg: {"v": "b", "x": 0.5},
       fx: [{"kind": "dust", "x": 2, "y": 17, "w": 90, "h": 16}],
       decor: [
-        {"prop": "dice", "x": 16, "y": 31, "h": 1.8, "layer": "mid"},
+        {"prop": "spool", "x": 16, "y": 31, "h": 1.4, "layer": "mid"},
         {"prop": "spool", "x": 38, "y": 31, "h": 2.0, "layer": "mid"},
-        {"prop": "dice", "x": 62, "y": 31, "h": 1.7, "layer": "mid", "rot": -0.15},
+        {"prop": "cork", "x": 62, "y": 31, "h": 0.9, "layer": "mid"},
         {"prop": "sock", "x": 77, "y": 31, "h": 1.3, "layer": "mid"},
         {"prop": "cork", "x": 27, "y": 33, "h": 0.9, "layer": "back"},
         {"prop": "pull-chain", "x": 52, "y": 17, "h": 3.0, "layer": "back"},
@@ -180,7 +180,7 @@ export default {
       decor: [
         {"prop": "pull-chain", "x": 47, "y": 22, "h": 2.6, "layer": "back"},
         {"prop": "spool", "x": 60, "y": 17, "h": 2.0, "layer": "mid"},
-        {"prop": "dice", "x": 72, "y": 17, "h": 1.6, "layer": "mid"},
+        {"prop": "bottle-cap", "x": 72, "y": 17, "h": 0.7, "layer": "mid"},
         {"prop": "cork", "x": 24, "y": 17, "h": 1.0, "layer": "mid"},
         {"prop": "bottle-cap", "x": 10, "y": 33, "h": 1.0, "layer": "mid"},
         {"prop": "marble", "x": 90, "y": 33, "h": 0.8, "layer": "mid"},
@@ -300,10 +300,10 @@ export default {
       fx: [{"kind": "dust", "x": 44, "y": 1, "w": 7, "h": 30}],
       decor: [
         {"prop": "furnace-grate", "x": 48, "y": 26, "h": 2.2, "layer": "back", "alpha": 0.6},
-        {"prop": "pebble", "x": 20, "y": 29, "h": 1.0, "layer": "mid"},
+        {"prop": "pebble", "x": 18.5, "y": 27, "h": 0.8, "layer": "mid"},
         {"prop": "pebble", "x": 36, "y": 17, "h": 1.2, "layer": "mid", "flip": true},
-        {"prop": "pebble-chip", "x": 24, "y": 25, "h": 0.8, "layer": "mid"},
-        {"prop": "dice", "x": 70, "y": 33, "h": 1.6, "layer": "back"},
+        {"prop": "pebble-chip", "x": 24.5, "y": 21, "h": 0.7, "layer": "mid"},
+        {"prop": "pebble", "x": 70, "y": 33, "h": 1.0, "layer": "back"},
         {"prop": "spool", "x": 85, "y": 33, "h": 2.0, "layer": "back"},
       ],
       grid: [

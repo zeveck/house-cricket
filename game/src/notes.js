@@ -13,7 +13,7 @@ import { K } from './physics.js';
 
 const T = TILE;
 export const STANDABLE = new Set([K.SOLID, K.SLICK, K.CEREAL, K.CRACK, K.SOIL, K.PROP, K.ONEWAY]);
-const BLOCKS = new Set([K.SOLID, K.SLICK, K.CEREAL, K.CRACK, K.SOIL, K.PROP]); // the note's own cell must not be one
+export const BLOCK_KINDS = new Set([K.SOLID, K.SLICK, K.CEREAL, K.CRACK, K.SOIL, K.PROP]); const BLOCKS = BLOCK_KINDS; // the note's own cell must not be one
 const STEPS = [0, 1, -1, 2, -2];
 
 // The timing of the card (sim frames, 60 a second) and the ranges (tiles): design, HUD, Tutorial notes.
@@ -163,3 +163,28 @@ export const markerSize = (s, touch) => { const m = MARKER[s.mark] || MARKER.hov
 
 // A stable phase per note (so markers in a room don't bob in step).
 export const notePhase = (s) => { let h = (s.tx * 73856093) ^ (s.gy * 19349663); h = (h ^ (h >>> 13)) >>> 0; return (h % 1000) / 1000 * Math.PI * 2; };
+
+// [issue 40] A checkpoint's flag never floats: what holds it up, from the tiles around it (at(tx, ty): the live
+// grid). The checkpoint (tx, ty) stays where it is (its trigger and the respawn are the game's); only the flag's
+// pole changes. Returns { kind, ... } in tiles:
+//   'floor': the floor under it (the usual short pole);  'pole': a floor up to 4 rows lower (a long pole, foot at row y);
+//   'wall':  a wall up to 6 columns away at its row or the one above (a pole out of the wall face at x);
+//   'ceiling': a ceiling or a plank up to 4 rows above (the pennant on a string from y);  null: nothing (sign-check fails it).
+export function flagMount(at, tx, ty) {
+  const holds = (x, y) => STANDABLE.has(at(x, y));
+  if (STANDABLE.has(at(tx, ty + 1))) return { kind: 'floor', y: ty + 1 };
+  for (let d = 2; d <= 5; d++) {
+    if (BLOCKS.has(at(tx, ty + d - 1))) break;
+    if (holds(tx, ty + d)) return { kind: 'pole', y: ty + d };
+  }
+  for (let d = 1; d <= 6; d++) for (const s of [-1, 1]) {
+    const x = tx + s * d;
+    if (BLOCKS.has(at(x, ty)) || BLOCKS.has(at(x, ty - 1))) return { kind: 'wall', x: s < 0 ? x + 1 : x, side: s };
+  }
+  for (let d = 1; d <= 4; d++) { // a block's underside, or a plank (drawn along its tile's top, about 0.3 tile thick)
+    const k = at(tx, ty - d);
+    if (BLOCKS.has(k)) return { kind: 'ceiling', y: ty - d + 1 };
+    if (k === K.ONEWAY) return { kind: 'ceiling', y: ty - d + 0.3 };
+  }
+  return null;
+}

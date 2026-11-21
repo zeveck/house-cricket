@@ -229,7 +229,7 @@ export default {
       bg: { v: 'b', x: 0.15, y: 0.75 },
       decor: [
         { prop: 'sponge', x: 58, y: 15, h: 1.0 },
-        { prop: 'sponge', x: 30, y: 4, h: 1.0, rot: 0.3 },
+        { prop: 'sponge', x: 25, y: 8, h: 1.0 }, // [issue 40] on the cabinet top, not in mid-air
       ],
       entities: [
         { type: 'item', item: 'raft', x: 43, y: 15 },
@@ -247,7 +247,7 @@ export default {
       decor: [
         { prop: 'fake-plant', x: 41, y: 9.8, h: 3, layer: 'back' },
         { prop: 'fake-plant', x: 71.5, y: 9.8, h: 3, layer: 'back', flip: true },
-        { prop: 'wooden-spoon', x: 21, y: 9, h: 3.2, layer: 'back' },
+        { prop: 'wooden-spoon', x: 46, y: 9, h: 1.4, layer: 'back' }, // [issue 40] lying on the sill, not hanging over the swing's gap
       ],
       entities: [
         { type: 'fruitflies', x: 60, y: 8 },

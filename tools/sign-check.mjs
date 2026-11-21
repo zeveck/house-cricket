@@ -9,6 +9,7 @@
 //       ... plus the 2-line check: every tip set in the HUD card at 667x375 (touch), 14 px, must fit
 //       in 2 lines (needs the server and playwright-cli, run from the project root)
 //   node tools/sign-check.mjs --list          # every note and where it stands
+//   node tools/sign-check.mjs --floats        # [issue 40] every decor and floor prop and what holds it up
 //   node tools/sign-check.mjs --shots DIR [--url ...] [--only room,room] [--touch]
 //       ... [issue 34] a picture of every note's marker at 1280x720 (844x390 with --touch), Pip two
 //       tiles off: DIR/<room>_<x>_<y>.png unread, then ..._read.png once its card has been read
@@ -20,8 +21,9 @@ import { Game } from '../game/src/game.js';
 import { ZONES } from '../game/data/rooms/index.js';
 import { TILE } from '../game/data/movement.js';
 import { K } from '../game/src/physics.js';
-import { STANDABLE, floorProps, markerSize, markerObstacles, markerHits, NOTE, newArm, armStep, armAllows } from '../game/src/notes.js';
+import { STANDABLE, BLOCK_KINDS, flagMount, floorProps, markerSize, markerObstacles, markerHits, NOTE, newArm, armStep, armAllows } from '../game/src/notes.js';
 import { TEXT } from '../game/data/text.js';
+import { LOOK } from '../game/data/look/index.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -185,6 +187,95 @@ console.log(`${n} signs (${notes} notes, ${cards} cards), ${script.length} scrip
   ok(!armAllows(arm, s, 200, true, true), '... once: not again on the next frame he stands there');
   inStay = false; armStep(arm, signs, stay, null); inStay = true;
   ok(armAllows(arm, s, 201, false, false), 're-show: he left (out of its stay range) and came back: it may show');
+}
+
+// ---- [issue 40] nothing that just sits there floats ----
+// Every decor prop (the rooms' and data/look's) and every point prop drawn standing on the floor rests on a
+// surface: a solid tile or a one-way top under its middle or under half its width, its bottom within 0.15 tile
+// above that top or sunk into it a little (a third of a tile in front of the platforms; behind them, where the
+// platform hides it, up to half its height or a tile). The box is the art's real size (its WebP: the props are
+// trimmed to their paint, so the picture's bottom is the thing's bottom), turned by its rot about its foot as
+// render.js drawProp turns it. A back-layer prop whose foot is behind a block is hidden there (the block's top
+// is what shows). A thing on a wall or hanging from something visible is allowed only by the lists below, each
+// with its reason. A checkpoint's flag is held as render.js draws it (notes.js flagMount).
+//   node tools/sign-check.mjs --floats   lists every decor and point prop with what holds it up
+{
+  const REST = STANDABLE;
+  // fixed to a wall or a block's face, whatever is under them
+  const ON_WALL = {
+    'drawer-pull': 'a drawer handle, on the drawer front', hook: 'a screw-in cup hook, in the wall', 'smoke-alarm-wall': 'screwed to the wall',
+    'thermostat-lock': 'a thermostat, on the wall', pin: 'a push pin, stuck in the wall', 'furnace-grate': 'a vent grate, in the wall',
+    'dryer-vent': 'a vent, in the wall', 'spice-rack': 'a spice rack, on the wall', 'mister-nozzle': 'the tank mister, clipped to the glass',
+    'faucet-handle': 'a tap, on the wall', 'sound-hole': 'a hole in the wall', 'steam-vent': 'a vent, in the wall',
+  };
+  // hanging: the top must be within half a tile of a solid tile or a one-way edge above (a ceiling, a shelf, a rafter)
+  const HANGS = { 'pull-chain': 'a pull chain, from the ceiling', 'mesh-lid': 'a mesh vent cover, on the ceiling', 'sprites/npcs/velvet.webp': 'a moth asleep under a rafter' };
+  // never resting by nature
+  const AIRBORNE = { 'steam-puff': 'a puff of steam' };
+  // single spots, 'room prop@x,y': why
+  const SPOT = {
+    'dragon-lair pull-chain@76,7': 'the chain of the hanging lamp (the light entity draws the shade on it)',
+    'hall-top pull-chain@38,3': 'hangs from the light fixture painted on the hall ceiling (the hall opens upward there)',
+  };
+  // point props drawn standing on their tile's floor (main.js drawMetaWorld, render.js, mech-draw.js); hooks,
+  // thermostats, switches, sound holes and lights are on walls and ceilings; springs and pianos are platforms
+  // themselves (mechanics.js makes their row solid). A secret inside a breakable tile (cereal, a crack) waits there.
+  const FLOOR_PROPS = new Set(['crumbs', 'secret', 'item', 'save', 'cage', 'npc', 'duet', 'push']);
+  let checked = 0, held = 0;
+  const floats = [], said = (where, why) => { held++; if (args.includes('--floats')) console.log(`  ${where}: ${why}`); };
+  for (const room of Object.values(g0.world.rooms)) {
+    if (room.zone?.n === 98) continue; // entity-test's fixture rooms
+    const at = (x, y) => (x < 0 || x >= room.tw || y < 0 ? K.EMPTY : y >= room.th ? K.SOLID : room.base[y * room.tw + x]);
+    const rests = (x0, x1, yb, sink) => { // tiles: left, right, bottom; the top it rests on, or null
+      const cx = Math.floor((x0 + x1) / 2), wd = x1 - x0;
+      for (let t = Math.ceil(yb - sink - 1e-6); t <= Math.floor(yb + 0.15); t++) {
+        let sup = 0;
+        for (let tx = Math.floor(x0); tx <= Math.floor(x1 - 1e-6); tx++) if (REST.has(at(tx, t))) sup += Math.min(tx + 1, x1) - Math.max(tx, x0);
+        if ((REST.has(at(cx, t)) || sup >= wd / 2) && !REST.has(at(cx, t - 1))) return t;
+      }
+      return null;
+    };
+    for (const d of [...(room.def.decor || []), ...(LOOK[room.id]?.decor || [])]) {
+      if (!d.prop || d.gecko) continue;
+      checked++;
+      const where = `${room.id} ${d.prop}@${d.x},${d.y}`, layer = d.layer || 'back';
+      const h = d.h || 1.5, w = h * aspectOf(d.prop), fx = d.x + 0.5, fy = d.y + 1, r = d.rot || 0;
+      // the turned box about the foot (fx, fy)
+      const cs = [[-w / 2, -h], [w / 2, -h], [-w / 2, 0], [w / 2, 0]].map(([x, y]) => [fx + x * Math.cos(r) - y * Math.sin(r), fy + x * Math.sin(r) + y * Math.cos(r)]);
+      const x0 = Math.min(...cs.map((c) => c[0])), x1 = Math.max(...cs.map((c) => c[0])), top = Math.min(...cs.map((c) => c[1])), yb = Math.max(...cs.map((c) => c[1]));
+      const cx = Math.floor((x0 + x1) / 2);
+      if (SPOT[where]) { said(where, SPOT[where]); continue; }
+      if (AIRBORNE[d.prop]) { said(where, AIRBORNE[d.prop]); continue; }
+      if (ON_WALL[d.prop]) { said(where, ON_WALL[d.prop]); continue; }
+      if (layer === 'back' && BLOCK_KINDS.has(at(cx, Math.floor(yb - 0.5)))) { said(where, 'its foot is behind a block'); continue; }
+      const t = rests(x0, x1, yb, layer === 'back' ? Math.min(h / 2, 1) : 0.34);
+      if (t != null) { said(where, `on the ${KN[at(cx, t)]} top of row ${t}`); continue; }
+      if (HANGS[d.prop]) {
+        if ([Math.floor(top - 0.5), Math.floor(top)].some((ty) => REST.has(at(cx, ty)))) { said(where, HANGS[d.prop]); continue; }
+        floats.push(`${where} (h ${h}): hangs from nothing (its top, row ${top.toFixed(1)}, is not within half a tile of a ceiling or edge)`); continue;
+      }
+      let nt = Math.ceil(yb); while (nt < room.th && nt - yb < 6 && !REST.has(at(cx, nt))) nt++;
+      floats.push(`${where} (h ${h}, ${layer}${r ? `, rot ${r}` : ''}): nothing under it (${nt - yb >= 6 ? 'no top within 6 rows' : `the next top is row ${nt}, ${(nt - yb).toFixed(2)} below`})`);
+    }
+    for (const e of room.entities) {
+      if (!FLOOR_PROPS.has(e.type) && e.type !== 'checkpoint') continue;
+      checked++;
+      const where = `${room.id} ${e.type}@${e.x},${e.y}`;
+      if (SPOT[where]) { said(where, SPOT[where]); continue; }
+      if (e.type === 'checkpoint') {
+        const m = flagMount(at, e.x, e.y);
+        if (m) said(where, `the flag's ${m.kind}`); else floats.push(`${where}: the flag has no floor, wall or ceiling near it`);
+        continue;
+      }
+      if (e.type === 'secret' && (at(e.x, e.y) === K.CEREAL || at(e.x, e.y) === K.CRACK)) { said(where, 'inside a breakable tile'); continue; }
+      const w = e.w || 1, yb = e.y + (e.type === 'push' ? e.h || 1 : 1);
+      const t = rests(e.x, e.x + w, yb, 0.34);
+      if (t != null) said(where, `on row ${t}`); else floats.push(`${where}: nothing under it`);
+    }
+  }
+  for (const f of floats) console.log(`  FLOATS ${f}`);
+  ok(!floats.length, `${floats.length} props float (nothing under them, nothing they hang from): put each on a surface, or list why above`);
+  console.log(`${checked} decor and floor props: ${held} rest on something`);
 }
 
 // ---- the 2-line check in the browser ----

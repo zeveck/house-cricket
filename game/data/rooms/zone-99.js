@@ -136,7 +136,7 @@ export default {
       name: "Sandbox: Cellar",
       x: 104,
       y: 99,
-      decor: [{"prop": "dice", "x": 29, "y": 33, "h": 1.2, "layer": "mid"}],
+      decor: [{"prop": "spool", "x": 29, "y": 33, "h": 1.2, "layer": "mid"}],
       paint: [{"kind": "plaster", "x": 0, "y": 10, "w": 14, "h": 3}, {"kind": "crumbling-floor", "x": 18, "y": 10, "w": 14, "h": 3}, {"kind": "soil", "x": 0, "y": 34, "w": 32, "h": 2}],
       fx: [{"kind": "steam", "x": 22, "y": 33}, {"kind": "dust", "x": 2, "y": 12, "w": 12, "h": 10}],
       grid: [

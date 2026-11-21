@@ -37,7 +37,7 @@ g.deco('pebble', 16, 15, 0.7, layer='mid')
 g.deco('marble', 22, 15, 0.8, layer='mid')
 g.deco('candy-wrapper', 25, 15, 0.7, layer='mid', rot=-0.2)
 g.deco('hoard-coins', 30, 15, 1.4, layer='back', alpha=0.85)
-g.deco('pull-chain', 20, 8, 3.5, layer='back', alpha=0.7)
+g.deco('pull-chain', 20, 8, 6.0, layer='back', alpha=0.7)  # [issue 40] long enough to reach the ceiling it hangs from
 g.o['fx'] = [{'kind': 'dust', 'x': 10, 'y': 4, 'w': 20, 'h': 11}, {'kind': 'motes', 'x': 24, 'y': 9, 'w': 7, 'h': 6}]
 g.o['paint'] = None
 
@@ -91,7 +91,7 @@ deco('candy-wrapper', 78, 19, 0.8, layer='mid', rot=0.1); deco('marble', 71, 19,
 deco('hoard-coins', 85, 21, 1.8, layer='mid'); deco('hoard-pile', 91, 23, 2.4, layer='mid')
 deco('pebble', 4, 33, 0.8, layer='mid'); deco('marble', 11, 33, 0.9, layer='mid')
 deco('candy-wrapper', 21, 33, 0.8, layer='mid', rot=-0.15); deco('hoard-coins', 28, 33, 1.0, layer='mid')
-deco('pebble-chip', 34, 33, 0.5, layer='mid')
+deco('pebble-chip', 25.5, 33, 0.5, layer='mid')  # [issue 40] on the floor, not on the hoard's face
 deco('hoard-pile', 40, 33, 3.4, layer='back', alpha=0.8); deco('hoard-pile', 62, 33, 4.0, layer='back', alpha=0.8)
 deco('hoard-coins', 80, 33, 3.5, layer='back', alpha=0.8)
 deco('mesh-lid', 48, 1, 0.9, layer='back', alpha=0.7)
