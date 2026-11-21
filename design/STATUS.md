@@ -87,3 +87,4 @@
   - HTTPS: required (certificate issued).
   - REPUBLISHED 2026-11-19 (request 13), with the reviewed fixes for issues #1, #2, #3, #4, #5, #8 and #12. Each was fixed, independently reviewed, and checked with the quick replays; the full run replays on main before the push.
   - REPUBLISHED 2026-11-19 (request 17), with the reviewed fixes for issues #6, #7, #9, #10, #11, #13, #14, #15, #16, #17, #18, #19, #20 and #21 (#7, #9 and #10 through --change, with design reviews logged in REVIEW_LOG.md). The full run was re-recorded twice (the tank hunt, the Raft) and replays on main before the push.
+- Published 2026-11-21 (1518897): the opening chase, Duchess's animation and tail, ↑ to jump, the gecko-art fix, crumbs explained, the Sunroom beacon, tip markers, the visible joystick, sound holes, tip re-show. Closed #22, #24-#35. Deferred by the owner: the crumb icon redraw.
