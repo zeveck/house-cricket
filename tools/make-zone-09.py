@@ -239,7 +239,7 @@ r.ent('item', item='feather', x=8, y=13)
 r.put(10, 13, 'B')
 r.ent('sign', x=6, y=33, w=8, text='Press {jump} again in the air to flutter.')
 r.put(26, 33, 'k')
-r.deco('furnace-grate', 10, 12, 1.0, layer='back', alpha=0.7)
+r.deco('furnace-grate', 10, 13, 1.0, layer='back', alpha=0.7)  # [issue 40] a register at floor level, not hovering a tile over it
 r.deco('pebble', 4, 33, 1.0, layer='mid')
 r.deco('pebble-chip', 20, 33, 0.8, layer='mid')
 r.o['fx'] = [{'kind': 'dust', 'x': 12, 'y': 0, 'w': 8, 'h': 34}]

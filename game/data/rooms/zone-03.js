@@ -213,7 +213,7 @@ export default {
       grid: sink(),
       bg: { v: 'a', mirror: true, x: 0.3, y: 0.3 },
       decor: [
-        { prop: 'faucet-handle', x: 31, y: 27, h: 1.6, layer: 'back' },
+        { prop: 'faucet-handle', x: 22.5, y: 29, h: 1.6, layer: 'back' }, // [issue 40] on the counter at the basin's edge, its spout over the water (it hung in mid-air)
         { prop: 'spice-rack', x: 6, y: 25.6, h: 1.8, layer: 'back' },
         { prop: 'spice-rack', x: 6, y: 17.6, h: 1.8, layer: 'back' },
         { prop: 'spice-rack', x: 6, y: 9.6, h: 1.8, layer: 'back' },

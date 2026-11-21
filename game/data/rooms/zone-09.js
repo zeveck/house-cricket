@@ -440,7 +440,7 @@ export default {
       bg: {"v": "a", "x": 0.9, "y": 0.2},
       fx: [{"kind": "dust", "x": 12, "y": 0, "w": 8, "h": 34}],
       decor: [
-        {"prop": "furnace-grate", "x": 10, "y": 12, "h": 1.0, "layer": "back", "alpha": 0.7},
+        {"prop": "furnace-grate", "x": 10, "y": 13, "h": 1.0, "layer": "back", "alpha": 0.7},
         {"prop": "pebble", "x": 4, "y": 33, "h": 1.0, "layer": "mid"},
         {"prop": "pebble-chip", "x": 20, "y": 33, "h": 0.8, "layer": "mid"},
       ],

@@ -168,7 +168,7 @@ export const notePhase = (s) => { let h = (s.tx * 73856093) ^ (s.gy * 19349663);
 // grid). The checkpoint (tx, ty) stays where it is (its trigger and the respawn are the game's); only the flag's
 // pole changes. Returns { kind, ... } in tiles:
 //   'floor': the floor under it (the usual short pole);  'pole': a floor up to 4 rows lower (a long pole, foot at row y);
-//   'wall':  a wall up to 6 columns away at its row or the one above (a pole out of the wall face at x);
+//   'wall':  a wall up to 6 columns away at its row or the one above (a pole out of the wall face at x, from row `row`);
 //   'ceiling': a ceiling or a plank up to 4 rows above (the pennant on a string from y);  null: nothing (sign-check fails it).
 export function flagMount(at, tx, ty) {
   const holds = (x, y) => STANDABLE.has(at(x, y));
@@ -179,7 +179,7 @@ export function flagMount(at, tx, ty) {
   }
   for (let d = 1; d <= 6; d++) for (const s of [-1, 1]) {
     const x = tx + s * d;
-    if (BLOCKS.has(at(x, ty)) || BLOCKS.has(at(x, ty - 1))) return { kind: 'wall', x: s < 0 ? x + 1 : x, side: s };
+    if (BLOCKS.has(at(x, ty)) || BLOCKS.has(at(x, ty - 1))) return { kind: 'wall', x: s < 0 ? x + 1 : x, side: s, row: BLOCKS.has(at(x, ty)) ? ty : ty - 1 };
   }
   for (let d = 1; d <= 4; d++) { // a block's underside, or a plank (drawn along its tile's top, about 0.3 tile thick)
     const k = at(tx, ty - d);

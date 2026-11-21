@@ -208,6 +208,8 @@ console.log(`${n} signs (${notes} notes, ${cards} cards), ${script.length} scrip
     'dryer-vent': 'a vent, in the wall', 'spice-rack': 'a spice rack, on the wall', 'mister-nozzle': 'the tank mister, clipped to the glass',
     'faucet-handle': 'a tap, on the wall', 'sound-hole': 'a hole in the wall', 'steam-vent': 'a vent, in the wall',
   };
+  // of those, fittings that belong on furniture: a block must be behind them or touch their box
+  const FITTING = new Set(['drawer-pull', 'faucet-handle']);
   // hanging: the top must be within half a tile of a solid tile or a one-way edge above (a ceiling, a shelf, a rafter)
   const HANGS = { 'pull-chain': 'a pull chain, from the ceiling', 'mesh-lid': 'a mesh vent cover, on the ceiling', 'sprites/npcs/velvet.webp': 'a moth asleep under a rafter' };
   // never resting by nature
@@ -215,6 +217,7 @@ console.log(`${n} signs (${notes} notes, ${cards} cards), ${script.length} scrip
   // single spots, 'room prop@x,y': why
   const SPOT = {
     'dragon-lair pull-chain@76,7': 'the chain of the hanging lamp (the light entity draws the shade on it)',
+    'bed-desk pin@4.5,31.6': 'a big push pin stuck in the top of the painted tin (the tin is drawn taller than its tiles)',
     'hall-top pull-chain@38,3': 'hangs from the light fixture painted on the hall ceiling (the hall opens upward there)',
   };
   // point props drawn standing on their tile's floor (main.js drawMetaWorld, render.js, mech-draw.js); hooks,
@@ -246,7 +249,17 @@ console.log(`${n} signs (${notes} notes, ${cards} cards), ${script.length} scrip
       const cx = Math.floor((x0 + x1) / 2);
       if (SPOT[where]) { said(where, SPOT[where]); continue; }
       if (AIRBORNE[d.prop]) { said(where, AIRBORNE[d.prop]); continue; }
-      if (ON_WALL[d.prop]) { said(where, ON_WALL[d.prop]); continue; }
+      if (ON_WALL[d.prop] && (rests(x0, x1, yb, layer === 'back' ? Math.min(h / 2, 1) : 0.34) != null || (layer === 'back' && BLOCK_KINDS.has(at(cx, Math.floor((top + yb) / 2)))))) { said(where, `${ON_WALL[d.prop]} (on a top, or behind a block)`); continue; }
+      if (ON_WALL[d.prop]) {
+        // furniture fittings need the furniture: a block behind them or touching their box (a drawer front, a sink)
+        const backed = !FITTING.has(d.prop) || [0, -1, 1].some((dx) => [Math.floor(top), Math.floor((top + yb) / 2), Math.floor(yb - 0.01)].some((ty) => BLOCK_KINDS.has(at(Math.floor(x0 + dx * 0.5 + (dx > 0 ? x1 - x0 : 0)), ty))));
+        // and a wall thing just above a surface reads as hovering over it: it sits on it, or clears it by more than a tile
+        let gap = null; for (let ty = Math.ceil(yb - 1e-6); ty <= yb + 1.2; ty++) if (REST.has(at(cx, ty))) { gap = ty - yb; break; }
+        if (!backed) floats.push(`${where} (h ${h}, ${layer}): a ${d.prop} with no furniture: no block behind it or beside it`);
+        else if (gap != null && gap > 0.15 && gap <= 1.2 && !SPOT[where]) floats.push(`${where} (h ${h}, ${layer}): hovers ${gap.toFixed(2)} tile over the top of row ${Math.round(yb + gap)}: sit it there, or hang it higher`);
+        else said(where, ON_WALL[d.prop]);
+        continue;
+      }
       if (layer === 'back' && BLOCK_KINDS.has(at(cx, Math.floor(yb - 0.5)))) { said(where, 'its foot is behind a block'); continue; }
       const t = rests(x0, x1, yb, layer === 'back' ? Math.min(h / 2, 1) : 0.34);
       if (t != null) { said(where, `on the ${KN[at(cx, t)]} top of row ${t}`); continue; }

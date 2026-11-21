@@ -70,7 +70,7 @@ export const ROOMS = [
     enemies: ['mites'], hides: ['sock'], secrets: ['bed-crumbs-slipper'], props: ['sock', 'marble'] }),
   R('bed-rug', 'z01-bedroom', 'The Rug', 3, 5, 2, 1, { purpose: ['traversal', 'tutorial'],
     brief: 'Rug floor with toy clutter: blocks (2-tile steps), a toy car, a bottle cap (hiding spot: sign "{enter} near a gap to hide"). Worker ants patrol: kick them (sign). Up through the shoe rack (one-way slats) into the closet above.',
-    enemies: ['ant'], hides: ['bottle-cap'], signs: ['kick', 'hide'], props: ['bottle-cap', 'dice'] }),
+    enemies: ['ant'], hides: ['bottle-cap'], signs: ['kick', 'hide'], props: ['bottle-cap', 'marble', 'spool'] }), // [issue 40] no dice
   R('bed-desk', 'z01-bedroom', 'The Craft Desk', 5, 3, 1, 3, { purpose: ['item', 'soundHole', 'tutorial'],
     brief: '3 screens tall. Climb the kid\'s craft desk without any item: chair rungs and seat (one-way), drawer pulls as 2-tile ledges, a stack of picture books, the pencil cup. At the top (y 3): the Tape Booties on a roll of double-sided tape. Sound hole: the heating-vent grille in the wall right beside the tape (Stripe\'s call carries through the duct). After pickup, a 4-wide # shaft between the desk hutch and the wall teaches wall-jump (sign), with G porcelain mug walls showing what can\'t be clung to. Left at y 3-4 opens to the closet\'s upper shelf.',
     item: 'booties', soundHole: { what: 'heating-vent grille', near: 'booties' }, signs: ['jumpHold', 'wallJump'], props: ['sound-hole', 'spool', 'pin'] }),

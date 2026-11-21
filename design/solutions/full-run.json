@@ -6489,4 +6489,4 @@
 [105982,"credits","att-lair"],
 [106366,"thank you","att-lair"],
 [106462,"back in the Carrier","carrier-2"],
-[106702,"end","carrier-2"]],"expect":{"won":true,"inCarrier":true},"endState":{"screen":"play","room":"carrier-2","x":1085,"y":576,"health":5,"items":["band","booties","earplugs","feather","floss","glider","glow","raft","thimble"],"rescued":["chip","digby","duo","frost","hump","jam","katy","mote","rin","stripe"],"recruits":[],"frame":104724,"playFrames":103532,"won":true,"inCarrier":true,"crumbs":50,"completion":24,"ui":null,"story":null}}
+[106702,"end","carrier-2"]],"expect":{"won":true,"inCarrier":true},"endState":{"screen":"play","room":"carrier-2","x":1085,"y":576,"health":5,"items":["band","booties","earplugs","feather","floss","glider","glow","raft","thimble"],"rescued":["chip","digby","duo","frost","hump","jam","katy","mote","rin","stripe"],"recruits":[],"frame":104724,"playFrames":103532,"won":true,"inCarrier":true,"crumbs":55,"completion":24,"ui":null,"story":null}}

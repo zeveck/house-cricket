@@ -966,7 +966,7 @@ export class Renderer {
       const mt = ckm.get(ck);
       c.strokeStyle = INK; c.lineWidth = 2; c.beginPath();
       if (mt?.kind === 'pole') { c.moveTo(x, mt.y * TILE + 2); c.lineTo(x, y - 30); }
-      else if (mt?.kind === 'wall') { c.lineWidth = 2.6; c.moveTo(mt.x * TILE, y - 31); c.lineTo(x, y - 30); c.stroke(); c.lineWidth = 2; c.beginPath(); c.moveTo(x, y - 31); c.lineTo(x, y - 17); }
+      else if (mt?.kind === 'wall') { c.lineWidth = 2.6; c.moveTo(mt.x * TILE, mt.row === ck.ty ? y - 31 : (mt.row + 1) * TILE - 6); /* a block only in the row above: the pole leaves its lower edge */ c.lineTo(x, y - 30); c.stroke(); c.lineWidth = 2; c.beginPath(); c.moveTo(x, y - 31); c.lineTo(x, y - 17); }
       else if (mt?.kind === 'ceiling') { c.lineWidth = 1.5; c.moveTo(x, mt.y * TILE); c.lineTo(x, y - 18); }
       else { c.moveTo(x, y); c.lineTo(x, y - 30); }
       c.stroke();

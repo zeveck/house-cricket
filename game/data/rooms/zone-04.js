@@ -200,7 +200,7 @@ export default {
       music: 'boss',
       bg: { v: 'b', mirror: true, x: 0.5, y: 0.3 },
       decor: [
-        { prop: 'spice-rack', x: 22, y: 15, h: 3, layer: 'back' },
+        { prop: 'spice-rack', x: 22, y: 16, h: 3, layer: 'back' }, // [issue 40] standing on the shelf, not a tile over it
         { prop: 'cork', x: 44, y: 16, h: 1.1, layer: 'mid' }, // [issue 40] on the floor
       ],
       entities: [

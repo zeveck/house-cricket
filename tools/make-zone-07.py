@@ -93,7 +93,7 @@ r.clear(0, 12, 1, 4)                                   # the dark nook (stu-nook
 r.clear(63, 8, 1, 8)                                   # the bookcase (stu-shelves)
 r.fill(40, 8, 6, 7, 'G')                               # the mantel clock: 8 glass tiles up (Rubber Band), on little feet:
                                                        # [issue #4] a 1-tile crawl under it (row 15), the way back from the hutch top
-r.deco('pin', 40.5, 15, 0.8, layer='mid', rot=-1.5708); r.deco('pin', 45.5, 15, 0.8, layer='mid', rot=-1.5708)  # the clock's feet (push-pin heads)
+r.deco('pin', 40.5, 15.25, 0.8, layer='mid', rot=-1.5708); r.deco('pin', 45.5, 15.25, 0.8, layer='mid', rot=-1.5708)  # the clock's feet (push-pin heads); [issue 40] down to the floor
 r.ent('secret', id='stu-crumbs-clock', x=42, y=7)
 r.fill(8, 13, 4, 3)                                    # a stack of books
 r.ent('hide', x=33, y=15, w=1, art='bottle-cap')       # the pen cup
@@ -194,9 +194,9 @@ for x, y, h in [(2, 51, 2.8), (3, 51, 2.4), (10, 49, 1.6), (22, 46, 1.8), (37, 4
                 (6, 6, 2.6), (7, 6, 2.2), (30, 6, 2.4), (31, 6, 2.0), (38, 6, 2.6),
                 (2, 33, 2.4), (20, 33, 2.0), (33, 33, 1.8), (58, 13, 2.0), (60, 13, 2.4)]:
     r.deco('book-spine', x, y, h, layer='back', rot=((x * 7) % 5 - 2) * 0.04)
-r.deco('drawer-pull', 4, 23, 0.9, layer='back')        # cubby 1: a door hinge
-r.deco('smoke-alarm-wall', 15, 23, 1.2, layer='back')   # cubby 2: the clock radio
-r.deco('dryer-vent', 26, 23, 1.2, layer='back')         # cubby 3: the vent
+r.deco('drawer-pull', 4.5, 24, 0.9, layer='back')      # cubby 1: a door hinge  [issue 40] these three sit on their cubby's shelf, not over it
+r.deco('smoke-alarm-wall', 15.5, 24, 1.2, layer='back') # cubby 2: the clock radio
+r.deco('dryer-vent', 26.5, 24, 1.2, layer='back')       # cubby 3: the vent
 r.deco('pin', 15, 46, 0.5, layer='back'); r.deco('pin', 31, 41, 0.5, layer='back')
 
 # ---------------------------------------------------------------- stu-window (23,3) 1x1

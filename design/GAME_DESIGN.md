@@ -67,7 +67,7 @@ Stats are 1 to 5 for **Speed, Jump, Chirp** (radius and stun length against enem
 | 0 | **Pip** | House cricket | 4.8 kHz, 2–3 pulses | 3/3/3/3 | **Listen** shows the beacon twice as far away |
 | 1 | **Stripe** | Banded cricket | 6 kHz, quick 2-pulse | 5/3/2/2 | **Dash:** a burst of speed that runs through crumbling floors before they fall |
 | 2 | **Katy** | True katydid (a cricket cousin, and proud of it) | 3 kHz rasping "ka-ty-did" | 3/3/3/2 | **Long glide** (once the Dryer-Sheet Glider is found) |
-| 3 | **Duo** | Two-spotted cricket | 4.6 kHz, 4–5 pulses, rapid | 2/2/4/5 | **Shove:** pushes heavy crumbs, dice and spools |
+| 3 | **Duo** | Two-spotted cricket | 4.6 kHz, 4–5 pulses, rapid | 2/2/4/5 | **Shove:** pushes a heavy box a tile at a time (the Laundry's box; the code also takes spool and dice blocks, none placed) |
 | 4 | **Frost** | Snowy tree cricket | 3 kHz steady "treet" | 3/4/2/1 | **Thermometer:** while she leads, the HUD shows the temperature her chirp rate gives (Dolbear's law). It opens thermostat locks (below) |
 | 5 | **Hump** | Camel cricket (wingless, **silent**) | none (taps a foot instead) | 3/5/0/3 | **Huge leap:** hold ↓ to crouch for 0.4 s, then Jump; can't chirp at all |
 | 6 | **Jam** | Jamaican field cricket | 4.5 kHz, 3-pulse | 5/3/3/3 | **Wall-run:** runs 3 tiles up a wall |
