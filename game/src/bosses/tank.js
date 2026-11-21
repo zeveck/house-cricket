@@ -701,17 +701,20 @@ const Lid = {
       // [issue #27] jump up into the gap (his head at its mouth, still rising), or press Enter (↓) under it
       const under = Math.abs(p.cx - (gx + 0.5) * T) < 0.9 * T && p.y < (gy + 3) * T && p.y > gy * T;
       const jumpIn = under && !p.grounded && p.state === 'air' && p.vy <= 0 && p.y <= (gy + 1) * T + 4;
-      if (jumpIn || (under && p.grounded && inp?.pressed?.enter)) { s.mode = 'squeeze'; s.t = 0; p.squash = -0.25; g.emit('sfx', { name: 'crinkle', gain: 0.8 }); }
+      if (jumpIn || (under && p.grounded && inp?.pressed?.enter)) {
+        s.mode = 'squeeze'; s.t = 0; p.squash = -0.25; g.emit('sfx', { name: 'crinkle', gain: 0.8 });
+        for (const sg of g.signs) if (sg.text === TK.squeeze) g.retireNote(sg.key); // done with: its card goes (it no longer sits squeezed over the next steps' toasts)
+      }
     } else if (s.mode === 'squeeze') {    // through the mesh, one wriggle at a time
       p.vx = 0; p.vy = 0; p.state = 'air'; p.x = (gx + 0.5) * T - p.w / 2;
       p.y = (gy + 1) * T - p.h - (s.t / 40) * (T + p.h + 4);
-      if (s.t >= 40) { p.y = gy * T - p.h - 1; p.vy = -200; s.mode = 'out'; s.t = 0; g.toast('Out! Now, off the rim...', 150); }
+      if (s.t >= 40) { p.y = gy * T - p.h - 1; p.vy = -200; s.mode = 'out'; s.t = 0; g.toast('Out! Now, off the rim...', 150, 'lid'); }
     } else if (s.mode === 'out') {
       // [issue #38] the cup stands in his way on the lid (a wall at its side, however high he jumps) until he kicks it
       const stop = s.cupX - LID.block;
       if (p.y + p.h <= gy * T + 4 && p.x + p.w > stop) {
         p.x = stop - p.w; if (p.vx > 0) p.vx = 0;
-        if (!s.blocked) { s.blocked = true; g.toast(TK.kickCup, 180); }
+        if (!s.blocked) { s.blocked = true; g.toast(TK.kickCup, 180, 'lid'); } // replaces "Out!"
       } else if (p.x + p.w < stop - T) s.blocked = false;
       const kb = p.kickBox(), [bw, bh] = LID.box;
       if (kb && ov(kb, { x: s.cupX - bw, y: s.cupY - bh, w: 2 * bw, h: bh })) { // knocked off the rim
@@ -722,7 +725,7 @@ const Lid = {
       s.cupVy += 1200 * DT; s.cupX += s.cupVx * DT; s.cupY += s.cupVy * DT; s.cupRot += 0.07;
       if (s.t === LID.leap) { p.vy = -520; p.vx = 300; p.state = 'air'; p.facing = 1; p.cutDone = true; p.prof = { ...p.P.fall, airSpeed: Math.max(p.P.run, 300), carry: true }; g.emit('jump', { x: p.cx, y: p.y + p.h }); } // a leap that carries him on after it
       if (s.t === LID.splat) { g.emit('bellow', {}); g.emit('sfx', { name: 'splat', gain: 0.7 }); }
-      if (s.t === LID.done) { s.mode = 'done'; if (g.meta?.flags?.inTank) g.emit('story', { name: 'tankEscaped' }); else g.toast('Free! (The story carries on from New Game.)', 180); } // only a real New Game hands over to panel 4
+      if (s.t === LID.done) { s.mode = 'done'; if (g.meta?.flags?.inTank) g.emit('story', { name: 'tankEscaped' }); else g.toast('Free! (The story carries on from New Game.)', 180, 'lid'); } // only a real New Game hands over to panel 4
     }
   },
   draw(c) {

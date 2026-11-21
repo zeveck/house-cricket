@@ -381,7 +381,7 @@ export class UI {
     for (const s of game.saves || []) if (Math.abs(s.x + 20 - p.cx) < 40 && Math.abs(s.y + 40 - (p.y + p.h)) < 40 && p.grounded) prompt = ['enter', 'Save'];
     if (p.state === 'hide') prompt = p.hideHold ? ['jump', 'Jump to leave'] : ['right', 'Move to leave']; // [issue 7] the tank's sniff: only Jump leaves
     if (p.has('floss') && p.state !== 'swing') for (const k of game.hooks || []) if (Math.hypot(k.x - p.cx, k.y - p.cy) < 70) prompt = ['use', 'Grab'];
-    if (p.state === 'swing') prompt = (this.input.scheme ? this.input.scheme() : this.input.last) === 'keyboard' ? ['upJump', 'Climb   {lineOff} Jump off'] : ['jump', 'Fling']; // [issue #37] on the keyboard ↑ climbs a line; ← or → with it jumps off
+    if (p.state === 'swing') prompt = (this.input.scheme ? this.input.scheme() : this.input.last) === 'keyboard' ? ['upJump', 'Climb · {lineOff} Jump off'] : ['jump', 'Fling']; // [issue #37] on the keyboard ↑ climbs a line; ← or → with it jumps off
     if (this.extraPrompt && !prompt) prompt = this.extraPrompt;   // meta: Carrier facilities, talkers, lair doors
     const pk = prompt ? prompt.join(':') + this.capKey() : ''; // [polish-T]
     if (pk !== this._pk) {

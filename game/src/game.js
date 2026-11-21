@@ -76,9 +76,12 @@ export class Game {
       default: break;
     }
   }
-  toast(text, dur = 150) {
+  // seq: a scripted sequence's steps (the tank's lid): a toast with a seq replaces that sequence's earlier toasts, so
+  // each step's line clears the last instead of stacking under it (issue #38 review)
+  toast(text, dur = 150, seq = null) {
     if (this.toasts.length && this.toasts[this.toasts.length - 1].text === text && this.frame - this.toasts[this.toasts.length - 1].f < dur) return;
-    this.toasts.push({ text, f: this.frame, dur });
+    if (seq) this.toasts = this.toasts.filter((t) => t.seq !== seq);
+    this.toasts.push(seq ? { text, f: this.frame, dur, seq } : { text, f: this.frame, dur });
     if (this.toasts.length > 4) this.toasts.shift();
   }
 

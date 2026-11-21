@@ -287,7 +287,7 @@ bad = texts.filter(([, t]) => /\b(Z|Space)\b/.test(t)).map(([at]) => at);
 ok(!bad.length, `no tip names Z or Space${bad.length ? ': ' + bad.slice(0, 4).join('; ') : ''}`);
 const lineTips = texts.filter(([, t]) => /hook|shelf pin/.test(t) && /\{use\}/.test(t) && !/\{use\} near a hook to swing/.test(t));
 ok(lineTips.length >= 4 && lineTips.every(([, t]) => t.includes('{lineOff}') && !t.includes('{jump}')), `the line tips name {lineOff} for jumping off, never {jump} (${lineTips.length} tips)`);
-ok(/'upJump', 'Climb {3}\{lineOff\} Jump off'/.test(readFileSync(path.join(srcDir, 'ui.js'), 'utf8')), 'the line prompt (keyboard): ↑ Climb, ←/→ + ↑ Jump off');
+ok(/'upJump', 'Climb · \{lineOff\} Jump off'/.test(readFileSync(path.join(srcDir, 'ui.js'), 'utf8')), 'the line prompt (keyboard): ↑ Climb, ←/→ + ↑ Jump off');
 
 console.log(`controls-test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -28,7 +28,7 @@ function sandGame(gentle, x = 1, room = 'tank-sand', y = 15) { // [issue #38] ro
   const emit = g.emit.bind(g);
   g.emit = (t, d = {}) => { ev.push({ t, d, f: g.frame }); emit(t, d); };
   const toasts = [], toast = g.toast.bind(g);
-  g.toast = (text, dur) => { toasts.push({ text, f: g.frame }); toast(text, dur); };
+  g.toast = (text, dur, seq) => { toasts.push({ text, f: g.frame }); toast(text, dur, seq); };
   let died = 0; const die = g.die.bind(g); g.die = () => { died++; die(); };
   let prev = {};
   const step = (held = {}, n = 1) => {
@@ -478,6 +478,9 @@ section('lid', () => {
     const stopX = p.x + p.w;
     ok(b().mode === 'out' && stopX <= cupX - 0.5 * T && stopX > cupX - 1.5 * T, `${tag}: walking into the cup stops him beside it (his right edge ${(stopX / T).toFixed(2)}, the cup ${(cupX / T).toFixed(2)})`);
     ok(s.toasts.filter((t) => t.text === TK.kickCup).length === 1 && /\{kick\}/.test(TK.kickCup), `${tag}: the "${TK.kickCup}" toast, once`);
+    ok(!s.g.signs.some((sg) => sg.text === TK.squeeze), `${tag}: the squeeze note is gone once he is through`);
+    const live = s.g.toasts.map((t) => t.text);
+    ok(live.includes(TK.kickCup) && !live.some((t) => /^Out!/.test(t)), `${tag}: the kick prompt replaces "Out!" (showing: ${live.join(' | ')})`);
     for (let i = 0; i < 3; i++) { s.step({ right: true, jump: true }, 25); s.step({ right: true }, 40); }
     ok(b().mode === 'out' && p.x + p.w <= cupX - 0.5 * T + 1 && !s.ev.some((e) => e.t === 'bonk'), `${tag}: jumping into it doesn't get past or tip it (${b().mode}, ${((p.x + p.w) / T).toFixed(2)})`);
     s.step({ left: true }, 30); s.step({ right: true }, 40);
